@@ -162,6 +162,12 @@ input[type='number'] {
   border-bottom: 1px solid #1f2937;
 }
 
+.line-chart {
+  width: 100%;
+  height: auto;
+  margin: 8px 0 4px;
+}
+
 .tabbar {
   position: fixed;
   bottom: 0;
