@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { initialBodyParts, initialExercises } from '../data/initialData'
-import { loadData, saveData } from '../lib/storage'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { loadData, mergeData, requestPersistentStorage, saveData } from '../lib/storage'
+import * as sync from '../lib/sync'
+import { todayStr } from '../lib/date'
+import { isFilledSet, previousRecord, sessionPartIds } from '../lib/stats'
 
 const DataContext = createContext(null)
 
@@ -8,87 +10,302 @@ function makeId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
-export function DataProvider({ children }) {
-  const [state, setState] = useState(() => {
-    const saved = loadData()
-    if (saved) return saved
-    return {
-      bodyParts: initialBodyParts,
-      exercises: initialExercises,
-      sessions: [],
-    }
-  })
+// 前回の記録の行数ぶん、空のセットを用意する（入力欄には前回の値が薄く表示される）
+function newItem(sessions, exerciseId, date, excludeId) {
+  const prev = previousRecord(sessions, exerciseId, { onOrBefore: date, excludeId })
+  const count = prev ? prev.sets.length : 1
+  return {
+    exerciseId,
+    note: '',
+    sets: Array.from({ length: count }, () => ({ weight: '', reps: '', done: false })),
+  }
+}
 
+export function DataProvider({ children }) {
+  const [state, setState] = useState(loadData)
+  const [syncStatus, setSyncStatus] = useState(() => ({
+    configured: !!sync.loadSyncConfig(),
+    state: 'idle',
+    at: null,
+    message: '',
+  }))
+
+  // 1項目入力するたびに、この端末へ即保存
   useEffect(() => {
     saveData(state)
   }, [state])
 
-  const actions = useMemo(
-    () => ({
+  useEffect(() => {
+    requestPersistentStorage()
+  }, [])
+
+  // ---- クラウド同期 ----
+  const stateRef = useRef(state)
+  const syncingRef = useRef(false)
+  const pendingRef = useRef(false)
+  const lastSyncedJsonRef = useRef(null)
+  const timerRef = useRef(null)
+
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
+  const runSync = useCallback(async () => {
+    const config = sync.loadSyncConfig()
+    if (!config) return
+    if (syncingRef.current) {
+      pendingRef.current = true
+      return
+    }
+    syncingRef.current = true
+    setSyncStatus((s) => ({ ...s, configured: true, state: 'syncing', message: '' }))
+    try {
+      const local = stateRef.current
+      const remote = await sync.pull(config)
+      const merged = remote ? mergeData(local, remote) : local
+      const mergedJson = JSON.stringify(merged)
+      if (!remote || mergedJson !== JSON.stringify(mergeData(remote, remote))) {
+        await sync.push(config, merged)
+      }
+      lastSyncedJsonRef.current = mergedJson
+      setState((cur) => {
+        if (cur === local) return mergedJson === JSON.stringify(cur) ? cur : merged
+        // 通信中に入力された分は消さずに合わせ、もう一度同期する
+        pendingRef.current = true
+        return mergeData(cur, merged)
+      })
+      setSyncStatus({ configured: true, state: 'ok', at: Date.now(), message: '' })
+    } catch (e) {
+      setSyncStatus((s) => ({ ...s, state: 'error', message: e.message || '同期に失敗しました' }))
+    } finally {
+      syncingRef.current = false
+      if (pendingRef.current) {
+        pendingRef.current = false
+        setTimeout(runSync, 500)
+      }
+    }
+  }, [])
+
+  // データが変わったら少し待ってクラウドへ
+  useEffect(() => {
+    if (!sync.loadSyncConfig()) return
+    if (JSON.stringify(state) === lastSyncedJsonRef.current) return
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(runSync, 2000)
+    return () => clearTimeout(timerRef.current)
+  }, [state, runSync])
+
+  // アプリを開いたとき・戻ってきたときに最新を取りにいく
+  useEffect(() => {
+    runSync()
+    function onVisible() {
+      if (document.visibilityState === 'visible') runSync()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('online', runSync)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('online', runSync)
+    }
+  }, [runSync])
+
+  const connectSync = useCallback(
+    async (token) => {
+      const config = await sync.connect(token.trim(), stateRef.current)
+      sync.saveSyncConfig(config)
+      setSyncStatus((s) => ({ ...s, configured: true }))
+      await runSync()
+    },
+    [runSync]
+  )
+
+  const disconnectSync = useCallback(() => {
+    sync.saveSyncConfig(null)
+    setSyncStatus({ configured: false, state: 'idle', at: null, message: '' })
+  }, [])
+
+  // ---- 更新系 ----
+  const actions = useMemo(() => {
+    // 部位・種目・ルーティン・設定の変更
+    function updateMaster(fn) {
+      setState((s) => ({ ...fn(s), masterUpdatedAt: Date.now() }))
+    }
+
+    return {
       addBodyPart(name, group) {
-        setState((s) => ({
+        updateMaster((s) => ({
           ...s,
           bodyParts: [...s.bodyParts, { id: makeId('part'), name, group }],
         }))
       },
       deleteBodyPart(id) {
-        setState((s) => ({
+        updateMaster((s) => ({
           ...s,
           bodyParts: s.bodyParts.filter((p) => p.id !== id),
           exercises: s.exercises.filter((e) => e.bodyPartId !== id),
         }))
       },
       addExercise(exercise) {
-        setState((s) => ({
+        const id = makeId('ex')
+        updateMaster((s) => ({
           ...s,
-          exercises: [
-            ...s.exercises,
-            { id: makeId('ex'), active: true, ...exercise },
-          ],
+          exercises: [...s.exercises, { id, active: true, ...exercise }],
         }))
+        return id
       },
       toggleExerciseActive(id) {
-        setState((s) => ({
+        updateMaster((s) => ({
           ...s,
-          exercises: s.exercises.map((e) =>
-            e.id === id ? { ...e, active: !e.active } : e
-          ),
+          exercises: s.exercises.map((e) => (e.id === id ? { ...e, active: !e.active } : e)),
         }))
       },
       deleteExercise(id) {
-        setState((s) => ({
+        updateMaster((s) => ({
           ...s,
           exercises: s.exercises.filter((e) => e.id !== id),
         }))
       },
-      addSession(session) {
-        setState((s) => ({
+      addRoutine(name, exerciseIds) {
+        updateMaster((s) => ({
           ...s,
-          sessions: [...s.sessions, { id: makeId('session'), ...session }],
+          routines: [...s.routines, { id: makeId('routine'), name, exerciseIds }],
         }))
       },
+      deleteRoutine(id) {
+        updateMaster((s) => ({ ...s, routines: s.routines.filter((r) => r.id !== id) }))
+      },
+      updateSettings(patch) {
+        updateMaster((s) => ({ ...s, settings: { ...s.settings, ...patch } }))
+      },
+
       deleteSession(id) {
         setState((s) => ({
           ...s,
           sessions: s.sessions.filter((sess) => sess.id !== id),
+          deletedSessionIds: [...s.deletedSessionIds, id],
         }))
       },
-    }),
-    []
-  )
 
-  // 指定した種目の、指定日より前で最新の記録を返す
-  function getPreviousRecord(exerciseId, beforeDate) {
-    const past = state.sessions
-      .filter((s) => s.date < beforeDate)
-      .filter((s) => s.entries.some((en) => en.exerciseId === exerciseId))
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-    if (past.length === 0) return null
-    const entry = past[0].entries.find((en) => en.exerciseId === exerciseId)
-    return { date: past[0].date, sets: entry.sets }
-  }
+      // ---- 記録中のトレーニング（1項目ごとに保存される） ----
+      startWorkout(exerciseIds, bodyPartIds = []) {
+        setState((s) => {
+          const date = todayStr()
+          return {
+            ...s,
+            activeWorkout: {
+              id: makeId('w'),
+              date,
+              startedAt: Date.now(),
+              updatedAt: Date.now(),
+              bodyPartIds,
+              restEndsAt: null,
+              items: exerciseIds.map((exId) => newItem(s.sessions, exId, date)),
+            },
+          }
+        })
+      },
+      // 過去の記録を開き直して修正する
+      editSession(sessionId) {
+        setState((s) => {
+          const session = s.sessions.find((x) => x.id === sessionId)
+          if (!session) return s
+          return {
+            ...s,
+            activeWorkout: {
+              id: makeId('w'),
+              sourceSessionId: session.id,
+              date: session.date,
+              startedAt: session.startedAt ?? null,
+              finishedAt: session.finishedAt ?? null,
+              updatedAt: Date.now(),
+              bodyPartIds: session.bodyPartIds ?? [],
+              restEndsAt: null,
+              items: session.entries.map((en) => ({
+                exerciseId: en.exerciseId,
+                note: en.note ?? '',
+                sets: en.sets.map((set) => ({
+                  weight: String(set.weight),
+                  reps: String(set.reps),
+                  done: true,
+                })),
+              })),
+            },
+          }
+        })
+      },
+      updateWorkout(fn) {
+        setState((s) => {
+          if (!s.activeWorkout) return s
+          return { ...s, activeWorkout: { ...fn(s.activeWorkout), updatedAt: Date.now() } }
+        })
+      },
+      addWorkoutExercise(exerciseId) {
+        setState((s) => {
+          const w = s.activeWorkout
+          if (!w) return s
+          const item = newItem(s.sessions, exerciseId, w.date, w.sourceSessionId)
+          return { ...s, activeWorkout: { ...w, items: [...w.items, item], updatedAt: Date.now() } }
+        })
+      },
+      finishWorkout() {
+        setState((s) => {
+          const w = s.activeWorkout
+          if (!w) return s
+          const entries = w.items
+            .map((it) => ({
+              exerciseId: it.exerciseId,
+              ...(it.note ? { note: it.note } : {}),
+              sets: it.sets
+                .filter(isFilledSet)
+                .map((set) => ({ weight: Number(set.weight), reps: Number(set.reps) })),
+            }))
+            .filter((en) => en.sets.length > 0)
+          const ended = { ...s, activeWorkout: null, endedWorkoutIds: [...s.endedWorkoutIds, w.id] }
+          const sessionId = w.sourceSessionId ?? w.id
+          if (entries.length === 0) {
+            if (!w.sourceSessionId) return ended
+            // 修正で全部消した → 記録ごと削除
+            return {
+              ...ended,
+              sessions: s.sessions.filter((x) => x.id !== sessionId),
+              deletedSessionIds: [...s.deletedSessionIds, sessionId],
+            }
+          }
+          const session = {
+            id: sessionId,
+            date: w.date,
+            bodyPartIds: [],
+            entries,
+            startedAt: w.startedAt,
+            finishedAt: w.finishedAt ?? Date.now(),
+            updatedAt: Date.now(),
+          }
+          session.bodyPartIds = sessionPartIds(session, s.exercises)
+          return {
+            ...ended,
+            sessions: [...s.sessions.filter((x) => x.id !== sessionId), session],
+          }
+        })
+      },
+      discardWorkout() {
+        setState((s) => {
+          if (!s.activeWorkout) return s
+          return {
+            ...s,
+            activeWorkout: null,
+            endedWorkoutIds: [...s.endedWorkoutIds, s.activeWorkout.id],
+          }
+        })
+      },
 
-  const value = { ...state, ...actions, getPreviousRecord }
+      // バックアップの読み込み（今のデータと合わせる。今ある記録は消えない）
+      importData(data) {
+        setState((s) => mergeData(s, data))
+      },
+    }
+  }, [])
+
+  const value = { ...state, ...actions, syncStatus, runSync, connectSync, disconnectSync }
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>
 }
 

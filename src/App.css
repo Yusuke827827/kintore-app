@@ -19,7 +19,7 @@ body {
 
 main {
   flex: 1;
-  padding: 16px 16px 90px;
+  padding: 16px 16px 160px;
 }
 
 h1 {
@@ -75,6 +75,8 @@ h3 {
   border: 1px solid #374151;
   border-radius: 999px;
   padding: 2px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .row {
@@ -126,23 +128,6 @@ select {
   font-size: 0.95rem;
 }
 
-input[type='number'] {
-  width: 90px;
-}
-
-.set-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 6px 0;
-}
-
-.set-index {
-  width: 64px;
-  font-size: 0.8rem;
-  color: #9ca3af;
-}
-
 .history-entry {
   display: flex;
   flex-direction: column;
@@ -192,4 +177,456 @@ input[type='number'] {
 .tabbar button.active {
   color: #818cf8;
   font-weight: bold;
+}
+
+/* ---- 追加分 ---- */
+a {
+  color: #818cf8;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.small {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+}
+
+button.wide {
+  width: 100%;
+  margin-top: 10px;
+}
+
+button.big {
+  padding: 14px;
+  font-size: 1.05rem;
+  font-weight: bold;
+}
+
+button.link {
+  display: block;
+  background: transparent;
+  color: #818cf8;
+  margin: 8px auto 0;
+  font-size: 0.85rem;
+}
+
+button.ghost {
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: transparent;
+  color: #9ca3af;
+  padding: 6px 8px;
+}
+
+.danger {
+  color: #f87171 !important;
+}
+
+.error {
+  color: #f87171;
+  font-size: 0.85rem;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: normal;
+  color: #a5b4fc;
+  background: #312e81;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.badge.ok {
+  color: #6ee7b7;
+  background: #064e3b;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.chip {
+  background: #1f2937;
+  color: #d1d5db;
+  border: 1px solid #374151;
+  border-radius: 999px;
+  padding: 8px 14px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.chip small {
+  font-size: 0.65rem;
+  color: #9ca3af;
+}
+
+.chip.on {
+  background: #4f46e5;
+  border-color: #6366f1;
+  color: white;
+}
+
+.chip.on small {
+  color: #c7d2fe;
+}
+
+.part-group {
+  margin-top: 6px;
+}
+
+.group-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.menu-preview {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #0b0f19;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.menu-preview p {
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.card.resume {
+  border: 1px solid #4f46e5;
+}
+
+.routine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.routine-main {
+  flex: 1;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 記録画面 */
+.workout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #0b0f19;
+  padding: 8px 0;
+}
+
+.saved-badge {
+  margin-left: 8px;
+  font-size: 0.7rem;
+  color: #34d399;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.item-tools {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.count {
+  margin-left: 8px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: normal;
+}
+
+.set-head,
+.set-row {
+  display: grid;
+  grid-template-columns: 44px 1fr 1fr 52px;
+  gap: 8px;
+  align-items: center;
+}
+
+.set-head {
+  margin-top: 10px;
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.set-row {
+  margin: 6px 0;
+  border-radius: 10px;
+}
+
+.set-row input {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+  font-size: 1.1rem;
+  padding: 10px 4px;
+}
+
+.set-row input::placeholder {
+  color: #4b5563;
+}
+
+.set-row.done input {
+  border-color: #065f46;
+  background: #052e22;
+}
+
+.set-index {
+  background: #1f2937;
+  color: #9ca3af;
+  padding: 10px 0;
+  position: relative;
+  font-size: 0.9rem;
+}
+
+.pr {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 0.55rem;
+  background: #f59e0b;
+  color: #111827;
+  border-radius: 999px;
+  padding: 1px 4px;
+  font-weight: bold;
+}
+
+.check {
+  background: #1f2937;
+  color: #6b7280;
+  font-size: 1.2rem;
+  padding: 8px 0;
+}
+
+.check.on {
+  background: #059669;
+  color: white;
+}
+
+input.note {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
+.hint {
+  margin-top: 16px;
+  line-height: 1.6;
+}
+
+.rest-timer {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(56px + env(safe-area-inset-bottom));
+  width: calc(100% - 24px);
+  max-width: 456px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #312e81;
+  border-radius: 14px;
+  padding: 8px 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  z-index: 20;
+}
+
+.rest-label {
+  font-size: 0.75rem;
+  color: #c7d2fe;
+}
+
+.rest-time {
+  font-size: 1.4rem;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  margin-right: auto;
+}
+
+.rest-timer button {
+  background: #4338ca;
+  color: white;
+  padding: 8px 8px;
+  font-size: 0.8rem;
+}
+
+/* 種目選択シート */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet {
+  background: #111827;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  border-radius: 16px 16px 0 0;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.pick-list {
+  list-style: none;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.pick-list button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #e5e7eb;
+  border-bottom: 1px solid #1f2937;
+  border-radius: 0;
+  padding: 12px 4px;
+  text-align: left;
+}
+
+.pick-list button.added {
+  color: #34d399;
+}
+
+/* 履歴 */
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.calendar .dow {
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.calendar .day {
+  font-size: 0.8rem;
+  padding: 6px 0;
+  border-radius: 8px;
+  color: #9ca3af;
+}
+
+.calendar .day.trained {
+  background: #4f46e5;
+  color: white;
+  font-weight: bold;
+}
+
+.calendar .day.today {
+  outline: 1px solid #818cf8;
+}
+
+/* 完了画面 */
+.finished {
+  text-align: center;
+  padding: 24px 16px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+.stats div {
+  display: flex;
+  flex-direction: column;
+}
+
+.stats strong {
+  font-size: 1.4rem;
+}
+
+.stats span {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.steps {
+  margin: 8px 0 0 20px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #d1d5db;
+}
+
+.sync-error {
+  width: 100%;
+  background: #7f1d1d;
+  color: #fecaca;
+  border-radius: 0;
+  font-size: 0.8rem;
+  padding: 8px;
+}
+
+.tabbar button.live {
+  color: #34d399;
+}
+
+.tabbar button.live.active {
+  color: #6ee7b7;
 }

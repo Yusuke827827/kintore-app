@@ -1,12 +1,32 @@
+import { initialBodyParts, initialExercises } from '../data/initialData'
+
 const STORAGE_KEY = 'kintore-app-data-v1'
+
+export const DEFAULT_SETTINGS = { restSeconds: 90 }
+
+// 古い形式の保存データも、足りない項目を補って今の形式にそろえる
+export function normalizeData(data) {
+  return {
+    version: 2,
+    bodyParts: data?.bodyParts ?? initialBodyParts,
+    exercises: data?.exercises ?? initialExercises,
+    sessions: data?.sessions ?? [],
+    deletedSessionIds: data?.deletedSessionIds ?? [],
+    endedWorkoutIds: data?.endedWorkoutIds ?? [],
+    routines: data?.routines ?? [],
+    settings: { ...DEFAULT_SETTINGS, ...data?.settings },
+    // 初期値のままなら0。以前の版で保存されていたデータは自分で編集した可能性があるので1。
+    masterUpdatedAt: data?.masterUpdatedAt ?? (data ? 1 : 0),
+    activeWorkout: data?.activeWorkout ?? null,
+  }
+}
 
 export function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    return JSON.parse(raw)
+    return normalizeData(raw ? JSON.parse(raw) : null)
   } catch {
-    return null
+    return normalizeData(null)
   }
 }
 
@@ -16,4 +36,52 @@ export function saveData(data) {
   } catch {
     // localStorageが使えない環境（プライベートモード等）では保存をあきらめる
   }
+}
+
+// ブラウザに「容量が足りなくなっても消さないで」とお願いする
+export function requestPersistentStorage() {
+  navigator.storage?.persist?.().catch(() => {})
+}
+
+// 2つのデータ（この端末 と 同期先/バックアップ）を、どちらの記録も失わないように合わせる
+// ・トレーニング記録：両方の和集合（同じ記録は新しく更新された方）。削除した記録は消したまま。
+// ・部位/種目/ルーティン/設定：最後に編集された方（同時刻なら other）
+// ・記録中のトレーニング：最後に更新された方（もう終了したものは除く）
+export function mergeData(localRaw, otherRaw) {
+  const local = normalizeData(localRaw)
+  const other = normalizeData(otherRaw)
+
+  const deleted = [...new Set([...local.deletedSessionIds, ...other.deletedSessionIds])].sort()
+  const deletedSet = new Set(deleted)
+  const ended = [...new Set([...local.endedWorkoutIds, ...other.endedWorkoutIds])].sort()
+  const endedSet = new Set(ended)
+
+  const byId = new Map()
+  for (const s of [...local.sessions, ...other.sessions]) {
+    if (deletedSet.has(s.id)) continue
+    const cur = byId.get(s.id)
+    if (!cur || (s.updatedAt ?? 0) > (cur.updatedAt ?? 0)) byId.set(s.id, s)
+  }
+  const sessions = [...byId.values()].sort((a, b) =>
+    a.date !== b.date ? (a.date < b.date ? -1 : 1) : a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+  )
+
+  const master = local.masterUpdatedAt > other.masterUpdatedAt ? local : other
+
+  const workouts = [local.activeWorkout, other.activeWorkout].filter(
+    (w) => w && !endedSet.has(w.id)
+  )
+  workouts.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
+
+  return normalizeData({
+    bodyParts: master.bodyParts,
+    exercises: master.exercises,
+    routines: master.routines,
+    settings: master.settings,
+    masterUpdatedAt: master.masterUpdatedAt,
+    sessions,
+    deletedSessionIds: deleted,
+    endedWorkoutIds: ended,
+    activeWorkout: workouts[0] ?? null,
+  })
 }

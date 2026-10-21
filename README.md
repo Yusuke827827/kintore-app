@@ -1,16 +1,26 @@
-# React + Vite
+# 筋トレ記録アプリ
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+https://yusuke827827.github.io/kintore-app/
 
-Currently, two official plugins are available:
+ジムでスマホから使う筋トレ記録アプリ（PWA）。ホーム画面に追加して使う想定。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## できること
 
-## React Compiler
+- **ワンタップで開始**：前回からの日数を見て今日の部位をおすすめし、その部位の前回メニューをそのまま用意する
+- **前回の値が入力欄に薄く出る**：同じでよければ ✓ を押すだけで記録。✓ で休憩タイマーが自動スタート（終了時に音・バイブ）
+- **1項目ごとに自動保存**：入力した瞬間に保存。アプリが閉じても続きから再開できる
+- **クラウド同期**：GitHub の非公開 Gist を使って、別のブラウザ・スマホ・PC と記録を共有（設定画面から）
+- **バックアップ**：JSON ファイルの書き出し／読み込み、コピー＆貼り付け
+- 自己ベスト（PR）表示、推定1RM、マイルーティン、メモ、過去の記録の修正
+- 履歴：カレンダー、種目ごとの重量・推定1RM・ボリュームのグラフ
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 開発
 
-## Expanding the Oxlint configuration
+```sh
+npm install
+npm run dev     # 開発サーバー
+npm run lint
+npm run build
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+`main` に push すると GitHub Actions が `gh-pages` ブランチへ自動で公開する（`npm run deploy` で手動公開も可）。

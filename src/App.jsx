@@ -1,74 +1,104 @@
 import { useState } from 'react'
 import './App.css'
-import { DataProvider } from './state/DataContext'
+import { DataProvider, useData } from './state/DataContext'
 import Home from './screens/Home'
-import Proposal from './screens/Proposal'
-import Record from './screens/Record'
+import Workout from './screens/Workout'
 import History from './screens/History'
-import Master from './screens/Master'
+import Settings from './screens/Settings'
+import { formatMinutes } from './lib/date'
+
+function FinishedSummary({ summary, onClose }) {
+  return (
+    <div className="screen">
+      <section className="card finished">
+        <h1>{summary.isEdit ? '修正を保存しました' : 'おつかれさまでした！'}</h1>
+        <div className="stats">
+          <div>
+            <strong>{summary.exercises}</strong>
+            <span>種目</span>
+          </div>
+          <div>
+            <strong>{summary.sets}</strong>
+            <span>セット</span>
+          </div>
+          <div>
+            <strong>{Math.round(summary.volume).toLocaleString()}</strong>
+            <span>kg</span>
+          </div>
+          {formatMinutes(summary.durationMs) && (
+            <div>
+              <strong>{formatMinutes(summary.durationMs)}</strong>
+              <span>時間</span>
+            </div>
+          )}
+        </div>
+        {summary.prs.length > 0 && (
+          <p className="target">🏆 自己ベスト更新：{summary.prs.join('・')}</p>
+        )}
+        <button className="primary wide" onClick={onClose}>
+          OK
+        </button>
+      </section>
+    </div>
+  )
+}
 
 function AppInner() {
-  const [screen, setScreen] = useState('home')
-  const [flow, setFlow] = useState({ bodyPartIds: [], exerciseIds: [] })
+  const { activeWorkout, syncStatus } = useData()
+  // 記録の途中でアプリが閉じても、開き直したらそのまま続きから
+  const [screen, setScreen] = useState(() => (activeWorkout ? 'workout' : 'home'))
+  const [summary, setSummary] = useState(null)
 
-  function goHome() {
-    setFlow({ bodyPartIds: [], exerciseIds: [] })
-    setScreen('home')
-  }
+  const current = screen === 'workout' && !activeWorkout ? 'home' : screen
+
+  const tabs = [
+    { key: 'home', label: 'ホーム' },
+    ...(activeWorkout ? [{ key: 'workout', label: '記録中' }] : []),
+    { key: 'history', label: '履歴' },
+    { key: 'settings', label: '設定' },
+  ]
 
   return (
     <div className="app">
-      <nav className="tabbar">
-        <button className={screen === 'home' ? 'active' : ''} onClick={goHome}>
-          ホーム
+      {syncStatus.state === 'error' && current !== 'settings' && (
+        <button className="sync-error" onClick={() => setScreen('settings')}>
+          ⚠ 同期できていません（記録はこの端末に保存済み）
         </button>
-        <button
-          className={screen === 'history' ? 'active' : ''}
-          onClick={() => setScreen('history')}
-        >
-          履歴
-        </button>
-        <button
-          className={screen === 'master' ? 'active' : ''}
-          onClick={() => setScreen('master')}
-        >
-          マスタ管理
-        </button>
-      </nav>
-
+      )}
       <main>
-        {screen === 'home' && (
-          <Home
-            onStart={(bodyPartIds) => {
-              setFlow((f) => ({ ...f, bodyPartIds }))
-              setScreen('proposal')
-            }}
-          />
+        {summary ? (
+          <FinishedSummary summary={summary} onClose={() => setSummary(null)} />
+        ) : (
+          <>
+            {current === 'home' && <Home onOpenWorkout={() => setScreen('workout')} />}
+            {current === 'workout' && (
+              <Workout
+                onFinished={(s) => {
+                  setSummary(s)
+                  setScreen('home')
+                }}
+              />
+            )}
+            {current === 'history' && <History onOpenWorkout={() => setScreen('workout')} />}
+            {current === 'settings' && <Settings />}
+          </>
         )}
-
-        {screen === 'proposal' && (
-          <Proposal
-            bodyPartIds={flow.bodyPartIds}
-            onBack={goHome}
-            onConfirm={(exerciseIds) => {
-              setFlow((f) => ({ ...f, exerciseIds }))
-              setScreen('record')
-            }}
-          />
-        )}
-
-        {screen === 'record' && (
-          <Record
-            bodyPartIds={flow.bodyPartIds}
-            exerciseIds={flow.exerciseIds}
-            onBack={() => setScreen('proposal')}
-            onDone={goHome}
-          />
-        )}
-
-        {screen === 'history' && <History />}
-        {screen === 'master' && <Master />}
       </main>
+
+      <nav className="tabbar">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            className={`${current === t.key && !summary ? 'active' : ''} ${t.key === 'workout' ? 'live' : ''}`}
+            onClick={() => {
+              setSummary(null)
+              setScreen(t.key)
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
     </div>
   )
 }
