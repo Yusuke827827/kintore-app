@@ -1,11 +1,62 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import './App.css'
 import { DataProvider, useData } from './state/DataContext'
 import Home from './screens/Home'
 import Workout from './screens/Workout'
 import History from './screens/History'
 import Settings from './screens/Settings'
+import Customize from './screens/Customize'
 import { formatMinutes } from './lib/date'
+
+// 今回やったメニューをマイセットに登録するか聞く（同じメニューが登録済みなら聞かない）
+function SaveAsMySet({ exerciseIds }) {
+  const { routines, allExercises, allBodyParts, addRoutine } = useData()
+  const defaultName = useMemo(() => {
+    const partIds = [
+      ...new Set(exerciseIds.map((id) => allExercises.find((e) => e.id === id)?.bodyPartId)),
+    ]
+    const names = partIds.map((id) => allBodyParts.find((p) => p.id === id)?.name).filter(Boolean)
+    return names.length ? `${names.join('＋')}の日` : 'マイセット'
+  }, [exerciseIds, allExercises, allBodyParts])
+  const [name, setName] = useState(defaultName)
+  const [state, setState] = useState('ask') // ask | saved | skipped
+
+  const key = [...exerciseIds].sort().join(',')
+  const existing = routines.find((r) => [...r.exerciseIds].sort().join(',') === key)
+  if (exerciseIds.length === 0 || state === 'skipped') return null
+  if (existing && state === 'ask') {
+    return <p className="muted">このメニューはマイセット「{existing.name}」に登録済みです。</p>
+  }
+  if (state === 'saved') {
+    return <p className="target">マイセット「{name.trim()}」に登録しました。ホームからワンタップで始められます。</p>
+  }
+  return (
+    <div className="myset-ask">
+      <p>今回のメニューをマイセットに登録しますか？</p>
+      <input
+        className="search"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="名前（例：胸の日）"
+      />
+      <div className="row">
+        <button className="secondary" onClick={() => setState('skipped')}>
+          しない
+        </button>
+        <button
+          className="primary"
+          disabled={!name.trim()}
+          onClick={() => {
+            addRoutine(name.trim(), exerciseIds)
+            setState('saved')
+          }}
+        >
+          登録する
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function FinishedSummary({ summary, onClose }) {
   return (
@@ -35,6 +86,7 @@ function FinishedSummary({ summary, onClose }) {
         {summary.prs.length > 0 && (
           <p className="target">🏆 自己ベスト更新：{summary.prs.join('・')}</p>
         )}
+        {!summary.isEdit && <SaveAsMySet exerciseIds={summary.exerciseIds ?? []} />}
         <button className="primary wide" onClick={onClose}>
           OK
         </button>
@@ -48,6 +100,12 @@ function AppInner() {
   // 記録の途中でアプリが閉じても、開き直したらそのまま続きから
   const [screen, setScreen] = useState(() => (activeWorkout ? 'workout' : 'home'))
   const [summary, setSummary] = useState(null)
+  const [customizeTab, setCustomizeTab] = useState('parts')
+
+  function openCustomize(tab) {
+    setCustomizeTab(tab)
+    setScreen('customize')
+  }
 
   const current = screen === 'workout' && !activeWorkout ? 'home' : screen
 
@@ -70,7 +128,9 @@ function AppInner() {
           <FinishedSummary summary={summary} onClose={() => setSummary(null)} />
         ) : (
           <>
-            {current === 'home' && <Home onOpenWorkout={() => setScreen('workout')} />}
+            {current === 'home' && (
+              <Home onOpenWorkout={() => setScreen('workout')} onOpenCustomize={openCustomize} />
+            )}
             {current === 'workout' && (
               <Workout
                 onFinished={(s) => {
@@ -80,7 +140,14 @@ function AppInner() {
               />
             )}
             {current === 'history' && <History onOpenWorkout={() => setScreen('workout')} />}
-            {current === 'settings' && <Settings />}
+            {current === 'settings' && <Settings onOpenCustomize={openCustomize} />}
+            {current === 'customize' && (
+              <Customize
+                key={customizeTab}
+                initialTab={customizeTab}
+                onBack={() => setScreen('settings')}
+              />
+            )}
           </>
         )}
       </main>
@@ -89,7 +156,7 @@ function AppInner() {
         {tabs.map((t) => (
           <button
             key={t.key}
-            className={`${current === t.key && !summary ? 'active' : ''} ${t.key === 'workout' ? 'live' : ''}`}
+            className={`${(current === t.key || (t.key === 'settings' && current === 'customize')) && !summary ? 'active' : ''} ${t.key === 'workout' ? 'live' : ''}`}
             onClick={() => {
               setSummary(null)
               setScreen(t.key)

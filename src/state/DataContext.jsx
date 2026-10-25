@@ -1,10 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { initialBodyParts, initialExercises } from '../data/initialData'
 import { loadData, mergeData, requestPersistentStorage, saveData } from '../lib/storage'
 import * as sync from '../lib/sync'
 import { todayStr } from '../lib/date'
 import { isFilledSet, previousRecord, sessionPartIds } from '../lib/stats'
 
 const DataContext = createContext(null)
+
+// 条件に合う要素どうしの中で、id の要素を1つ上(-1)/下(+1)へ動かす
+function moveAmong(list, id, dir, sameGroup) {
+  const i = list.findIndex((x) => x.id === id)
+  if (i < 0) return list
+  let j = i + dir
+  while (j >= 0 && j < list.length && (list[j].deleted || !sameGroup(list[j]))) j += dir
+  if (j < 0 || j >= list.length) return list
+  const next = [...list]
+  ;[next[i], next[j]] = [next[j], next[i]]
+  return next
+}
 
 function makeId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
@@ -138,11 +151,26 @@ export function DataProvider({ children }) {
           bodyParts: [...s.bodyParts, { id: makeId('part'), name, group }],
         }))
       },
+      updateBodyPart(id, patch) {
+        updateMaster((s) => ({
+          ...s,
+          bodyParts: s.bodyParts.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+        }))
+      },
+      moveBodyPart(id, dir) {
+        updateMaster((s) => ({ ...s, bodyParts: moveAmong(s.bodyParts, id, dir, () => true) }))
+      },
+      // 削除しても過去の記録に名前が残るよう、印をつけて隠すだけにする（あとで復元できる）
       deleteBodyPart(id) {
         updateMaster((s) => ({
           ...s,
-          bodyParts: s.bodyParts.filter((p) => p.id !== id),
-          exercises: s.exercises.filter((e) => e.bodyPartId !== id),
+          bodyParts: s.bodyParts.map((p) => (p.id === id ? { ...p, deleted: true } : p)),
+        }))
+      },
+      restoreBodyPart(id) {
+        updateMaster((s) => ({
+          ...s,
+          bodyParts: s.bodyParts.map((p) => (p.id === id ? { ...p, deleted: false } : p)),
         }))
       },
       addExercise(exercise) {
@@ -153,6 +181,22 @@ export function DataProvider({ children }) {
         }))
         return id
       },
+      updateExercise(id, patch) {
+        updateMaster((s) => ({
+          ...s,
+          exercises: s.exercises.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+        }))
+      },
+      // 同じ部位の中で並べ替える
+      moveExercise(id, dir) {
+        updateMaster((s) => {
+          const partId = s.exercises.find((e) => e.id === id)?.bodyPartId
+          return {
+            ...s,
+            exercises: moveAmong(s.exercises, id, dir, (e) => e.bodyPartId === partId),
+          }
+        })
+      },
       toggleExerciseActive(id) {
         updateMaster((s) => ({
           ...s,
@@ -162,14 +206,53 @@ export function DataProvider({ children }) {
       deleteExercise(id) {
         updateMaster((s) => ({
           ...s,
-          exercises: s.exercises.filter((e) => e.id !== id),
+          exercises: s.exercises.map((e) => (e.id === id ? { ...e, deleted: true } : e)),
         }))
+      },
+      restoreExercise(id) {
+        updateMaster((s) => ({
+          ...s,
+          exercises: s.exercises.map((e) =>
+            e.id === id ? { ...e, deleted: false, active: true } : e
+          ),
+        }))
+      },
+      // 最初から入っていた部位・種目のうち、消してしまったものを戻す
+      restoreDefaults() {
+        updateMaster((s) => {
+          const partIds = new Set(s.bodyParts.map((p) => p.id))
+          const exIds = new Set(s.exercises.map((e) => e.id))
+          return {
+            ...s,
+            bodyParts: [
+              ...s.bodyParts.map((p) =>
+                initialBodyParts.some((d) => d.id === p.id) ? { ...p, deleted: false } : p
+              ),
+              ...initialBodyParts.filter((d) => !partIds.has(d.id)),
+            ],
+            exercises: [
+              ...s.exercises.map((e) =>
+                initialExercises.some((d) => d.id === e.id) ? { ...e, deleted: false } : e
+              ),
+              ...initialExercises.filter((d) => !exIds.has(d.id)),
+            ],
+          }
+        })
       },
       addRoutine(name, exerciseIds) {
         updateMaster((s) => ({
           ...s,
           routines: [...s.routines, { id: makeId('routine'), name, exerciseIds }],
         }))
+      },
+      updateRoutine(id, patch) {
+        updateMaster((s) => ({
+          ...s,
+          routines: s.routines.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+        }))
+      },
+      moveRoutine(id, dir) {
+        updateMaster((s) => ({ ...s, routines: moveAmong(s.routines, id, dir, () => true) }))
       },
       deleteRoutine(id) {
         updateMaster((s) => ({ ...s, routines: s.routines.filter((r) => r.id !== id) }))
@@ -305,7 +388,22 @@ export function DataProvider({ children }) {
     }
   }, [])
 
-  const value = { ...state, ...actions, syncStatus, runSync, connectSync, disconnectSync }
+  // 画面には削除していないものだけを渡す。名前を引くときは all〜 を使う（過去の記録用）
+  const value = {
+    ...state,
+    allBodyParts: state.bodyParts,
+    allExercises: state.exercises,
+    bodyParts: useMemo(() => state.bodyParts.filter((p) => !p.deleted), [state.bodyParts]),
+    exercises: useMemo(() => {
+      const parts = new Set(state.bodyParts.filter((p) => !p.deleted).map((p) => p.id))
+      return state.exercises.filter((e) => !e.deleted && parts.has(e.bodyPartId))
+    }, [state.exercises, state.bodyParts]),
+    ...actions,
+    syncStatus,
+    runSync,
+    connectSync,
+    disconnectSync,
+  }
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>
 }
 

@@ -54,7 +54,15 @@ function MonthCalendar({ sessions }) {
 }
 
 export default function History({ onOpenWorkout }) {
-  const { sessions, bodyParts, exercises, deleteSession, editSession, activeWorkout } = useData()
+  const {
+    sessions,
+    bodyParts,
+    allBodyParts,
+    allExercises: exercises,
+    deleteSession,
+    editSession,
+    activeWorkout,
+  } = useData()
   const [filterPart, setFilterPart] = useState('all')
   const [graphExerciseId, setGraphExerciseId] = useState('')
 
@@ -64,7 +72,7 @@ export default function History({ onOpenWorkout }) {
   )
 
   function partName(id) {
-    return bodyParts.find((p) => p.id === id)?.name ?? id
+    return allBodyParts.find((p) => p.id === id)?.name ?? id
   }
   function exerciseName(id) {
     return exercises.find((e) => e.id === id)?.name ?? '（削除された種目）'

@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import { useData } from '../state/DataContext'
 import { todayStr } from '../lib/date'
 
-const GROUP_LABEL = { upper: '上半身', lower: '下半身', core: '体幹' }
 const TOKEN_URL =
   'https://github.com/settings/tokens/new?scopes=gist&description=kintore-app%20sync'
 
@@ -188,161 +187,28 @@ function BackupSection() {
   )
 }
 
-function MasterSection() {
-  const {
-    bodyParts,
-    exercises,
-    addBodyPart,
-    deleteBodyPart,
-    addExercise,
-    toggleExerciseActive,
-    deleteExercise,
-  } = useData()
-
-  const [newPartName, setNewPartName] = useState('')
-  const [newPartGroup, setNewPartGroup] = useState('upper')
-
-  const [exFilter, setExFilter] = useState(bodyParts[0]?.id ?? 'all')
-  const [newExName, setNewExName] = useState('')
-  const [newExEquipment, setNewExEquipment] = useState('')
-  const [newExType, setNewExType] = useState('compound')
-
-  function handleAddPart() {
-    if (!newPartName.trim()) return
-    addBodyPart(newPartName.trim(), newPartGroup)
-    setNewPartName('')
-  }
-
-  function handleAddExercise() {
-    const part = exFilter === 'all' ? bodyParts[0]?.id : exFilter
-    if (!newExName.trim() || !part) return
-    addExercise({
-      name: newExName.trim(),
-      bodyPartId: part,
-      equipment: newExEquipment.trim() || 'その他',
-      type: newExType,
-    })
-    setNewExName('')
-    setNewExEquipment('')
-  }
-
-  const visibleExercises = exercises.filter(
-    (e) => exFilter === 'all' || e.bodyPartId === exFilter
-  )
-
-  return (
-    <>
-      <section className="card">
-        <h2>種目</h2>
-        <p className="muted">チェックを外した種目は、種目選びに出てこなくなります。</p>
-        <div className="chips">
-          {bodyParts.map((p) => (
-            <button
-              key={p.id}
-              className={`chip ${exFilter === p.id ? 'on' : ''}`}
-              onClick={() => setExFilter(p.id)}
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
-
-        <ul className="plain-list">
-          {visibleExercises.map((e) => (
-            <li key={e.id} className="row-between">
-              <label className="option">
-                <input
-                  type="checkbox"
-                  checked={e.active}
-                  onChange={() => toggleExerciseActive(e.id)}
-                />
-                {e.name}
-                <span className="tag">{e.equipment}</span>
-              </label>
-              <button
-                className="ghost danger"
-                onClick={() => confirm(`「${e.name}」を削除しますか？`) && deleteExercise(e.id)}
-              >
-                削除
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <h3>この部位に種目を追加</h3>
-        <div className="row">
-          <input
-            className="grow"
-            placeholder="種目名"
-            value={newExName}
-            onChange={(e) => setNewExName(e.target.value)}
-          />
-        </div>
-        <div className="row">
-          <input
-            className="grow"
-            placeholder="使用設備（例：ダンベル）"
-            value={newExEquipment}
-            onChange={(e) => setNewExEquipment(e.target.value)}
-          />
-          <select value={newExType} onChange={(e) => setNewExType(e.target.value)}>
-            <option value="compound">コンパウンド</option>
-            <option value="isolation">アイソレーション</option>
-          </select>
-          <button className="secondary" onClick={handleAddExercise}>
-            追加
-          </button>
-        </div>
-      </section>
-
-      <section className="card">
-        <h2>部位</h2>
-        <ul className="plain-list">
-          {bodyParts.map((p) => (
-            <li key={p.id} className="row-between">
-              <span>
-                {p.name}
-                <span className="tag">{GROUP_LABEL[p.group] ?? p.group}</span>
-              </span>
-              <button
-                className="ghost danger"
-                onClick={() =>
-                  confirm(`「${p.name}」とその種目を削除しますか？（過去の記録は残ります）`) &&
-                  deleteBodyPart(p.id)
-                }
-              >
-                削除
-              </button>
-            </li>
-          ))}
-        </ul>
-        <div className="row">
-          <input
-            className="grow"
-            placeholder="新しい部位名"
-            value={newPartName}
-            onChange={(e) => setNewPartName(e.target.value)}
-          />
-          <select value={newPartGroup} onChange={(e) => setNewPartGroup(e.target.value)}>
-            <option value="upper">上半身</option>
-            <option value="lower">下半身</option>
-            <option value="core">体幹</option>
-          </select>
-          <button className="secondary" onClick={handleAddPart}>
-            追加
-          </button>
-        </div>
-      </section>
-    </>
-  )
-}
-
-export default function Settings() {
+export default function Settings({ onOpenCustomize }) {
   const { settings, updateSettings } = useData()
 
   return (
     <div className="screen">
       <h1>設定</h1>
+
+      <section className="card">
+        <h2>カスタマイズ</h2>
+        <p className="muted">部位・種目・マイセットを、追加・名前変更・並べ替え・削除できます。</p>
+        <div className="custom-links">
+          <button className="secondary" onClick={() => onOpenCustomize('parts')}>
+            部位
+          </button>
+          <button className="secondary" onClick={() => onOpenCustomize('exercises')}>
+            種目
+          </button>
+          <button className="secondary" onClick={() => onOpenCustomize('routines')}>
+            マイセット
+          </button>
+        </div>
+      </section>
 
       <SyncSection />
 
@@ -363,7 +229,6 @@ export default function Settings() {
       </section>
 
       <BackupSection />
-      <MasterSection />
     </div>
   )
 }
