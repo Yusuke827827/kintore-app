@@ -1,5 +1,7 @@
 // 端末のローカル日付（日本時間）で YYYY-MM-DD を返す。
 // toISOString() は UTC なので、朝9時前に記録すると前日の日付になってしまう。
+import { getLanguage, t } from '../i18n'
+
 export function todayStr(d = new Date()) {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -14,11 +16,11 @@ export function daysBetween(fromStr, toStr) {
 }
 
 export function daysAgoLabel(dateStr, today = todayStr()) {
-  if (!dateStr) return '未実施'
+  if (!dateStr) return t('未実施')
   const d = daysBetween(dateStr, today)
-  if (d <= 0) return '今日'
-  if (d === 1) return '昨日'
-  return `${d}日前`
+  if (d <= 0) return t('今日')
+  if (d === 1) return t('昨日')
+  return t('{n}日前', { n: d })
 }
 
 // 秒 → "1:05" / "1:02:03"
@@ -35,13 +37,15 @@ export function formatMinutes(ms) {
   if (!ms || ms < 0) return ''
   const min = Math.round(ms / 60000)
   if (min < 1) return ''
-  if (min < 60) return `${min}分`
-  return `${Math.floor(min / 60)}時間${min % 60}分`
+  if (min < 60) return t('{m}分', { m: min })
+  return t('{h}時間{m}分', { h: Math.floor(min / 60), m: min % 60 })
 }
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
+const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export function formatDateJa(dateStr) {
   const d = new Date(`${dateStr}T00:00:00`)
+  if (getLanguage() === 'en') return `${WEEKDAYS_EN[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`
   return `${d.getMonth() + 1}/${d.getDate()}（${WEEKDAYS[d.getDay()]}）`
 }

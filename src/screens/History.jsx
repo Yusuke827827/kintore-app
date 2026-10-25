@@ -3,6 +3,7 @@ import { useData } from '../state/DataContext'
 import LineChart from '../components/LineChart'
 import { formatDateJa, formatMinutes, todayStr } from '../lib/date'
 import { e1rm, sessionVolume, sortSessionsDesc } from '../lib/stats'
+import { getLanguage, nm, t } from '../i18n'
 
 function MonthCalendar({ sessions }) {
   const [offset, setOffset] = useState(0)
@@ -28,14 +29,18 @@ function MonthCalendar({ sessions }) {
           ‹
         </button>
         <h2>
-          {year}年{month + 1}月 <span className="muted">{monthCount}日</span>
+          {t('{y}年{m}月', { y: year, m: month + 1 })}{' '}
+          <span className="muted">{t('{n}日', { n: monthCount })}</span>
         </h2>
         <button className="ghost" onClick={() => setOffset(offset + 1)} disabled={offset >= 0}>
           ›
         </button>
       </div>
       <div className="calendar">
-        {['月', '火', '水', '木', '金', '土', '日'].map((w) => (
+        {(getLanguage() === 'en'
+          ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+          : ['月', '火', '水', '木', '金', '土', '日']
+        ).map((w) => (
           <span key={w} className="dow">
             {w}
           </span>
@@ -72,10 +77,11 @@ export default function History({ onOpenWorkout }) {
   )
 
   function partName(id) {
-    return allBodyParts.find((p) => p.id === id)?.name ?? id
+    return nm(allBodyParts.find((p) => p.id === id)) || id
   }
   function exerciseName(id) {
-    return exercises.find((e) => e.id === id)?.name ?? '（削除された種目）'
+    const ex = exercises.find((e) => e.id === id)
+    return ex ? nm(ex) : t('（削除された種目）')
   }
 
   // 記録が1件以上ある種目だけを、グラフの選択肢にする
@@ -100,24 +106,24 @@ export default function History({ onOpenWorkout }) {
   }, [sessions, graphExerciseId])
 
   function handleEdit(id) {
-    if (activeWorkout && !confirm('記録中のトレーニングを破棄して、この記録を修正しますか？')) return
+    if (activeWorkout && !confirm(t('記録中のトレーニングを破棄して、この記録を修正しますか？'))) return
     editSession(id)
     onOpenWorkout()
   }
 
   return (
     <div className="screen">
-      <h1>履歴</h1>
+      <h1>{t('履歴')}</h1>
 
       <MonthCalendar sessions={sessions} />
 
       <section className="card">
-        <h2>種目の推移</h2>
+        <h2>{t('種目の推移')}</h2>
         <select value={graphExerciseId} onChange={(e) => setGraphExerciseId(e.target.value)}>
-          <option value="">種目を選ぶ</option>
+          <option value="">{t('種目を選ぶ')}</option>
           {exercisesWithRecord.map((e) => (
             <option key={e.id} value={e.id}>
-              {e.name}
+              {nm(e)}
             </option>
           ))}
         </select>
@@ -125,22 +131,24 @@ export default function History({ onOpenWorkout }) {
         {graphExerciseId && graphData.length > 0 && (
           <>
             <p className="muted" style={{ marginTop: 8 }}>
-              自己ベスト：最大 {Math.max(...graphData.map((d) => d.weight))}kg ・ 推定1RM{' '}
-              {Math.max(...graphData.map((d) => d.best))}kg
+              {t('自己ベスト：最大 {w}kg ・ 推定1RM {r}kg', {
+                w: Math.max(...graphData.map((d) => d.weight)),
+                r: Math.max(...graphData.map((d) => d.best)),
+              })}
             </p>
-            <h3>最大重量（kg）</h3>
+            <h3>{t('最大重量（kg）')}</h3>
             <LineChart
               points={graphData.map((d) => ({ label: d.date, value: d.weight }))}
               unit="kg"
-              color="#818cf8"
+              color="var(--accent-text)"
             />
-            <h3>推定1RM（kg）</h3>
+            <h3>{t('推定1RM（kg）')}</h3>
             <LineChart
               points={graphData.map((d) => ({ label: d.date, value: d.best }))}
               unit="kg"
               color="#f472b6"
             />
-            <h3>総ボリューム（重量×回数の合計）</h3>
+            <h3>{t('総ボリューム（重量×回数の合計）')}</h3>
             <LineChart
               points={graphData.map((d) => ({ label: d.date, value: d.volume }))}
               unit=""
@@ -155,7 +163,7 @@ export default function History({ onOpenWorkout }) {
           className={`chip ${filterPart === 'all' ? 'on' : ''}`}
           onClick={() => setFilterPart('all')}
         >
-          すべて
+          {t('すべて')}
         </button>
         {bodyParts.map((p) => (
           <button
@@ -163,33 +171,37 @@ export default function History({ onOpenWorkout }) {
             className={`chip ${filterPart === p.id ? 'on' : ''}`}
             onClick={() => setFilterPart(p.id)}
           >
-            {p.name}
+            {nm(p)}
           </button>
         ))}
       </div>
 
-      {filtered.length === 0 && <p className="muted">記録がありません。</p>}
+      {filtered.length === 0 && <p className="muted">{t('記録がありません。')}</p>}
 
       {filtered.map((s) => (
         <section className="card" key={s.id}>
           <div className="item-header">
             <h2>
-              {formatDateJa(s.date)} {s.bodyPartIds.map(partName).join('＋')}
+              {formatDateJa(s.date)} {s.bodyPartIds.map(partName).join(t('＋'))}
             </h2>
             <div className="item-tools">
               <button className="ghost" onClick={() => handleEdit(s.id)}>
-                修正
+                {t('修正')}
               </button>
               <button
                 className="ghost danger"
-                onClick={() => confirm(`${s.date} の記録を削除しますか？`) && deleteSession(s.id)}
+                onClick={() => confirm(t('{date} の記録を削除しますか？', { date: s.date })) && deleteSession(s.id)}
               >
-                削除
+                {t('削除')}
               </button>
             </div>
           </div>
           <p className="muted">
-            {s.entries.length}種目 ・ {s.entries.reduce((n, en) => n + en.sets.length, 0)}セット ・{' '}
+            {t('{e}種目 ・ {s}セット', {
+              e: s.entries.length,
+              s: s.entries.reduce((n, en) => n + en.sets.length, 0),
+            })}{' '}
+            ・{' '}
             {Math.round(sessionVolume(s)).toLocaleString()}kg
             {formatMinutes(s.finishedAt - s.startedAt) && <> ・ {formatMinutes(s.finishedAt - s.startedAt)}</>}
           </p>

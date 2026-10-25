@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useData } from '../state/DataContext'
+import { eq, nm, t } from '../i18n'
 
 // 種目を選ぶシート。タップするたびに追加され、閉じるまで続けて選べる。
 export default function ExercisePicker({ preferPartIds = [], addedIds = [], onPick, onClose }) {
@@ -11,7 +12,8 @@ export default function ExercisePicker({ preferPartIds = [], addedIds = [], onPi
   const list = exercises.filter(
     (e) =>
       e.active &&
-      (q ? e.name.includes(q) || e.equipment.includes(q) : partId === 'all' || e.bodyPartId === partId)
+      (q
+        ? e.name.includes(q) || nm(e).toLowerCase().includes(q.toLowerCase()) || e.equipment.includes(q) : partId === 'all' || e.bodyPartId === partId)
   )
   const added = new Set(addedIds)
 
@@ -27,21 +29,21 @@ export default function ExercisePicker({ preferPartIds = [], addedIds = [], onPi
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-header">
-          <h2>種目を追加</h2>
+          <h2>{t('種目を追加')}</h2>
           <button className="primary small" onClick={onClose}>
-            完了
+            {t('完了')}
           </button>
         </div>
         <input
           className="search"
-          placeholder="種目名・器具で検索"
+          placeholder={t('種目名・器具で検索')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
         {!q && (
           <div className="chips">
             <button className={`chip ${partId === 'all' ? 'on' : ''}`} onClick={() => setPartId('all')}>
-              すべて
+              {t('すべて')}
             </button>
             {bodyParts.map((p) => (
               <button
@@ -49,7 +51,7 @@ export default function ExercisePicker({ preferPartIds = [], addedIds = [], onPi
                 className={`chip ${partId === p.id ? 'on' : ''}`}
                 onClick={() => setPartId(p.id)}
               >
-                {p.name}
+                {nm(p)}
               </button>
             ))}
           </div>
@@ -58,15 +60,15 @@ export default function ExercisePicker({ preferPartIds = [], addedIds = [], onPi
           {list.map((e) => (
             <li key={e.id}>
               <button className={added.has(e.id) ? 'added' : ''} onClick={() => onPick(e.id)}>
-                <span>{e.name}</span>
-                <span className="tag">{added.has(e.id) ? '追加済み ✓' : e.equipment}</span>
+                <span>{nm(e)}</span>
+                <span className="tag">{added.has(e.id) ? t('追加済み ✓') : eq(e.equipment)}</span>
               </button>
             </li>
           ))}
           {list.length === 0 && q && (
             <li>
               <button onClick={handleCreate}>
-                <span>「{q}」を新しい種目として作って追加</span>
+                <span>{t('「{q}」を新しい種目として作って追加', { q })}</span>
               </button>
             </li>
           )}

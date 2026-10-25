@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useData } from '../state/DataContext'
 import { daysAgoLabel, formatDateJa, todayStr } from '../lib/date'
+import { nm, t } from '../i18n'
 import {
   doneExercisesForPart,
   lastExercisesForPart,
@@ -15,7 +16,7 @@ const GROUPS = [
   { key: 'lower', label: '下半身' },
   { key: 'core', label: '体幹' },
   { key: 'other', label: 'その他' },
-]
+] // label は表示時に t() で訳す
 
 export default function Home({ onOpenWorkout, onOpenCustomize }) {
   const {
@@ -63,10 +64,10 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
   const visibleIds = new Set(exercises.map((e) => e.id))
 
   function partName(id) {
-    return allBodyParts.find((p) => p.id === id)?.name ?? ''
+    return nm(allBodyParts.find((p) => p.id === id))
   }
   function exName(id) {
-    return allExercises.find((e) => e.id === id)?.name ?? ''
+    return nm(allExercises.find((e) => e.id === id))
   }
 
   function togglePart(id) {
@@ -77,33 +78,35 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
   }
 
   function start(exerciseIds, partIds) {
-    if (activeWorkout && !confirm('記録中のトレーニングがあります。破棄して新しく始めますか？')) return
+    if (activeWorkout && !confirm(t('記録中のトレーニングがあります。破棄して新しく始めますか？'))) return
     startWorkout(exerciseIds, partIds)
     onOpenWorkout()
   }
 
   return (
     <div className="screen">
-      <h1>今日のトレーニング</h1>
+      <h1>{t('今日のトレーニング')}</h1>
       <p className="muted">
-        {formatDateJa(today)} ・ 今週 {weekCount}回
+        {formatDateJa(today)} ・ {t('今週 {n}回', { n: weekCount })}
         {lastSession && (
           <>
             {' '}
-            ・ 前回 {daysAgoLabel(lastSession.date, today)}（
-            {sessionPartIds(lastSession, allExercises).map(partName).filter(Boolean).join('＋')}）
+            ・ {t('前回')} {daysAgoLabel(lastSession.date, today)}
+            {t('（')}
+            {sessionPartIds(lastSession, allExercises).map(partName).filter(Boolean).join(t('＋'))}
+            {t('）')}
           </>
         )}
       </p>
 
       {activeWorkout && (
         <section className="card resume">
-          <h2>{activeWorkout.sourceSessionId ? '修正中の記録があります' : 'トレーニング記録中'}</h2>
+          <h2>{activeWorkout.sourceSessionId ? t('修正中の記録があります') : t('トレーニング記録中')}</h2>
           <p className="muted">
-            {activeWorkout.items.map((it) => exName(it.exerciseId)).join('・') || '種目なし'}
+            {activeWorkout.items.map((it) => exName(it.exerciseId)).join(t('・')) || t('種目なし')}
           </p>
           <button className="primary wide" onClick={onOpenWorkout}>
-            続きから記録する
+            {t('続きから記録する')}
           </button>
         </section>
       )}
@@ -111,11 +114,11 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
       <section className="card">
         <div className="item-header">
           <h2>
-            部位
-            {!picked && sessions.length > 0 && <span className="badge">おすすめを選択中</span>}
+            {t('部位')}
+            {!picked && sessions.length > 0 && <span className="badge">{t('おすすめを選択中')}</span>}
           </h2>
           <button className="ghost" onClick={() => onOpenCustomize('parts')}>
-            編集
+            {t('編集')}
           </button>
         </div>
         {GROUPS.map((g) => {
@@ -123,7 +126,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
           if (parts.length === 0) return null
           return (
             <div key={g.key} className="part-group">
-              <span className="group-label">{g.label}</span>
+              <span className="group-label">{t(g.label)}</span>
               <div className="chips">
                 {parts.map((p) => (
                   <button
@@ -131,7 +134,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
                     className={`chip ${chosen.includes(p.id) ? 'on' : ''}`}
                     onClick={() => togglePart(p.id)}
                   >
-                    {p.name}
+                    {nm(p)}
                     <small>{daysAgoLabel(lastByPart[p.id], today)}</small>
                   </button>
                 ))}
@@ -144,7 +147,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
           {candidates.length > 0 ? (
             <>
               <span className="muted">
-                今日のメニュー（{menu.length}種目）・タップでオン／オフ
+                {t('今日のメニュー（{n}種目）・タップでオン／オフ', { n: menu.length })}
               </span>
               <div className="chips">
                 {candidates.map((id) => (
@@ -162,8 +165,8 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
           ) : (
             <span className="muted">
               {chosen.length === 0
-                ? '部位を選んでください'
-                : 'はじめての部位です。次の画面で種目を選びます。'}
+                ? t('部位を選んでください')
+                : t('はじめての部位です。次の画面で種目を選びます。')}
             </span>
           )}
         </div>
@@ -173,19 +176,21 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
           disabled={chosen.length === 0}
           onClick={() => start(menu, chosen)}
         >
-          {chosen.length > 0 ? `${chosen.map(partName).join('＋')}で始める` : '始める'}
+          {chosen.length > 0
+            ? t('{parts}で始める', { parts: chosen.map(partName).join(t('＋')) })
+            : t('始める')}
         </button>
         <button className="link" onClick={() => start([], chosen)} disabled={chosen.length === 0}>
-          種目を自分で選んで始める
+          {t('種目を自分で選んで始める')}
         </button>
       </section>
 
       {routines.length > 0 && (
         <section className="card">
           <div className="item-header">
-            <h2>マイセット</h2>
+            <h2>{t('マイセット')}</h2>
             <button className="ghost" onClick={() => onOpenCustomize('routines')}>
-              編集
+              {t('編集')}
             </button>
           </div>
           <ul className="plain-list">
@@ -197,7 +202,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
                 >
                   <strong>{r.name}</strong>
                   <span className="muted">
-                    {r.exerciseIds.map(exName).filter(Boolean).join('・')}
+                    {r.exerciseIds.map(exName).filter(Boolean).join(t('・'))}
                   </span>
                 </button>
               </li>
@@ -207,10 +212,10 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
       )}
 
       <button className="link" onClick={() => start([], [])}>
-        空のトレーニングを始める
+        {t('空のトレーニングを始める')}
       </button>
       <button className="link" onClick={() => onOpenCustomize('routines')}>
-        ＋ マイセットを作る
+        {t('＋ マイセットを作る')}
       </button>
     </div>
   )

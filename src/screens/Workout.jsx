@@ -4,6 +4,7 @@ import useNow from '../hooks/useNow'
 import ExercisePicker from '../components/ExercisePicker'
 import RestTimer from '../components/RestTimer'
 import { formatClock, formatDateJa } from '../lib/date'
+import { nm, t } from '../i18n'
 import { e1rm, isFilledSet, personalBest, previousRecord } from '../lib/stats'
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
 
@@ -14,7 +15,12 @@ function formatSets(sets) {
 function suggestTarget(prevSets) {
   if (!prevSets || prevSets.length === 0) return null
   const last = prevSets[prevSets.length - 1]
-  return `目標：${last.weight + 2.5}kg×${last.reps}回 か ${last.weight}kg×${last.reps + 1}回`
+  return t('目標：{w1}kg×{r1}回 か {w2}kg×{r2}回', {
+    w1: last.weight + 2.5,
+    r1: last.reps,
+    w2: last.weight,
+    r2: last.reps + 1,
+  })
 }
 
 // その行に薄く出す「前回の値」
@@ -101,8 +107,8 @@ export default function Workout({ onFinished }) {
   }
 
   function removeItem(itemIndex) {
-    const name = exercises.find((e) => e.id === w.items[itemIndex].exerciseId)?.name
-    if (!confirm(`「${name}」をこのトレーニングから外しますか？`)) return
+    const name = nm(exercises.find((e) => e.id === w.items[itemIndex].exerciseId))
+    if (!confirm(t('「{name}」をこのトレーニングから外しますか？', { name }))) return
     updateWorkout((x) => ({ ...x, items: x.items.filter((_, i) => i !== itemIndex) }))
   }
 
@@ -119,7 +125,7 @@ export default function Workout({ onFinished }) {
   function handleFinish() {
     const filled = w.items.reduce((n, it) => n + it.sets.filter(isFilledSet).length, 0)
     if (filled === 0) {
-      if (!confirm('入力されたセットがありません。記録せずに終了しますか？')) return
+      if (!confirm(t('入力されたセットがありません。記録せずに終了しますか？'))) return
     }
     const prs = []
     let volume = 0
@@ -130,7 +136,7 @@ export default function Workout({ onFinished }) {
         volume += Number(s.weight) * Number(s.reps)
         top = Math.max(top, e1rm(Number(s.weight), Number(s.reps)))
       }
-      if (best && top > best.maxE1rm) prs.push(exercises.find((e) => e.id === it.exerciseId)?.name)
+      if (best && top > best.maxE1rm) prs.push(nm(exercises.find((e) => e.id === it.exerciseId)))
     }
     cancelRestAlarm()
     const summary = {
@@ -148,8 +154,8 @@ export default function Workout({ onFinished }) {
 
   function handleDiscard() {
     const msg = isEdit
-      ? '修正内容を破棄しますか？（元の記録はそのまま残ります）'
-      : 'このトレーニングを記録せずに破棄しますか？'
+      ? t('修正内容を破棄しますか？（元の記録はそのまま残ります）')
+      : t('このトレーニングを記録せずに破棄しますか？')
     if (!confirm(msg)) return
     cancelRestAlarm()
     discardWorkout()
@@ -157,28 +163,28 @@ export default function Workout({ onFinished }) {
   }
 
   function handleSaveRoutine() {
-    const name = prompt('マイセットの名前（例：胸の日）')
+    const name = prompt(t('マイセットの名前（例：胸の日）'))
     if (!name?.trim()) return
     addRoutine(
       name.trim(),
       w.items.map((it) => it.exerciseId)
     )
-    alert(`「${name.trim()}」を保存しました。ホームからワンタップで始められます。`)
+    alert(t('「{name}」を保存しました。ホームからワンタップで始められます。', { name: name.trim() }))
   }
 
   return (
     <div className="screen">
       <div className="workout-header">
         <div>
-          <h1>{isEdit ? '記録を修正' : 'トレーニング中'}</h1>
+          <h1>{isEdit ? t('記録を修正') : t('トレーニング中')}</h1>
           <p className="muted">
             {formatDateJa(w.date)}
             {!isEdit && w.startedAt && <> ・ {formatClock((now - w.startedAt) / 1000)}</>}
-            <span className="saved-badge">自動保存 ✓</span>
+            <span className="saved-badge">{t('自動保存 ✓')}</span>
           </p>
         </div>
         <button className="primary small" onClick={handleFinish}>
-          {isEdit ? '保存' : '終了'}
+          {isEdit ? t('保存') : t('終了')}
         </button>
       </div>
 
@@ -194,7 +200,7 @@ export default function Workout({ onFinished }) {
           <section className="card" key={`${it.exerciseId}-${itemIndex}`}>
             <div className="item-header">
               <h2>
-                {exercise?.name ?? '（削除された種目）'}
+                {exercise ? nm(exercise) : t('（削除された種目）')}
                 {it.sets.length > 0 && (
                   <span className="count">
                     {doneCount}/{it.sets.length}
@@ -202,33 +208,33 @@ export default function Workout({ onFinished }) {
                 )}
               </h2>
               <div className="item-tools">
-                <button className="ghost" onClick={() => moveItem(itemIndex, -1)} aria-label="上へ">
+                <button className="ghost" onClick={() => moveItem(itemIndex, -1)} aria-label={t('上へ')}>
                   ↑
                 </button>
-                <button className="ghost" onClick={() => moveItem(itemIndex, 1)} aria-label="下へ">
+                <button className="ghost" onClick={() => moveItem(itemIndex, 1)} aria-label={t('下へ')}>
                   ↓
                 </button>
-                <button className="ghost danger" onClick={() => removeItem(itemIndex)} aria-label="外す">
+                <button className="ghost danger" onClick={() => removeItem(itemIndex)} aria-label={t('外す')}>
                   ✕
                 </button>
               </div>
             </div>
             {prev ? (
               <p className="muted">
-                前回 {prev.date.slice(5).replace('-', '/')}：{formatSets(prev.sets)}
-                {best && <> ・ 最高 {best.maxWeight}kg</>}
+                {t('前回')} {prev.date.slice(5).replace('-', '/')}：{formatSets(prev.sets)}
+                {best && <> ・ {t('最高 {w}kg', { w: best.maxWeight })}</>}
               </p>
             ) : (
-              <p className="muted">はじめての種目です</p>
+              <p className="muted">{t('はじめての種目です')}</p>
             )}
             {prev && !isEdit && <p className="target">{suggestTarget(prev.sets)}</p>}
-            {prev?.note && <p className="muted">前回メモ：{prev.note}</p>}
+            {prev?.note && <p className="muted">{t('前回メモ')}：{prev.note}</p>}
 
             <div className="set-head">
-              <span>セット</span>
+              <span>{t('セット')}</span>
               <span>kg</span>
-              <span>回</span>
-              <span>完了</span>
+              <span>{t('回')}</span>
+              <span>{t('完了')}</span>
             </div>
             {it.sets.map((s, setIndex) => {
               const ph = placeholderFor(it, setIndex, prev)
@@ -240,7 +246,8 @@ export default function Workout({ onFinished }) {
                   <button
                     className="set-index"
                     onClick={() => {
-                      if (confirm(`${setIndex + 1}セット目を削除しますか？`)) removeSet(itemIndex, setIndex)
+                      if (confirm(t('{n}セット目を削除しますか？', { n: setIndex + 1 })))
+                        removeSet(itemIndex, setIndex)
                     }}
                   >
                     {setIndex + 1}
@@ -256,14 +263,14 @@ export default function Workout({ onFinished }) {
                   <input
                     type="number"
                     inputMode="numeric"
-                    placeholder={ph ? String(ph.reps) : '回'}
+                    placeholder={ph ? String(ph.reps) : t('回')}
                     value={s.reps}
                     onChange={(e) => updateSet(itemIndex, setIndex, { reps: e.target.value })}
                   />
                   <button
                     className={`check ${s.done ? 'on' : ''}`}
                     onClick={() => toggleDone(itemIndex, setIndex, ph)}
-                    aria-label="セット完了"
+                    aria-label={t('セット完了')}
                   >
                     ✓
                   </button>
@@ -272,11 +279,11 @@ export default function Workout({ onFinished }) {
             })}
             <div className="row">
               <button className="secondary" onClick={() => addSet(itemIndex)}>
-                ＋ セット
+                {t('＋ セット')}
               </button>
               <input
                 className="note"
-                placeholder="メモ（シート位置・フォームなど）"
+                placeholder={t('メモ（シート位置・フォームなど）')}
                 value={it.note}
                 onChange={(e) => updateItem(itemIndex, (x) => ({ ...x, note: e.target.value }))}
               />
@@ -286,23 +293,25 @@ export default function Workout({ onFinished }) {
       })}
 
       <button className="secondary wide" onClick={() => setPickerOpen(true)}>
-        ＋ 種目を追加
+        {t('＋ 種目を追加')}
       </button>
 
       <div className="row">
         {w.items.length > 0 && (
           <button className="secondary" onClick={handleSaveRoutine}>
-            マイセットに登録
+            {t('マイセットに登録')}
           </button>
         )}
         <button className="secondary danger" onClick={handleDiscard}>
-          {isEdit ? '修正をやめる' : '破棄'}
+          {isEdit ? t('修正をやめる') : t('破棄')}
         </button>
       </div>
 
       <p className="muted hint">
-        薄い数字は前回の記録です。そのままでよければ ✓ をタップするだけで記録され、休憩タイマー（
-        {settings.restSeconds}秒）が始まります。入力した内容はその場で保存されるので、アプリを閉じても消えません。
+        {t(
+          '薄い数字は前回の記録です。そのままでよければ ✓ をタップするだけで記録され、休憩タイマー（{sec}秒）が始まります。入力した内容はその場で保存されるので、アプリを閉じても消えません。',
+          { sec: settings.restSeconds }
+        )}
       </p>
 
       <RestTimer endsAt={w.restEndsAt} onChange={setRestEndsAt} />

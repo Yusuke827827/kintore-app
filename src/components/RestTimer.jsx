@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import useNow from '../hooks/useNow'
 import { formatClock } from '../lib/date'
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
+import { t } from '../i18n'
 
 // 画面下に出るインターバルタイマー
 export default function RestTimer({ endsAt, onChange }) {
@@ -28,17 +29,17 @@ export default function RestTimer({ endsAt, onChange }) {
 
   return (
     <div className="rest-timer">
-      <span className="rest-label">休憩</span>
+      <span className="rest-label">{t('休憩')}</span>
       <span className="rest-time">{formatClock(remaining)}</span>
-      <button onClick={() => adjust(-15)}>−15秒</button>
-      <button onClick={() => adjust(15)}>+15秒</button>
+      <button onClick={() => adjust(-15)}>{t('−15秒')}</button>
+      <button onClick={() => adjust(15)}>{t('+15秒')}</button>
       <button
         onClick={() => {
           cancelRestAlarm()
           onChange(null)
         }}
       >
-        スキップ
+        {t('スキップ')}
       </button>
     </div>
   )

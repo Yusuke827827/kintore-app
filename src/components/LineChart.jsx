@@ -1,5 +1,7 @@
-// 依存ライブラリなしの、シンプルな折れ線グラフ
-export default function LineChart({ points: allPoints, unit, color = '#818cf8' }) {
+import { t } from '../i18n'
+
+// 依存ライブラリなしの、シンプルな折れ線グラフ（色はCSS変数も使えるよう style で指定）
+export default function LineChart({ points: allPoints, unit, color = 'var(--accent-text)' }) {
   const width = 300
   const height = 120
   const padding = 28
@@ -7,7 +9,7 @@ export default function LineChart({ points: allPoints, unit, color = '#818cf8' }
   // 点が多すぎると読めないので直近20回分
   const points = allPoints.slice(-20)
   if (points.length === 0) {
-    return <p className="muted">データがありません。</p>
+    return <p className="muted">{t('データがありません。')}</p>
   }
 
   const values = points.map((p) => p.value)
@@ -38,11 +40,11 @@ export default function LineChart({ points: allPoints, unit, color = '#818cf8' }
         y1={height - padding}
         x2={width - padding}
         y2={height - padding}
-        stroke="#374151"
+        style={{ stroke: 'var(--border)' }}
       />
-      <polyline points={linePoints} fill="none" stroke={color} strokeWidth="2" />
+      <polyline points={linePoints} fill="none" strokeWidth="2" style={{ stroke: color }} />
       {points.map((p, i) => (
-        <circle key={i} cx={xAt(i)} cy={yAt(p.value)} r="3" fill={color} />
+        <circle key={i} cx={xAt(i)} cy={yAt(p.value)} r="3" style={{ fill: color }} />
       ))}
       {points.map(
         (p, i) =>
@@ -52,7 +54,7 @@ export default function LineChart({ points: allPoints, unit, color = '#818cf8' }
               x={xAt(i)}
               y={yAt(p.value) - 8}
               fontSize="9"
-              fill="#e5e7eb"
+              style={{ fill: 'var(--text)' }}
               textAnchor="middle"
             >
               {Math.round(p.value * 10) / 10}
@@ -68,7 +70,7 @@ export default function LineChart({ points: allPoints, unit, color = '#818cf8' }
               x={xAt(i)}
               y={height - padding + 14}
               fontSize="8"
-              fill="#9ca3af"
+              style={{ fill: 'var(--muted)' }}
               textAnchor="middle"
             >
               {p.label.slice(5)}

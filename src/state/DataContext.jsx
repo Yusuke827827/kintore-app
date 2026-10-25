@@ -4,6 +4,9 @@ import { loadData, mergeData, requestPersistentStorage, saveData } from '../lib/
 import * as sync from '../lib/sync'
 import { todayStr } from '../lib/date'
 import { isFilledSet, previousRecord, sessionPartIds } from '../lib/stats'
+import { setLanguage, t } from '../i18n'
+import { applyTheme } from '../lib/theme'
+import { setSoundEnabled } from '../lib/restAlarm'
 
 const DataContext = createContext(null)
 
@@ -42,6 +45,22 @@ export function DataProvider({ children }) {
     at: null,
     message: '',
   }))
+
+  // 言語は描画の前に切り替える（t() がこの値を見る）
+  setLanguage(state.settings.lang)
+  setSoundEnabled(state.settings.sound)
+
+  // 見た目（モード・色・壁紙・文字サイズ）。「端末に合わせる」はOSの切り替えにも追従
+  const themeJson = JSON.stringify(state.settings.theme)
+  const [wallpaperVersion, setWallpaperVersion] = useState(0)
+  useEffect(() => {
+    const theme = JSON.parse(themeJson)
+    applyTheme(theme)
+    const mq = window.matchMedia?.('(prefers-color-scheme: light)')
+    const onChange = () => applyTheme(theme)
+    mq?.addEventListener?.('change', onChange)
+    return () => mq?.removeEventListener?.('change', onChange)
+  }, [themeJson, wallpaperVersion])
 
   // 1項目入力するたびに、この端末へ即保存
   useEffect(() => {
@@ -89,7 +108,7 @@ export function DataProvider({ children }) {
       })
       setSyncStatus({ configured: true, state: 'ok', at: Date.now(), message: '' })
     } catch (e) {
-      setSyncStatus((s) => ({ ...s, state: 'error', message: e.message || '同期に失敗しました' }))
+      setSyncStatus((s) => ({ ...s, state: 'error', message: e.message || t('同期に失敗しました') }))
     } finally {
       syncingRef.current = false
       if (pendingRef.current) {
@@ -400,6 +419,7 @@ export function DataProvider({ children }) {
     }, [state.exercises, state.bodyParts]),
     ...actions,
     syncStatus,
+    refreshWallpaper: () => setWallpaperVersion((v) => v + 1),
     runSync,
     connectSync,
     disconnectSync,

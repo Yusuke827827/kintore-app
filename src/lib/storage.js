@@ -1,8 +1,9 @@
 import { initialBodyParts, initialExercises } from '../data/initialData'
+import { DEFAULT_THEME } from './theme'
 
 const STORAGE_KEY = 'kintore-app-data-v1'
 
-export const DEFAULT_SETTINGS = { restSeconds: 90 }
+export const DEFAULT_SETTINGS = { restSeconds: 90, lang: 'ja', sound: true, theme: DEFAULT_THEME }
 
 // 古い形式の保存データも、足りない項目を補って今の形式にそろえる
 export function normalizeData(data) {
@@ -14,7 +15,11 @@ export function normalizeData(data) {
     deletedSessionIds: data?.deletedSessionIds ?? [],
     endedWorkoutIds: data?.endedWorkoutIds ?? [],
     routines: data?.routines ?? [],
-    settings: { ...DEFAULT_SETTINGS, ...data?.settings },
+    settings: {
+      ...DEFAULT_SETTINGS,
+      ...data?.settings,
+      theme: { ...DEFAULT_THEME, ...data?.settings?.theme },
+    },
     // 初期値のままなら0。以前の版で保存されていたデータは自分で編集した可能性があるので1。
     masterUpdatedAt: data?.masterUpdatedAt ?? (data ? 1 : 0),
     activeWorkout: data?.activeWorkout ?? null,
