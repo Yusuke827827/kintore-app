@@ -281,4 +281,52 @@ export default {
   '読み込めませんでした。このアプリのバックアップか確認してください。':
     "Couldn't import. Make sure it's a backup from this app.",
   'バックアップの文字列を貼り付けてください': 'Paste the backup text',
+  '表計算ソフト用（CSV）': 'For spreadsheets (CSV)',
+  'Excel や Google スプレッドシートで開けます。': 'Opens in Excel or Google Sheets.',
+  'トレーニング記録': 'Workouts',
+  '体重の記録': 'Body weight',
+  '日付': 'Date',
+  '重量（kg）': 'Weight (kg)',
+  '回数': 'Reps',
+  'メモ': 'Note',
+  '通常': 'Normal',
+  'ウォームアップ': 'Warm-up',
+  'ドロップセット': 'Drop set',
+
+  // セットの種類・有酸素
+  'セットのメニュー': 'Set options',
+  '通常のセット': 'Normal set',
+  'ウォームアップ（W）': 'Warm-up (W)',
+  'ドロップセット（D）': 'Drop set (D)',
+  'このセットを削除': 'Delete this set',
+  '分': 'Min',
+  '有酸素': 'Cardio',
+  '有酸素（時間・距離で記録）': 'Cardio (time & distance)',
+  '時間（分）': 'Time (min)',
+  '距離（km）': 'Distance (km)',
+
+  // 履歴のタブ・体重
+  '記録': 'Workouts',
+  '体重': 'Body',
+  '分析': 'Analysis',
+  '体重を記録': 'Log body weight',
+  '体重（kg）': 'Weight (kg)',
+  '体脂肪率（%・任意）': 'Body fat % (optional)',
+  '体脂肪率（%）': 'Body fat (%)',
+  '保存しました ✓': 'Saved ✓',
+  '推移': 'Trend',
+  '最新 {w}kg（{when}）': 'Latest {w}kg ({when})',
+  '記録開始から {d}kg': '{d}kg since you started',
+  '記録一覧': 'All entries',
+
+  // 分析
+  '今週': 'This week',
+  '先週': 'Last week',
+  '{m}/{d}の週': 'Week of {m}/{d}',
+  '日': 'Days',
+  '有酸素（分）': 'Cardio (min)',
+  '部位ごとのセット数': 'Sets per body part',
+  'ウォームアップは数えません。薄い線は前の週です。':
+    "Warm-ups aren't counted. The faded bar is the previous week.",
+  '直近8週のセット数': 'Sets over the last 8 weeks',
 }

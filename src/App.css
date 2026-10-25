@@ -930,3 +930,160 @@ input.note {
 input[type='checkbox'] {
   accent-color: var(--accent);
 }
+
+/* セットの種類・有酸素 */
+.set-head.cardio,
+.set-row.cardio {
+  grid-template-columns: 44px 1fr 1fr 1fr 48px;
+}
+
+.set-row.warmup .set-index {
+  color: var(--accent-soft);
+  font-weight: bold;
+}
+
+.set-row.warmup input {
+  opacity: 0.75;
+}
+
+.set-row.drop .set-index {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.action-sheet {
+  gap: 8px;
+}
+
+.action-sheet button {
+  width: 100%;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 14px;
+}
+
+.action-sheet button.on {
+  background: var(--accent);
+  color: white;
+}
+
+/* 体重 */
+.body-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.body-form input {
+  flex: 1;
+  max-width: 55%;
+  text-align: right;
+}
+
+/* 週の分析 */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 76px 1fr 44px;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-track {
+  position: relative;
+  height: 14px;
+  background: var(--sunken);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-prev,
+.bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+}
+
+.bar-prev {
+  background: var(--border);
+}
+
+.bar-fill {
+  background: var(--accent);
+  top: 3px;
+  bottom: 3px;
+}
+
+.bar-value {
+  text-align: right;
+  font-weight: bold;
+}
+
+.bar-value small {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: normal;
+}
+
+.bar-value .up {
+  color: var(--ok);
+}
+
+.bar-value .down {
+  color: var(--danger);
+}
+
+.week-columns {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+  height: 140px;
+  align-items: end;
+  margin-top: 8px;
+}
+
+.week-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 4px;
+}
+
+.week-bar {
+  width: 70%;
+  min-height: 2px;
+  background: var(--border);
+  border-radius: 6px 6px 0 0;
+}
+
+.week-col.current .week-bar {
+  background: var(--accent);
+}
+
+.week-num {
+  font-size: 0.7rem;
+  color: var(--text-2);
+}
+
+.week-label {
+  font-size: 0.6rem;
+  color: var(--muted);
+}

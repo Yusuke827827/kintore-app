@@ -2,7 +2,16 @@ import { useMemo, useState } from 'react'
 import { useData } from '../state/DataContext'
 import LineChart from '../components/LineChart'
 import { formatDateJa, formatMinutes, todayStr } from '../lib/date'
-import { e1rm, sessionVolume, sortSessionsDesc } from '../lib/stats'
+import {
+  e1rm,
+  formatSet,
+  isCardio,
+  isWorkingSet,
+  sessionVolume,
+  sortSessionsDesc,
+} from '../lib/stats'
+import BodyLog from '../components/BodyLog'
+import WeeklyStats from '../components/WeeklyStats'
 import { getLanguage, nm, t } from '../i18n'
 
 function MonthCalendar({ sessions }) {
@@ -70,6 +79,7 @@ export default function History({ onOpenWorkout }) {
   } = useData()
   const [filterPart, setFilterPart] = useState('all')
   const [graphExerciseId, setGraphExerciseId] = useState('')
+  const [view, setView] = useState('log') // log | body | stats
 
   const sorted = useMemo(() => sortSessionsDesc(sessions), [sessions])
   const filtered = sorted.filter(
@@ -91,19 +101,29 @@ export default function History({ onOpenWorkout }) {
     return exercises.filter((e) => ids.has(e.id))
   }, [sessions, exercises])
 
+  const graphCardio = isCardio(exercises.find((e) => e.id === graphExerciseId))
+  // 筋トレはウォームアップを除いた本番セット、有酸素は時間と距離の合計
   const graphData = useMemo(() => {
     if (!graphExerciseId) return []
     return sortSessionsDesc(sessions)
       .reverse()
-      .filter((s) => s.entries.some((en) => en.exerciseId === graphExerciseId))
       .map((s) => {
         const entry = s.entries.find((en) => en.exerciseId === graphExerciseId)
-        const weight = Math.max(...entry.sets.map((set) => set.weight))
-        const best = Math.max(...entry.sets.map((set) => e1rm(set.weight, set.reps)))
-        const volume = entry.sets.reduce((sum, set) => sum + set.weight * set.reps, 0)
+        if (!entry) return null
+        if (graphCardio) {
+          const min = entry.sets.reduce((sum, set) => sum + (set.min || 0), 0)
+          const km = entry.sets.reduce((sum, set) => sum + (set.km || 0), 0)
+          return { date: s.date, min, km }
+        }
+        const sets = entry.sets.filter(isWorkingSet)
+        if (sets.length === 0) return null
+        const weight = Math.max(...sets.map((set) => set.weight))
+        const best = Math.max(...sets.map((set) => e1rm(set.weight, set.reps)))
+        const volume = sets.reduce((sum, set) => sum + set.weight * set.reps, 0)
         return { date: s.date, weight, best, volume }
       })
-  }, [sessions, graphExerciseId])
+      .filter(Boolean)
+  }, [sessions, graphExerciseId, graphCardio])
 
   function handleEdit(id) {
     if (activeWorkout && !confirm(t('記録中のトレーニングを破棄して、この記録を修正しますか？'))) return
@@ -115,6 +135,22 @@ export default function History({ onOpenWorkout }) {
     <div className="screen">
       <h1>{t('履歴')}</h1>
 
+      <div className="segmented">
+        {[
+          ['log', t('記録')],
+          ['body', t('体重')],
+          ['stats', t('分析')],
+        ].map(([key, label]) => (
+          <button key={key} className={view === key ? 'on' : ''} onClick={() => setView(key)}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'body' && <BodyLog />}
+      {view === 'stats' && <WeeklyStats />}
+      {view === 'log' && (
+        <>
       <MonthCalendar sessions={sessions} />
 
       <section className="card">
@@ -128,7 +164,23 @@ export default function History({ onOpenWorkout }) {
           ))}
         </select>
 
-        {graphExerciseId && graphData.length > 0 && (
+        {graphExerciseId && graphData.length > 0 && graphCardio && (
+          <>
+            <h3>{t('時間（分）')}</h3>
+            <LineChart points={graphData.map((d) => ({ label: d.date, value: d.min }))} unit="" />
+            {graphData.some((d) => d.km) && (
+              <>
+                <h3>{t('距離（km）')}</h3>
+                <LineChart
+                  points={graphData.map((d) => ({ label: d.date, value: d.km }))}
+                  unit=""
+                  color="#34d399"
+                />
+              </>
+            )}
+          </>
+        )}
+        {graphExerciseId && graphData.length > 0 && !graphCardio && (
           <>
             <p className="muted" style={{ marginTop: 8 }}>
               {t('自己ベスト：最大 {w}kg ・ 推定1RM {r}kg', {
@@ -209,13 +261,15 @@ export default function History({ onOpenWorkout }) {
             <div key={en.exerciseId} className="history-entry">
               <strong>{exerciseName(en.exerciseId)}</strong>
               <span className="muted">
-                {en.sets.map((set) => `${set.weight}kg×${set.reps}`).join('　')}
+                {en.sets.map(formatSet).join('　')}
               </span>
               {en.note && <span className="muted">📝 {en.note}</span>}
             </div>
           ))}
         </section>
       ))}
+        </>
+      )}
     </div>
   )
 }

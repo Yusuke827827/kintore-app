@@ -24,7 +24,7 @@ const TOPICS_JA = [
           <li>入力欄の薄い数字は前回の記録です。同じでよければ ✓ を押すだけで記録されます</li>
           <li>違うときは重量（kg）と回数を入れてから ✓</li>
           <li>✓ を押すと休憩タイマーが始まり、終わると音（Androidはバイブも）で知らせます。±15秒・スキップもできます</li>
-          <li>「＋ セット」でセット追加、セット番号をタップで削除</li>
+          <li>「＋ セット」でセット追加。セット番号をタップすると、ウォームアップ（W）・ドロップセット（D）の切り替えや削除ができます。ウォームアップは自己ベストやボリュームに数えません</li>
           <li>種目名の横の ↑↓ で順番入れ替え、✕ で外す。「＋ 種目を追加」で途中から追加</li>
           <li>メモ欄にシートの位置やフォームの注意などを書いておくと、次回表示されます</li>
           <li>セットの番号に「PR」と出たら自己ベスト更新です</li>
@@ -39,6 +39,16 @@ const TOPICS_JA = [
       <p>
         入力した数字はその場ですぐ保存されます。アプリを閉じたり電話がきたりしても、開き直せば「記録中」から続きができます。
       </p>
+    ),
+  },
+  {
+    title: '有酸素の記録',
+    body: (
+      <ul>
+        <li>部位「有酸素」にトレッドミル・エアロバイクなどが入っています</li>
+        <li>時間（分）・距離（km）・kcal を入れて ✓。距離とkcalは空でもOK</li>
+        <li>自分で追加するときは、種目の「種類」を「有酸素」にしてください</li>
+      </ul>
     ),
   },
   {
@@ -70,6 +80,8 @@ const TOPICS_JA = [
         <li>カレンダーで、トレーニングした日に色がつきます</li>
         <li>「種目の推移」で種目を選ぶと、最大重量・推定1RM（1回だけ上げられる重さの目安）・総ボリュームのグラフ</li>
         <li>記録の「修正」で数字を直せます。「削除」で記録を消せます</li>
+        <li>「体重」タブで体重・体脂肪率を記録してグラフで見られます（1日1件、入れ直すと上書き）</li>
+        <li>「分析」タブで、週ごと・部位ごとのセット数を前の週と比べられます。鍛え方の偏りに気づけます</li>
       </ul>
     ),
   },
@@ -94,6 +106,7 @@ const TOPICS_JA = [
       <ul>
         <li>「ファイルに書き出す」で記録をまるごと保存できます。たまにやっておくと安心です</li>
         <li>「ファイルから読み込む」で戻せます。今ある記録に足される形なので、消えることはありません</li>
+        <li>CSV（トレーニング記録・体重）は Excel や Google スプレッドシートで開けます</li>
       </ul>
     ),
   },
@@ -140,7 +153,7 @@ const TOPICS_EN = [
         <li>Faded numbers are last time's values. If they're the same, just tap ✓</li>
         <li>Otherwise type the weight (kg) and reps, then tap ✓</li>
         <li>✓ starts the rest timer, which plays a sound (and vibrates on Android) when done. You can add/subtract 15s or skip</li>
-        <li>"+ Set" adds a set; tap a set number to delete it</li>
+        <li>"+ Set" adds a set. Tap a set number to mark it as warm-up (W) or drop set (D), or to delete it. Warm-ups don't count toward personal bests or volume</li>
         <li>Use ↑↓ next to an exercise to reorder, ✕ to remove, and "+ Add exercise" to add one mid-workout</li>
         <li>Notes (seat position, form cues…) are shown next time</li>
         <li>"PR" on a set means a new personal best</li>
@@ -155,6 +168,16 @@ const TOPICS_EN = [
         Every number is saved the moment you type it. If the app closes or you get a call, open it
         again and continue from "Live".
       </p>
+    ),
+  },
+  {
+    title: 'Logging cardio',
+    body: (
+      <ul>
+        <li>The "Cardio" body part includes treadmill, exercise bike and more</li>
+        <li>Enter minutes, distance (km) and kcal, then tap ✓. Distance and kcal are optional</li>
+        <li>For your own cardio exercise, set its type to "Cardio"</li>
+      </ul>
     ),
   },
   {
@@ -186,6 +209,8 @@ const TOPICS_EN = [
         <li>Days you trained are highlighted on the calendar</li>
         <li>Pick an exercise under "Progress by exercise" to see max weight, estimated 1RM (a one-rep max estimate) and total volume</li>
         <li>Use "Edit" on a workout to fix numbers, or "Delete" to remove it</li>
+        <li>The "Body" tab logs body weight and body-fat % with charts (one entry per day; re-entering overwrites)</li>
+        <li>The "Analysis" tab compares sets per body part with the previous week, so you can spot imbalances</li>
       </ul>
     ),
   },
@@ -211,6 +236,7 @@ const TOPICS_EN = [
       <ul>
         <li>"Export to file" saves everything. Doing it now and then is a good idea</li>
         <li>"Import from file" restores it. Records are added to what you have, never removed</li>
+        <li>CSV files (workouts, body weight) open in Excel or Google Sheets</li>
       </ul>
     ),
   },

@@ -1,4 +1,32 @@
 // 記録データから「前回の記録」「自己ベスト」「おすすめ部位」などを計算する
+import { t } from '../i18n'
+
+// セットの形
+// ・筋トレ：{ weight, reps, type? }  type は 'warmup'（ウォームアップ）/ 'drop'（ドロップセット）/ なし（通常）
+// ・有酸素：{ min, km, kcal }
+export function isCardio(exercise) {
+  return exercise?.type === 'cardio'
+}
+
+export function isCardioSet(set) {
+  return set && 'min' in set
+}
+
+// 自己ベストやボリュームに数えるセット（ウォームアップと有酸素は除く）
+export function isWorkingSet(set) {
+  return !isCardioSet(set) && set.type !== 'warmup'
+}
+
+export function formatSet(set) {
+  if (isCardioSet(set)) {
+    const parts = [t('{m}分', { m: set.min })]
+    if (set.km) parts.push(`${set.km}km`)
+    if (set.kcal) parts.push(`${set.kcal}kcal`)
+    return parts.join(' ')
+  }
+  const mark = set.type === 'warmup' ? 'W ' : set.type === 'drop' ? 'D ' : ''
+  return `${mark}${set.weight}kg×${set.reps}`
+}
 
 // 推定1RM（Epley式）
 export function e1rm(weight, reps) {
@@ -36,6 +64,7 @@ export function personalBest(sessions, exerciseId, excludeId) {
     for (const en of s.entries) {
       if (en.exerciseId !== exerciseId) continue
       for (const set of en.sets) {
+        if (!isWorkingSet(set)) continue
         found = true
         maxWeight = Math.max(maxWeight, set.weight)
         maxE1rm = Math.max(maxE1rm, e1rm(set.weight, set.reps))
@@ -113,13 +142,76 @@ export function doneExercisesForPart(sessions, exercises, partId) {
   return seen
 }
 
+// 記録中の入力欄が埋まっているか（有酸素は時間だけでOK）
 export function isFilledSet(set) {
+  if (isCardioSet(set)) return set.min !== '' && set.min != null
   return set.weight !== '' && set.reps !== '' && set.weight != null && set.reps != null
+}
+
+// 入力欄の文字列 → 保存する数値
+export function toStoredSet(set) {
+  if (isCardioSet(set)) {
+    const out = { min: Number(set.min) }
+    if (set.km !== '' && set.km != null) out.km = Number(set.km)
+    if (set.kcal !== '' && set.kcal != null) out.kcal = Number(set.kcal)
+    return out
+  }
+  const out = { weight: Number(set.weight), reps: Number(set.reps) }
+  if (set.type) out.type = set.type
+  return out
+}
+
+// 保存した数値 → 入力欄の文字列（記録を修正するとき）
+export function toDraftSet(set) {
+  if (isCardioSet(set)) {
+    return { min: String(set.min), km: set.km != null ? String(set.km) : '', kcal: set.kcal != null ? String(set.kcal) : '', done: true }
+  }
+  return { weight: String(set.weight), reps: String(set.reps), type: set.type, done: true }
+}
+
+// 新しく始めるときの空のセット（前回のセットの種類はそのまま引き継ぐ）
+export function emptySet(cardio, like) {
+  if (cardio) return { min: '', km: '', kcal: '', done: false }
+  return { weight: '', reps: '', done: false, ...(like?.type ? { type: like.type } : {}) }
+}
+
+// 月曜はじまりの週の初日
+export function weekStart(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00`)
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+// 週ごと・部位ごとの本番セット数とボリューム（ウォームアップは除く）、有酸素の分数
+export function weeklyStats(sessions, exercises) {
+  const weeks = {}
+  for (const s of sessions) {
+    const wk = weekStart(s.date)
+    const w = (weeks[wk] ??= { sets: {}, volume: {}, cardioMin: 0, days: new Set() })
+    w.days.add(s.date)
+    for (const en of s.entries) {
+      const partId = exercises.find((e) => e.id === en.exerciseId)?.bodyPartId ?? '?'
+      for (const set of en.sets) {
+        if (isCardioSet(set)) {
+          w.cardioMin += set.min || 0
+          continue
+        }
+        if (!isWorkingSet(set)) continue
+        w.sets[partId] = (w.sets[partId] ?? 0) + 1
+        w.volume[partId] = (w.volume[partId] ?? 0) + set.weight * set.reps
+      }
+    }
+  }
+  return weeks
 }
 
 export function sessionVolume(session) {
   return session.entries.reduce(
-    (sum, en) => sum + en.sets.reduce((s2, set) => s2 + set.weight * set.reps, 0),
+    (sum, en) =>
+      sum + en.sets.filter(isWorkingSet).reduce((s2, set) => s2 + set.weight * set.reps, 0),
     0
   )
 }

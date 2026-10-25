@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useData } from '../state/DataContext'
 import { todayStr } from '../lib/date'
 import HowTo from '../components/HowTo'
+import { bodyCsv, downloadFile, workoutsCsv } from '../lib/csv'
 import { LANGUAGES, getLanguage, t } from '../i18n'
 import {
   ACCENTS,
@@ -292,16 +293,18 @@ function BackupSection() {
       settings: data.settings,
       masterUpdatedAt: data.masterUpdatedAt,
       activeWorkout: data.activeWorkout,
+      bodyLogs: data.bodyLogs,
+      deletedBodyLogIds: data.deletedBodyLogIds,
+      seedVersion: data.seedVersion,
     }
   }
 
   function handleDownload() {
-    const blob = new Blob([JSON.stringify(snapshot(), null, 2)], { type: 'application/json' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `kintore-backup-${todayStr()}.json`
-    a.click()
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+    downloadFile(
+      `kintore-backup-${todayStr()}.json`,
+      JSON.stringify(snapshot(), null, 2),
+      'application/json'
+    )
   }
 
   async function handleCopy() {
@@ -374,6 +377,33 @@ function BackupSection() {
         }}
       />
       {message && <p className="muted">{message}</p>}
+
+      <h3>{t('表計算ソフト用（CSV）')}</h3>
+      <p className="muted">{t('Excel や Google スプレッドシートで開けます。')}</p>
+      <div className="row">
+        <button
+          className="secondary"
+          disabled={data.sessions.length === 0}
+          onClick={() =>
+            downloadFile(
+              `kintore-workouts-${todayStr()}.csv`,
+              workoutsCsv(data.sessions, data.allExercises, data.allBodyParts),
+              'text/csv'
+            )
+          }
+        >
+          {t('トレーニング記録')}
+        </button>
+        <button
+          className="secondary"
+          disabled={data.bodyLogs.length === 0}
+          onClick={() =>
+            downloadFile(`kintore-body-${todayStr()}.csv`, bodyCsv(data.bodyLogs), 'text/csv')
+          }
+        >
+          {t('体重の記録')}
+        </button>
+      </div>
     </section>
   )
 }

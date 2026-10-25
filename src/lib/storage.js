@@ -1,14 +1,35 @@
-import { initialBodyParts, initialExercises } from '../data/initialData'
+import {
+  SEED_V2_PART_IDS,
+  SEED_VERSION,
+  initialBodyParts,
+  initialExercises,
+} from '../data/initialData'
 import { DEFAULT_THEME } from './theme'
 
 const STORAGE_KEY = 'kintore-app-data-v1'
 
 export const DEFAULT_SETTINGS = { restSeconds: 90, lang: 'ja', sound: true, theme: DEFAULT_THEME }
 
+// 前の版のデータに、あとから増えた初期の部位・種目（有酸素）を足す
+function addNewSeeds(data) {
+  if (!data || (data.seedVersion ?? 1) >= SEED_VERSION) return data
+  const parts = data.bodyParts ?? initialBodyParts
+  const exercises = data.exercises ?? initialExercises
+  const partIds = new Set(parts.map((p) => p.id))
+  const exIds = new Set(exercises.map((e) => e.id))
+  const newParts = initialBodyParts.filter((p) => SEED_V2_PART_IDS.includes(p.id) && !partIds.has(p.id))
+  const newExercises = initialExercises.filter(
+    (e) => SEED_V2_PART_IDS.includes(e.bodyPartId) && !exIds.has(e.id)
+  )
+  return { ...data, bodyParts: [...parts, ...newParts], exercises: [...exercises, ...newExercises] }
+}
+
 // 古い形式の保存データも、足りない項目を補って今の形式にそろえる
-export function normalizeData(data) {
+export function normalizeData(raw) {
+  const data = addNewSeeds(raw)
   return {
     version: 2,
+    seedVersion: SEED_VERSION,
     bodyParts: data?.bodyParts ?? initialBodyParts,
     exercises: data?.exercises ?? initialExercises,
     sessions: data?.sessions ?? [],
@@ -23,6 +44,8 @@ export function normalizeData(data) {
     // 初期値のままなら0。以前の版で保存されていたデータは自分で編集した可能性があるので1。
     masterUpdatedAt: data?.masterUpdatedAt ?? (data ? 1 : 0),
     activeWorkout: data?.activeWorkout ?? null,
+    bodyLogs: data?.bodyLogs ?? [],
+    deletedBodyLogIds: data?.deletedBodyLogIds ?? [],
   }
 }
 
@@ -78,6 +101,19 @@ export function mergeData(localRaw, otherRaw) {
   )
   workouts.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
 
+  // 体重の記録も、記録と同じく和集合（削除したものは消したまま）
+  const deletedLogs = [...new Set([...local.deletedBodyLogIds, ...other.deletedBodyLogIds])].sort()
+  const deletedLogSet = new Set(deletedLogs)
+  const logsById = new Map()
+  for (const l of [...local.bodyLogs, ...other.bodyLogs]) {
+    if (deletedLogSet.has(l.id)) continue
+    const cur = logsById.get(l.id)
+    if (!cur || (l.updatedAt ?? 0) > (cur.updatedAt ?? 0)) logsById.set(l.id, l)
+  }
+  const bodyLogs = [...logsById.values()].sort((a, b) =>
+    a.date !== b.date ? (a.date < b.date ? -1 : 1) : a.id < b.id ? -1 : 1
+  )
+
   return normalizeData({
     bodyParts: master.bodyParts,
     exercises: master.exercises,
@@ -88,5 +124,7 @@ export function mergeData(localRaw, otherRaw) {
     deletedSessionIds: deleted,
     endedWorkoutIds: ended,
     activeWorkout: workouts[0] ?? null,
+    bodyLogs,
+    deletedBodyLogIds: deletedLogs,
   })
 }

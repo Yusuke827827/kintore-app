@@ -5,16 +5,28 @@ import ExercisePicker from '../components/ExercisePicker'
 import RestTimer from '../components/RestTimer'
 import { formatClock, formatDateJa } from '../lib/date'
 import { nm, t } from '../i18n'
-import { e1rm, isFilledSet, personalBest, previousRecord } from '../lib/stats'
+import {
+  e1rm,
+  emptySet,
+  formatSet,
+  isCardio,
+  isCardioSet,
+  isFilledSet,
+  isWorkingSet,
+  personalBest,
+  previousRecord,
+  toStoredSet,
+} from '../lib/stats'
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
 
 function formatSets(sets) {
-  return sets.map((s) => `${s.weight}kg×${s.reps}`).join('　')
+  return sets.map(formatSet).join('　')
 }
 
 function suggestTarget(prevSets) {
-  if (!prevSets || prevSets.length === 0) return null
-  const last = prevSets[prevSets.length - 1]
+  const working = (prevSets ?? []).filter(isWorkingSet)
+  if (working.length === 0) return null
+  const last = working[working.length - 1]
   return t('目標：{w1}kg×{r1}回 か {w2}kg×{r2}回', {
     w1: last.weight + 2.5,
     r1: last.reps,
@@ -23,12 +35,17 @@ function suggestTarget(prevSets) {
   })
 }
 
+// 通常のセットだけを 1, 2, 3… と数える（W・D は番号を使わない）
+function setNumber(sets, index) {
+  return sets.slice(0, index + 1).filter((x) => !x.type).length
+}
+
 // その行に薄く出す「前回の値」
 function placeholderFor(item, index, prev) {
   if (prev?.sets[index]) return prev.sets[index]
   for (let i = index - 1; i >= 0; i--) {
     const s = item.sets[i]
-    if (isFilledSet(s)) return { weight: Number(s.weight), reps: Number(s.reps) }
+    if (isFilledSet(s)) return toStoredSet(s)
   }
   return prev?.sets[prev.sets.length - 1] ?? null
 }
@@ -46,6 +63,7 @@ export default function Workout({ onFinished }) {
     addRoutine,
   } = useData()
   const [pickerOpen, setPickerOpen] = useState(() => !!w && w.items.length === 0)
+  const [setMenu, setSetMenu] = useState(null) // { itemIndex, setIndex, cardio }
   const isEdit = !!w?.sourceSessionId
   const now = useNow(1000, !!w && !isEdit)
 
@@ -76,30 +94,39 @@ export default function Workout({ onFinished }) {
       updateSet(itemIndex, setIndex, { done: false })
       return
     }
-    const weight = set.weight !== '' ? set.weight : placeholder ? String(placeholder.weight) : '0'
-    const reps = set.reps !== '' ? set.reps : placeholder ? String(placeholder.reps) : ''
-    if (reps === '') return
-    const restEndsAt = Date.now() + settings.restSeconds * 1000
-    scheduleRestAlarm(restEndsAt)
+    // 空の欄は薄く出ている前回の値で埋める
+    const fill = (key, fallback = '') =>
+      set[key] !== '' && set[key] != null
+        ? set[key]
+        : placeholder?.[key] != null
+          ? String(placeholder[key])
+          : fallback
+    let next
+    if (isCardioSet(set)) {
+      next = { min: fill('min'), km: fill('km'), kcal: fill('kcal'), done: true }
+      if (next.min === '') return
+    } else {
+      next = { ...set, weight: fill('weight', '0'), reps: fill('reps'), done: true }
+      if (next.reps === '') return
+    }
+    // 有酸素とウォームアップのあとは休憩タイマーを動かさない
+    const startRest = !isCardioSet(set) && set.type !== 'warmup'
+    const restEndsAt = startRest ? Date.now() + settings.restSeconds * 1000 : w.restEndsAt
+    if (startRest) scheduleRestAlarm(restEndsAt)
     updateWorkout((x) => ({
       ...x,
       restEndsAt,
       items: x.items.map((it, i) =>
         i !== itemIndex
           ? it
-          : {
-              ...it,
-              sets: it.sets.map((s, j) => (j === setIndex ? { weight, reps, done: true } : s)),
-            }
+          : { ...it, sets: it.sets.map((s, j) => (j === setIndex ? next : s)) }
       ),
     }))
   }
 
   function addSet(itemIndex) {
-    updateItem(itemIndex, (it) => ({
-      ...it,
-      sets: [...it.sets, { weight: '', reps: '', done: false }],
-    }))
+    const cardio = isCardio(exercises.find((e) => e.id === w.items[itemIndex].exerciseId))
+    updateItem(itemIndex, (it) => ({ ...it, sets: [...it.sets, emptySet(cardio)] }))
   }
 
   function removeSet(itemIndex, setIndex) {
@@ -132,7 +159,7 @@ export default function Workout({ onFinished }) {
     for (const it of w.items) {
       const best = personalBest(sessions, it.exerciseId, w.sourceSessionId)
       let top = 0
-      for (const s of it.sets.filter(isFilledSet)) {
+      for (const s of it.sets.filter(isFilledSet).filter(isWorkingSet)) {
         volume += Number(s.weight) * Number(s.reps)
         top = Math.max(top, e1rm(Number(s.weight), Number(s.reps)))
       }
@@ -196,6 +223,7 @@ export default function Workout({ onFinished }) {
         })
         const best = personalBest(sessions, it.exerciseId, w.sourceSessionId)
         const doneCount = it.sets.filter((s) => s.done).length
+        const cardio = isCardio(exercise)
         return (
           <section className="card" key={`${it.exerciseId}-${itemIndex}`}>
             <div className="item-header">
@@ -222,51 +250,75 @@ export default function Workout({ onFinished }) {
             {prev ? (
               <p className="muted">
                 {t('前回')} {prev.date.slice(5).replace('-', '/')}：{formatSets(prev.sets)}
-                {best && <> ・ {t('最高 {w}kg', { w: best.maxWeight })}</>}
+                {best && !cardio && <> ・ {t('最高 {w}kg', { w: best.maxWeight })}</>}
               </p>
             ) : (
               <p className="muted">{t('はじめての種目です')}</p>
             )}
-            {prev && !isEdit && <p className="target">{suggestTarget(prev.sets)}</p>}
+            {prev && !isEdit && !cardio && suggestTarget(prev.sets) && (
+              <p className="target">{suggestTarget(prev.sets)}</p>
+            )}
             {prev?.note && <p className="muted">{t('前回メモ')}：{prev.note}</p>}
 
-            <div className="set-head">
-              <span>{t('セット')}</span>
-              <span>kg</span>
-              <span>{t('回')}</span>
-              <span>{t('完了')}</span>
-            </div>
+            {cardio ? (
+              <div className="set-head cardio">
+                <span>{t('セット')}</span>
+                <span>{t('分')}</span>
+                <span>km</span>
+                <span>kcal</span>
+                <span>{t('完了')}</span>
+              </div>
+            ) : (
+              <div className="set-head">
+                <span>{t('セット')}</span>
+                <span>kg</span>
+                <span>{t('回')}</span>
+                <span>{t('完了')}</span>
+              </div>
+            )}
             {it.sets.map((s, setIndex) => {
               const ph = placeholderFor(it, setIndex, prev)
               const filled = isFilledSet(s)
               const isPr =
-                filled && best && e1rm(Number(s.weight), Number(s.reps)) > best.maxE1rm
+                !cardio &&
+                filled &&
+                isWorkingSet(s) &&
+                best &&
+                e1rm(Number(s.weight), Number(s.reps)) > best.maxE1rm
+              const field = (key, mode, fallbackLabel) => (
+                <input
+                  type="number"
+                  inputMode={mode}
+                  placeholder={ph?.[key] != null ? String(ph[key]) : fallbackLabel}
+                  value={s[key] ?? ''}
+                  onChange={(e) => updateSet(itemIndex, setIndex, { [key]: e.target.value })}
+                />
+              )
               return (
-                <div className={`set-row ${s.done ? 'done' : ''}`} key={setIndex}>
+                <div
+                  className={`set-row ${cardio ? 'cardio' : ''} ${s.done ? 'done' : ''} ${s.type ?? ''}`}
+                  key={setIndex}
+                >
                   <button
                     className="set-index"
-                    onClick={() => {
-                      if (confirm(t('{n}セット目を削除しますか？', { n: setIndex + 1 })))
-                        removeSet(itemIndex, setIndex)
-                    }}
+                    onClick={() => setSetMenu({ itemIndex, setIndex, cardio })}
+                    aria-label={t('セットのメニュー')}
                   >
-                    {setIndex + 1}
+                    {s.type === 'warmup' ? 'W' : s.type === 'drop' ? 'D' : setNumber(it.sets, setIndex)}
                     {isPr && <span className="pr">PR</span>}
                   </button>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    placeholder={ph ? String(ph.weight) : 'kg'}
-                    value={s.weight}
-                    onChange={(e) => updateSet(itemIndex, setIndex, { weight: e.target.value })}
-                  />
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    placeholder={ph ? String(ph.reps) : t('回')}
-                    value={s.reps}
-                    onChange={(e) => updateSet(itemIndex, setIndex, { reps: e.target.value })}
-                  />
+                  {cardio ? (
+                    <>
+                      {field('min', 'numeric', t('分'))}
+                      {field('km', 'decimal', 'km')}
+                      {field('kcal', 'numeric', 'kcal')}
+                    </>
+                  ) : (
+                    <>
+                      {field('weight', 'decimal', 'kg')}
+                      {field('reps', 'numeric', t('回'))}
+                    </>
+                  )}
                   <button
                     className={`check ${s.done ? 'on' : ''}`}
                     onClick={() => toggleDone(itemIndex, setIndex, ph)}
@@ -315,6 +367,44 @@ export default function Workout({ onFinished }) {
       </p>
 
       <RestTimer endsAt={w.restEndsAt} onChange={setRestEndsAt} />
+
+      {setMenu && (
+        <div className="sheet-backdrop" onClick={() => setSetMenu(null)}>
+          <div className="sheet action-sheet" onClick={(e) => e.stopPropagation()}>
+            {!setMenu.cardio &&
+              [
+                [undefined, t('通常のセット')],
+                ['warmup', t('ウォームアップ（W）')],
+                ['drop', t('ドロップセット（D）')],
+              ].map(([type, label]) => (
+                <button
+                  key={label}
+                  className={
+                    (w.items[setMenu.itemIndex]?.sets[setMenu.setIndex]?.type ?? undefined) === type
+                      ? 'on'
+                      : ''
+                  }
+                  onClick={() => {
+                    updateSet(setMenu.itemIndex, setMenu.setIndex, { type })
+                    setSetMenu(null)
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            <button
+              className="danger"
+              onClick={() => {
+                removeSet(setMenu.itemIndex, setMenu.setIndex)
+                setSetMenu(null)
+              }}
+            >
+              {t('このセットを削除')}
+            </button>
+            <button onClick={() => setSetMenu(null)}>{t('キャンセル')}</button>
+          </div>
+        </div>
+      )}
 
       {pickerOpen && (
         <ExercisePicker

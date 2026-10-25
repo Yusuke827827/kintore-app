@@ -10,7 +10,7 @@ const GROUPS = [
   { key: 'other', label: 'その他' },
 ]
 const GROUP_LABEL = Object.fromEntries(GROUPS.map((g) => [g.key, g.label]))
-const TYPE_LABEL = { compound: 'コンパウンド', isolation: 'アイソレーション' }
+const TYPE_LABEL = { compound: 'コンパウンド', isolation: 'アイソレーション', cardio: '有酸素' }
 const EQUIPMENTS = ['マシン', 'バーベル', 'ダンベル', 'スミスマシン', 'ケーブル', '自重', 'その他']
 
 function MoveButtons({ onMove }) {
@@ -193,6 +193,7 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
         <select value={type} onChange={(e) => setType(e.target.value)}>
           <option value="compound">{t('コンパウンド（多関節）')}</option>
           <option value="isolation">{t('アイソレーション（単関節）')}</option>
+          <option value="cardio">{t('有酸素（時間・距離で記録）')}</option>
         </select>
       </label>
       <div className="row">

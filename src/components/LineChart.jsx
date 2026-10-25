@@ -1,7 +1,13 @@
 import { t } from '../i18n'
 
 // 依存ライブラリなしの、シンプルな折れ線グラフ（色はCSS変数も使えるよう style で指定）
-export default function LineChart({ points: allPoints, unit, color = 'var(--accent-text)' }) {
+// zeroBased=false にすると縦軸を値の範囲に合わせる（体重のように変化が小さいもの用）
+export default function LineChart({
+  points: allPoints,
+  unit,
+  color = 'var(--accent-text)',
+  zeroBased = true,
+}) {
   const width = 300
   const height = 120
   const padding = 28
@@ -13,8 +19,11 @@ export default function LineChart({ points: allPoints, unit, color = 'var(--acce
   }
 
   const values = points.map((p) => p.value)
-  const maxV = Math.max(...values)
-  const minV = Math.min(0, ...values)
+  const top = Math.max(...values)
+  const bottom = Math.min(...values)
+  const margin = zeroBased ? 0 : Math.max((top - bottom) * 0.2, 0.5)
+  const maxV = top + margin
+  const minV = zeroBased ? Math.min(0, bottom) : bottom - margin
   const range = maxV - minV || 1
   const crowded = points.length > 8
 
@@ -28,7 +37,7 @@ export default function LineChart({ points: allPoints, unit, color = 'var(--acce
   // 点が多いときは、最初・最後・最大だけ数字を出す
   function showLabel(i) {
     if (!crowded) return true
-    return i === 0 || i === points.length - 1 || points[i].value === maxV
+    return i === 0 || i === points.length - 1 || points[i].value === top
   }
 
   const linePoints = points.map((p, i) => `${xAt(i)},${yAt(p.value)}`).join(' ')

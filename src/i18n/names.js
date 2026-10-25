@@ -6,6 +6,7 @@ export const DEFAULT_NAMES_EN = {
   arm: 'Arms',
   legs: 'Legs',
   core: 'Core (Abs)',
+  cardio: 'Cardio',
 
   'chest-01': 'Chest Press',
   'chest-02': 'Pec Fly',
@@ -86,4 +87,12 @@ export const DEFAULT_NAMES_EN = {
   'core-06': 'Crunch',
   'core-07': 'Leg Raise',
   'core-08': 'Kettlebell Swing',
+
+  'cardio-01': 'Treadmill',
+  'cardio-02': 'Exercise Bike',
+  'cardio-03': 'Cross Trainer',
+  'cardio-04': 'Stair Climber',
+  'cardio-05': 'Rowing Machine',
+  'cardio-06': 'Walking',
+  'cardio-07': 'Running',
 }
