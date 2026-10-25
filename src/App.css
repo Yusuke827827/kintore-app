@@ -711,3 +711,45 @@ input.note {
   background: #0b0f19;
   border-radius: 10px;
 }
+
+/* 使い方 */
+.howto details {
+  border-bottom: 1px solid #1f2937;
+}
+
+.howto summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-size: 0.95rem;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+}
+
+.howto summary::-webkit-details-marker {
+  display: none;
+}
+
+.howto summary::after {
+  content: '＋';
+  color: #9ca3af;
+}
+
+.howto details[open] summary::after {
+  content: '−';
+}
+
+.howto-body {
+  padding: 0 0 12px;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: #d1d5db;
+}
+
+.howto-body ul {
+  padding-left: 18px;
+}
+
+.howto-body p + ul {
+  margin-top: 6px;
+}

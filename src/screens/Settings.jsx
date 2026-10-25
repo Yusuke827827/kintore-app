@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useData } from '../state/DataContext'
 import { todayStr } from '../lib/date'
+import HowTo from '../components/HowTo'
 
 const TOKEN_URL =
   'https://github.com/settings/tokens/new?scopes=gist&description=kintore-app%20sync'
@@ -193,6 +194,8 @@ export default function Settings({ onOpenCustomize }) {
   return (
     <div className="screen">
       <h1>設定</h1>
+
+      <HowTo />
 
       <section className="card">
         <h2>カスタマイズ</h2>
