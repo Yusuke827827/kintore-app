@@ -630,3 +630,71 @@ input.note {
 .tabbar button.live.active {
   color: #6ee7b7;
 }
+
+/* カスタマイズ */
+.segmented {
+  display: flex;
+  background: #111827;
+  border-radius: 10px;
+  padding: 3px;
+  margin: 10px 0;
+}
+
+.segmented button {
+  flex: 1;
+  background: transparent;
+  color: #9ca3af;
+  padding: 8px 0;
+  font-size: 0.85rem;
+}
+
+.segmented button.on {
+  background: #4f46e5;
+  color: white;
+}
+
+.edit-main {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 2px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inactive .edit-main {
+  opacity: 0.45;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #0b0f19;
+  border-radius: 10px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.field select {
+  flex: 1;
+  max-width: 70%;
+}
+
+.custom-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}

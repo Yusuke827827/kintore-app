@@ -13,17 +13,26 @@ const GROUPS = [
   { key: 'upper', label: '上半身' },
   { key: 'lower', label: '下半身' },
   { key: 'core', label: '体幹' },
+  { key: 'other', label: 'その他' },
 ]
 
-export default function Home({ onOpenWorkout }) {
-  const { bodyParts, exercises, sessions, routines, activeWorkout, startWorkout, deleteRoutine } =
-    useData()
+export default function Home({ onOpenWorkout, onOpenCustomize }) {
+  const {
+    bodyParts,
+    allBodyParts,
+    exercises,
+    allExercises,
+    sessions,
+    routines,
+    activeWorkout,
+    startWorkout,
+  } = useData()
   const today = todayStr()
 
-  const lastByPart = useMemo(() => lastTrainedByPart(sessions, exercises), [sessions, exercises])
+  const lastByPart = useMemo(() => lastTrainedByPart(sessions, allExercises), [sessions, allExercises])
   const suggested = useMemo(
-    () => suggestParts(bodyParts, sessions, exercises),
-    [bodyParts, sessions, exercises]
+    () => suggestParts(bodyParts, sessions, allExercises),
+    [bodyParts, sessions, allExercises]
   )
   // 何も触らなければ「おすすめ」のまま。タップしたら自分の選択に切り替わる。
   const [picked, setPicked] = useState(null)
@@ -42,11 +51,13 @@ export default function Home({ onOpenWorkout }) {
     return new Set(sessions.filter((s) => s.date >= monday).map((s) => s.date)).size
   }, [sessions])
 
+  const visibleIds = new Set(exercises.map((e) => e.id))
+
   function partName(id) {
-    return bodyParts.find((p) => p.id === id)?.name ?? ''
+    return allBodyParts.find((p) => p.id === id)?.name ?? ''
   }
   function exName(id) {
-    return exercises.find((e) => e.id === id)?.name ?? ''
+    return allExercises.find((e) => e.id === id)?.name ?? ''
   }
 
   function togglePart(id) {
@@ -71,7 +82,7 @@ export default function Home({ onOpenWorkout }) {
           <>
             {' '}
             ・ 前回 {daysAgoLabel(lastSession.date, today)}（
-            {sessionPartIds(lastSession, exercises).map(partName).filter(Boolean).join('＋')}）
+            {sessionPartIds(lastSession, allExercises).map(partName).filter(Boolean).join('＋')}）
           </>
         )}
       </p>
@@ -89,10 +100,15 @@ export default function Home({ onOpenWorkout }) {
       )}
 
       <section className="card">
-        <h2>
-          部位
-          {!picked && sessions.length > 0 && <span className="badge">おすすめを選択中</span>}
-        </h2>
+        <div className="item-header">
+          <h2>
+            部位
+            {!picked && sessions.length > 0 && <span className="badge">おすすめを選択中</span>}
+          </h2>
+          <button className="ghost" onClick={() => onOpenCustomize('parts')}>
+            編集
+          </button>
+        </div>
         {GROUPS.map((g) => {
           const parts = bodyParts.filter((p) => p.group === g.key)
           if (parts.length === 0) return null
@@ -144,22 +160,23 @@ export default function Home({ onOpenWorkout }) {
 
       {routines.length > 0 && (
         <section className="card">
-          <h2>マイルーティン</h2>
+          <div className="item-header">
+            <h2>マイルーティン</h2>
+            <button className="ghost" onClick={() => onOpenCustomize('routines')}>
+              編集
+            </button>
+          </div>
           <ul className="plain-list">
             {routines.map((r) => (
               <li key={r.id} className="routine">
-                <button className="routine-main" onClick={() => start(r.exerciseIds, [])}>
+                <button
+                  className="routine-main"
+                  onClick={() => start(r.exerciseIds.filter((id) => visibleIds.has(id)), [])}
+                >
                   <strong>{r.name}</strong>
                   <span className="muted">
                     {r.exerciseIds.map(exName).filter(Boolean).join('・')}
                   </span>
-                </button>
-                <button
-                  className="ghost danger"
-                  onClick={() => confirm(`「${r.name}」を削除しますか？`) && deleteRoutine(r.id)}
-                  aria-label="削除"
-                >
-                  ✕
                 </button>
               </li>
             ))}
@@ -169,6 +186,9 @@ export default function Home({ onOpenWorkout }) {
 
       <button className="link" onClick={() => start([], [])}>
         空のトレーニングを始める
+      </button>
+      <button className="link" onClick={() => onOpenCustomize('routines')}>
+        ＋ ルーティンを作る
       </button>
     </div>
   )

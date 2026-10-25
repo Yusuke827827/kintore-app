@@ -5,6 +5,7 @@ import Home from './screens/Home'
 import Workout from './screens/Workout'
 import History from './screens/History'
 import Settings from './screens/Settings'
+import Customize from './screens/Customize'
 import { formatMinutes } from './lib/date'
 
 function FinishedSummary({ summary, onClose }) {
@@ -48,6 +49,12 @@ function AppInner() {
   // 記録の途中でアプリが閉じても、開き直したらそのまま続きから
   const [screen, setScreen] = useState(() => (activeWorkout ? 'workout' : 'home'))
   const [summary, setSummary] = useState(null)
+  const [customizeTab, setCustomizeTab] = useState('parts')
+
+  function openCustomize(tab) {
+    setCustomizeTab(tab)
+    setScreen('customize')
+  }
 
   const current = screen === 'workout' && !activeWorkout ? 'home' : screen
 
@@ -70,7 +77,9 @@ function AppInner() {
           <FinishedSummary summary={summary} onClose={() => setSummary(null)} />
         ) : (
           <>
-            {current === 'home' && <Home onOpenWorkout={() => setScreen('workout')} />}
+            {current === 'home' && (
+              <Home onOpenWorkout={() => setScreen('workout')} onOpenCustomize={openCustomize} />
+            )}
             {current === 'workout' && (
               <Workout
                 onFinished={(s) => {
@@ -80,7 +89,14 @@ function AppInner() {
               />
             )}
             {current === 'history' && <History onOpenWorkout={() => setScreen('workout')} />}
-            {current === 'settings' && <Settings />}
+            {current === 'settings' && <Settings onOpenCustomize={openCustomize} />}
+            {current === 'customize' && (
+              <Customize
+                key={customizeTab}
+                initialTab={customizeTab}
+                onBack={() => setScreen('settings')}
+              />
+            )}
           </>
         )}
       </main>
@@ -89,7 +105,7 @@ function AppInner() {
         {tabs.map((t) => (
           <button
             key={t.key}
-            className={`${current === t.key && !summary ? 'active' : ''} ${t.key === 'workout' ? 'live' : ''}`}
+            className={`${(current === t.key || (t.key === 'settings' && current === 'customize')) && !summary ? 'active' : ''} ${t.key === 'workout' ? 'live' : ''}`}
             onClick={() => {
               setSummary(null)
               setScreen(t.key)

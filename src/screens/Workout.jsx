@@ -31,7 +31,7 @@ export default function Workout({ onFinished }) {
   const {
     activeWorkout: w,
     sessions,
-    exercises,
+    allExercises: exercises,
     settings,
     updateWorkout,
     addWorkoutExercise,
