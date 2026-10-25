@@ -101,6 +101,18 @@ export function lastExercisesForPart(sessions, exercises, partId) {
   return []
 }
 
+// その部位で一度でもやったことのある種目（最近やった順）
+export function doneExercisesForPart(sessions, exercises, partId) {
+  const activeIds = new Set(exercises.filter((e) => e.active && e.bodyPartId === partId).map((e) => e.id))
+  const seen = []
+  for (const s of sortSessionsDesc(sessions)) {
+    for (const en of s.entries) {
+      if (activeIds.has(en.exerciseId) && !seen.includes(en.exerciseId)) seen.push(en.exerciseId)
+    }
+  }
+  return seen
+}
+
 export function isFilledSet(set) {
   return set.weight !== '' && set.reps !== '' && set.weight != null && set.reps != null
 }

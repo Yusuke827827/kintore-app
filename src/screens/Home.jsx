@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useData } from '../state/DataContext'
 import { daysAgoLabel, formatDateJa, todayStr } from '../lib/date'
 import {
+  doneExercisesForPart,
   lastExercisesForPart,
   lastTrainedByPart,
   sessionPartIds,
@@ -38,10 +39,18 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
   const [picked, setPicked] = useState(null)
   const chosen = picked ?? suggested
 
-  const menu = useMemo(
+  // 前回のメニューは最初からオン。ほかに一度でもやった種目はタップでオンにできる。
+  const baseMenu = useMemo(
     () => chosen.flatMap((pid) => lastExercisesForPart(sessions, exercises, pid)),
     [chosen, sessions, exercises]
   )
+  const candidates = useMemo(() => {
+    const done = chosen.flatMap((pid) => doneExercisesForPart(sessions, exercises, pid))
+    return [...new Set([...baseMenu, ...done])]
+  }, [chosen, sessions, exercises, baseMenu])
+  const [toggled, setToggled] = useState({}) // 種目id → オン/オフ（触ったものだけ）
+  const isOn = (id) => toggled[id] ?? baseMenu.includes(id)
+  const menu = candidates.filter(isOn)
 
   const lastSession = useMemo(() => sortSessionsDesc(sessions)[0] ?? null, [sessions])
   const weekCount = useMemo(() => {
@@ -132,10 +141,23 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
         })}
 
         <div className="menu-preview">
-          {menu.length > 0 ? (
+          {candidates.length > 0 ? (
             <>
-              <span className="muted">前回と同じメニュー（{menu.length}種目）</span>
-              <p>{menu.map(exName).join('・')}</p>
+              <span className="muted">
+                今日のメニュー（{menu.length}種目）・タップでオン／オフ
+              </span>
+              <div className="chips">
+                {candidates.map((id) => (
+                  <button
+                    key={id}
+                    className={`chip small ${isOn(id) ? 'on' : ''}`}
+                    onClick={() => setToggled((t) => ({ ...t, [id]: !isOn(id) }))}
+                  >
+                    {isOn(id) ? '✓ ' : ''}
+                    {exName(id)}
+                  </button>
+                ))}
+              </div>
             </>
           ) : (
             <span className="muted">
@@ -161,7 +183,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
       {routines.length > 0 && (
         <section className="card">
           <div className="item-header">
-            <h2>マイルーティン</h2>
+            <h2>マイセット</h2>
             <button className="ghost" onClick={() => onOpenCustomize('routines')}>
               編集
             </button>
@@ -188,7 +210,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
         空のトレーニングを始める
       </button>
       <button className="link" onClick={() => onOpenCustomize('routines')}>
-        ＋ ルーティンを作る
+        ＋ マイセットを作る
       </button>
     </div>
   )

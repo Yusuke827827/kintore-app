@@ -326,7 +326,7 @@ function ExercisesTab() {
   )
 }
 
-// ---- ルーティン ----
+// ---- マイセット ----
 function RoutineEditor({ routine, onDone }) {
   const { allExercises, addRoutine, updateRoutine, deleteRoutine } = useData()
   const [name, setName] = useState(routine?.name ?? '')
@@ -351,10 +351,10 @@ function RoutineEditor({ routine, onDone }) {
 
   return (
     <section className="card">
-      <h2>{routine ? 'ルーティンを編集' : '新しいルーティン'}</h2>
+      <h2>{routine ? 'マイセットを編集' : '新しいマイセット'}</h2>
       <input
         className="search"
-        placeholder="名前（例：胸の日、Push）"
+        placeholder="名前（例：胸の日、Push、脚＋腹筋）"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
@@ -397,7 +397,7 @@ function RoutineEditor({ routine, onDone }) {
             onDone()
           }}
         >
-          このルーティンを削除
+          このマイセットを削除
         </button>
       )}
       {pickerOpen && (
@@ -428,7 +428,7 @@ function RoutinesTab() {
   return (
     <section className="card">
       <p className="muted">決まったメニューを登録しておくと、ホームからワンタップで始められます。</p>
-      {routines.length === 0 && <p className="muted">まだルーティンがありません。</p>}
+      {routines.length === 0 && <p className="muted">まだマイセットがありません。</p>}
       <ul className="plain-list">
         {routines.map((r) => (
           <li key={r.id} className="row-between">
@@ -448,7 +448,7 @@ function RoutinesTab() {
         ))}
       </ul>
       <button className="secondary wide" onClick={() => setEditing('new')}>
-        ＋ ルーティンを作る
+        ＋ マイセットを作る
       </button>
     </section>
   )
@@ -511,7 +511,7 @@ function TrashTab() {
 const TABS = [
   { key: 'parts', label: '部位' },
   { key: 'exercises', label: '種目' },
-  { key: 'routines', label: 'ルーティン' },
+  { key: 'routines', label: 'マイセット' },
   { key: 'trash', label: '削除済み' },
 ]
 

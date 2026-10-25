@@ -196,7 +196,7 @@ export default function Settings({ onOpenCustomize }) {
 
       <section className="card">
         <h2>カスタマイズ</h2>
-        <p className="muted">部位・種目・ルーティンを、追加・名前変更・並べ替え・削除できます。</p>
+        <p className="muted">部位・種目・マイセットを、追加・名前変更・並べ替え・削除できます。</p>
         <div className="custom-links">
           <button className="secondary" onClick={() => onOpenCustomize('parts')}>
             部位
@@ -205,7 +205,7 @@ export default function Settings({ onOpenCustomize }) {
             種目
           </button>
           <button className="secondary" onClick={() => onOpenCustomize('routines')}>
-            ルーティン
+            マイセット
           </button>
         </div>
       </section>

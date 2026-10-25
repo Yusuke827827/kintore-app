@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import './App.css'
 import { DataProvider, useData } from './state/DataContext'
 import Home from './screens/Home'
@@ -7,6 +7,56 @@ import History from './screens/History'
 import Settings from './screens/Settings'
 import Customize from './screens/Customize'
 import { formatMinutes } from './lib/date'
+
+// 今回やったメニューをマイセットに登録するか聞く（同じメニューが登録済みなら聞かない）
+function SaveAsMySet({ exerciseIds }) {
+  const { routines, allExercises, allBodyParts, addRoutine } = useData()
+  const defaultName = useMemo(() => {
+    const partIds = [
+      ...new Set(exerciseIds.map((id) => allExercises.find((e) => e.id === id)?.bodyPartId)),
+    ]
+    const names = partIds.map((id) => allBodyParts.find((p) => p.id === id)?.name).filter(Boolean)
+    return names.length ? `${names.join('＋')}の日` : 'マイセット'
+  }, [exerciseIds, allExercises, allBodyParts])
+  const [name, setName] = useState(defaultName)
+  const [state, setState] = useState('ask') // ask | saved | skipped
+
+  const key = [...exerciseIds].sort().join(',')
+  const existing = routines.find((r) => [...r.exerciseIds].sort().join(',') === key)
+  if (exerciseIds.length === 0 || state === 'skipped') return null
+  if (existing && state === 'ask') {
+    return <p className="muted">このメニューはマイセット「{existing.name}」に登録済みです。</p>
+  }
+  if (state === 'saved') {
+    return <p className="target">マイセット「{name.trim()}」に登録しました。ホームからワンタップで始められます。</p>
+  }
+  return (
+    <div className="myset-ask">
+      <p>今回のメニューをマイセットに登録しますか？</p>
+      <input
+        className="search"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="名前（例：胸の日）"
+      />
+      <div className="row">
+        <button className="secondary" onClick={() => setState('skipped')}>
+          しない
+        </button>
+        <button
+          className="primary"
+          disabled={!name.trim()}
+          onClick={() => {
+            addRoutine(name.trim(), exerciseIds)
+            setState('saved')
+          }}
+        >
+          登録する
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function FinishedSummary({ summary, onClose }) {
   return (
@@ -36,6 +86,7 @@ function FinishedSummary({ summary, onClose }) {
         {summary.prs.length > 0 && (
           <p className="target">🏆 自己ベスト更新：{summary.prs.join('・')}</p>
         )}
+        {!summary.isEdit && <SaveAsMySet exerciseIds={summary.exerciseIds ?? []} />}
         <button className="primary wide" onClick={onClose}>
           OK
         </button>

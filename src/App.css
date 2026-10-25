@@ -698,3 +698,16 @@ input.note {
   gap: 8px;
   margin-top: 10px;
 }
+
+.chip.small {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.myset-ask {
+  text-align: left;
+  margin: 16px 0 4px;
+  padding: 12px;
+  background: #0b0f19;
+  border-radius: 10px;
+}

@@ -140,6 +140,7 @@ export default function Workout({ onFinished }) {
       volume,
       durationMs: isEdit || !w.startedAt ? null : Date.now() - w.startedAt,
       prs,
+      exerciseIds: w.items.filter((it) => it.sets.some(isFilledSet)).map((it) => it.exerciseId),
     }
     finishWorkout()
     onFinished(filled > 0 ? summary : null)
@@ -156,7 +157,7 @@ export default function Workout({ onFinished }) {
   }
 
   function handleSaveRoutine() {
-    const name = prompt('ルーティン名（例：胸の日）')
+    const name = prompt('マイセットの名前（例：胸の日）')
     if (!name?.trim()) return
     addRoutine(
       name.trim(),
@@ -291,7 +292,7 @@ export default function Workout({ onFinished }) {
       <div className="row">
         {w.items.length > 0 && (
           <button className="secondary" onClick={handleSaveRoutine}>
-            ルーティンとして保存
+            マイセットに登録
           </button>
         )}
         <button className="secondary danger" onClick={handleDiscard}>
