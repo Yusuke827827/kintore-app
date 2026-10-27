@@ -1,5 +1,7 @@
 // GitHub Gist（非公開）を保存先にした、端末・ブラウザ間の同期。
 // サーバーを用意しなくても、自分のGitHubアカウントにデータを置いて共有できる。
+import { t } from '../i18n'
+
 const CONFIG_KEY = 'kintore-sync-v1'
 const FILE_NAME = 'kintore-data.json'
 const API = 'https://api.github.com'
@@ -31,9 +33,9 @@ async function api(token, path, options = {}) {
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
     },
   })
-  if (res.status === 401) throw new Error('トークンが正しくないか、期限切れです')
-  if (res.status === 404) throw new Error('同期先が見つかりません（トークンに gist 権限があるか確認してください）')
-  if (!res.ok) throw new Error(`GitHubとの通信に失敗しました（${res.status}）`)
+  if (res.status === 401) throw new Error(t('トークンが正しくないか、期限切れです'))
+  if (res.status === 404) throw new Error(t('同期先が見つかりません（トークンに gist 権限があるか確認してください）'))
+  if (!res.ok) throw new Error(t('GitHubとの通信に失敗しました（{status}）', { status: res.status }))
   return res.json()
 }
 

@@ -3,7 +3,18 @@ import { initialBodyParts, initialExercises } from '../data/initialData'
 import { loadData, mergeData, requestPersistentStorage, saveData } from '../lib/storage'
 import * as sync from '../lib/sync'
 import { todayStr } from '../lib/date'
-import { isFilledSet, previousRecord, sessionPartIds } from '../lib/stats'
+import {
+  emptySet,
+  isCardio,
+  isFilledSet,
+  previousRecord,
+  sessionPartIds,
+  toDraftSet,
+  toStoredSet,
+} from '../lib/stats'
+import { setLanguage, t } from '../i18n'
+import { applyTheme } from '../lib/theme'
+import { setSoundEnabled } from '../lib/restAlarm'
 
 const DataContext = createContext(null)
 
@@ -24,13 +35,14 @@ function makeId(prefix) {
 }
 
 // 前回の記録の行数ぶん、空のセットを用意する（入力欄には前回の値が薄く表示される）
-function newItem(sessions, exerciseId, date, excludeId) {
-  const prev = previousRecord(sessions, exerciseId, { onOrBefore: date, excludeId })
-  const count = prev ? prev.sets.length : 1
+function newItem(state, exerciseId, date, excludeId) {
+  const prev = previousRecord(state.sessions, exerciseId, { onOrBefore: date, excludeId })
+  const cardio = isCardio(state.exercises.find((e) => e.id === exerciseId))
+  const prevSets = prev ? prev.sets : [null]
   return {
     exerciseId,
     note: '',
-    sets: Array.from({ length: count }, () => ({ weight: '', reps: '', done: false })),
+    sets: prevSets.map((p) => emptySet(cardio, p)),
   }
 }
 
@@ -42,6 +54,22 @@ export function DataProvider({ children }) {
     at: null,
     message: '',
   }))
+
+  // 言語は描画の前に切り替える（t() がこの値を見る）
+  setLanguage(state.settings.lang)
+  setSoundEnabled(state.settings.sound)
+
+  // 見た目（モード・色・壁紙・文字サイズ）。「端末に合わせる」はOSの切り替えにも追従
+  const themeJson = JSON.stringify(state.settings.theme)
+  const [wallpaperVersion, setWallpaperVersion] = useState(0)
+  useEffect(() => {
+    const theme = JSON.parse(themeJson)
+    applyTheme(theme)
+    const mq = window.matchMedia?.('(prefers-color-scheme: light)')
+    const onChange = () => applyTheme(theme)
+    mq?.addEventListener?.('change', onChange)
+    return () => mq?.removeEventListener?.('change', onChange)
+  }, [themeJson, wallpaperVersion])
 
   // 1項目入力するたびに、この端末へ即保存
   useEffect(() => {
@@ -89,7 +117,7 @@ export function DataProvider({ children }) {
       })
       setSyncStatus({ configured: true, state: 'ok', at: Date.now(), message: '' })
     } catch (e) {
-      setSyncStatus((s) => ({ ...s, state: 'error', message: e.message || '同期に失敗しました' }))
+      setSyncStatus((s) => ({ ...s, state: 'error', message: e.message || t('同期に失敗しました') }))
     } finally {
       syncingRef.current = false
       if (pendingRef.current) {
@@ -282,7 +310,7 @@ export function DataProvider({ children }) {
               updatedAt: Date.now(),
               bodyPartIds,
               restEndsAt: null,
-              items: exerciseIds.map((exId) => newItem(s.sessions, exId, date)),
+              items: exerciseIds.map((exId) => newItem(s, exId, date)),
             },
           }
         })
@@ -306,11 +334,7 @@ export function DataProvider({ children }) {
               items: session.entries.map((en) => ({
                 exerciseId: en.exerciseId,
                 note: en.note ?? '',
-                sets: en.sets.map((set) => ({
-                  weight: String(set.weight),
-                  reps: String(set.reps),
-                  done: true,
-                })),
+                sets: en.sets.map(toDraftSet),
               })),
             },
           }
@@ -326,7 +350,7 @@ export function DataProvider({ children }) {
         setState((s) => {
           const w = s.activeWorkout
           if (!w) return s
-          const item = newItem(s.sessions, exerciseId, w.date, w.sourceSessionId)
+          const item = newItem(s, exerciseId, w.date, w.sourceSessionId)
           return { ...s, activeWorkout: { ...w, items: [...w.items, item], updatedAt: Date.now() } }
         })
       },
@@ -338,9 +362,7 @@ export function DataProvider({ children }) {
             .map((it) => ({
               exerciseId: it.exerciseId,
               ...(it.note ? { note: it.note } : {}),
-              sets: it.sets
-                .filter(isFilledSet)
-                .map((set) => ({ weight: Number(set.weight), reps: Number(set.reps) })),
+              sets: it.sets.filter(isFilledSet).map(toStoredSet),
             }))
             .filter((en) => en.sets.length > 0)
           const ended = { ...s, activeWorkout: null, endedWorkoutIds: [...s.endedWorkoutIds, w.id] }
@@ -381,6 +403,33 @@ export function DataProvider({ children }) {
         })
       },
 
+      // ---- 体重・体脂肪（1日1件。同じ日に入れ直したら上書き） ----
+      saveBodyLog(date, weight, fat) {
+        setState((s) => {
+          const existing = s.bodyLogs.find((l) => l.date === date)
+          const log = {
+            id: existing?.id ?? makeId('bw'),
+            date,
+            weight,
+            ...(fat != null ? { fat } : {}),
+            updatedAt: Date.now(),
+          }
+          return {
+            ...s,
+            bodyLogs: [...s.bodyLogs.filter((l) => l.id !== log.id), log].sort((a, b) =>
+              a.date < b.date ? -1 : a.date > b.date ? 1 : 0
+            ),
+          }
+        })
+      },
+      deleteBodyLog(id) {
+        setState((s) => ({
+          ...s,
+          bodyLogs: s.bodyLogs.filter((l) => l.id !== id),
+          deletedBodyLogIds: [...s.deletedBodyLogIds, id],
+        }))
+      },
+
       // バックアップの読み込み（今のデータと合わせる。今ある記録は消えない）
       importData(data) {
         setState((s) => mergeData(s, data))
@@ -400,6 +449,7 @@ export function DataProvider({ children }) {
     }, [state.exercises, state.bodyParts]),
     ...actions,
     syncStatus,
+    refreshWallpaper: () => setWallpaperVersion((v) => v + 1),
     runSync,
     connectSync,
     disconnectSync,

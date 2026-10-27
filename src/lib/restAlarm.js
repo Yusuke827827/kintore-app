@@ -2,6 +2,11 @@
 // iPhoneでも画面を触らずに鳴る。
 let ctx = null
 let scheduled = []
+let soundOn = true
+
+export function setSoundEnabled(on) {
+  soundOn = on !== false
+}
 
 function getCtx() {
   if (!ctx) {
@@ -15,6 +20,7 @@ function getCtx() {
 
 export function scheduleRestAlarm(endsAt) {
   cancelRestAlarm()
+  if (!soundOn) return
   const c = getCtx()
   if (!c) return
   const delay = Math.max(0, (endsAt - Date.now()) / 1000)

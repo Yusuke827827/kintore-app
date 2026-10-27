@@ -6,10 +6,11 @@ export const initialBodyParts = [
   { id: 'arm', name: '腕', group: 'upper' },
   { id: 'legs', name: '脚', group: 'lower' },
   { id: 'core', name: '体幹（腹筋）', group: 'core' },
+  { id: 'cardio', name: '有酸素', group: 'other' },
 ]
 
 // 種目マスタ 初期データ（要件定義書 付録B）
-// type: 'compound'(複合関節) | 'isolation'(単関節)
+// type: 'compound'(複合関節) | 'isolation'(単関節) | 'cardio'(有酸素：時間・距離・kcalで記録)
 function ex(id, name, bodyPartId, equipment, type) {
   return { id, name, bodyPartId, equipment, type, active: true }
 }
@@ -100,4 +101,17 @@ export const initialExercises = [
   ex('core-06', 'クランチ', 'core', 'その他', 'isolation'),
   ex('core-07', 'レッグレイズ', 'core', 'その他', 'isolation'),
   ex('core-08', 'ケトルベルスイング', 'core', 'その他', 'compound'),
+
+  // 有酸素
+  ex('cardio-01', 'トレッドミル', 'cardio', 'マシン', 'cardio'),
+  ex('cardio-02', 'エアロバイク', 'cardio', 'マシン', 'cardio'),
+  ex('cardio-03', 'クロストレーナー', 'cardio', 'マシン', 'cardio'),
+  ex('cardio-04', 'ステアクライマー', 'cardio', 'マシン', 'cardio'),
+  ex('cardio-05', 'ローイングマシン', 'cardio', 'マシン', 'cardio'),
+  ex('cardio-06', 'ウォーキング', 'cardio', 'その他', 'cardio'),
+  ex('cardio-07', 'ランニング', 'cardio', 'その他', 'cardio'),
 ]
+
+// あとから増えた初期データ。前の版で保存されたデータにも足す
+export const SEED_VERSION = 2
+export const SEED_V2_PART_IDS = ['cardio']
