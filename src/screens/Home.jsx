@@ -9,7 +9,9 @@ import {
   sessionPartIds,
   sortSessionsDesc,
   suggestParts,
+  weeklyGoalStatus,
 } from '../lib/stats'
+import RecoveryMap from '../components/RecoveryMap'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -28,6 +30,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
     routines,
     activeWorkout,
     startWorkout,
+    settings,
   } = useData()
   const today = todayStr()
 
@@ -62,6 +65,28 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
   }, [sessions])
 
   const visibleIds = new Set(exercises.map((e) => e.id))
+  const goal = settings.weeklyGoal ?? 0
+  const goalStatus = useMemo(
+    () => (goal > 0 ? weeklyGoalStatus(sessions, goal, today) : null),
+    [sessions, goal, today]
+  )
+  const [showMap, setShowMap] = useState(() => {
+    try {
+      return localStorage.getItem('kintore-show-map') !== '0'
+    } catch {
+      return true
+    }
+  })
+  function toggleMap() {
+    setShowMap((v) => {
+      try {
+        localStorage.setItem('kintore-show-map', v ? '0' : '1')
+      } catch {
+        // 保存できなくても表示の切り替えはできる
+      }
+      return !v
+    })
+  }
 
   function partName(id) {
     return nm(allBodyParts.find((p) => p.id === id))
@@ -99,6 +124,28 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
         )}
       </p>
 
+      {goalStatus && (
+        <section className="card goal">
+          <div className="goal-dots">
+            {Array.from({ length: Math.max(goal, goalStatus.thisCount) }, (_, i) => (
+              <span key={i} className={i < goalStatus.thisCount ? 'on' : ''} />
+            ))}
+          </div>
+          <div className="goal-text">
+            <strong>
+              {goalStatus.thisCount >= goal
+                ? t('今週の目標達成！')
+                : t('今週 {n}/{goal}回', { n: goalStatus.thisCount, goal })}
+            </strong>
+            <span className="muted">
+              {goalStatus.streak > 0
+                ? t('🔥 {n}週連続で達成中', { n: goalStatus.streak })
+                : t('あと{n}回で今週の目標達成', { n: goal - goalStatus.thisCount })}
+            </span>
+          </div>
+        </section>
+      )}
+
       {activeWorkout && (
         <section className="card resume">
           <h2>{activeWorkout.sourceSessionId ? t('修正中の記録があります') : t('トレーニング記録中')}</h2>
@@ -121,6 +168,18 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
             {t('編集')}
           </button>
         </div>
+        <button className="link map-toggle" onClick={toggleMap}>
+          {showMap ? t('回復マップを隠す') : t('回復マップを表示')}
+        </button>
+        {showMap && (
+          <RecoveryMap
+            bodyParts={bodyParts}
+            lastByPart={lastByPart}
+            today={today}
+            selected={chosen}
+            onToggle={togglePart}
+          />
+        )}
         {GROUPS.map((g) => {
           const parts = bodyParts.filter((p) => p.group === g.key)
           if (parts.length === 0) return null

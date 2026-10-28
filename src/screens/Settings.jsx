@@ -3,6 +3,7 @@ import { useData } from '../state/DataContext'
 import { todayStr } from '../lib/date'
 import HowTo from '../components/HowTo'
 import { bodyCsv, downloadFile, workoutsCsv } from '../lib/csv'
+import { DEFAULT_PROGRESSION } from '../lib/storage'
 import { LANGUAGES, getLanguage, t } from '../i18n'
 import {
   ACCENTS,
@@ -408,6 +409,64 @@ function BackupSection() {
   )
 }
 
+function GoalSection() {
+  const { settings, updateSettings } = useData()
+  const prog = { ...DEFAULT_PROGRESSION, ...settings.progression }
+  const setProg = (patch) => updateSettings({ progression: { ...prog, ...patch } })
+
+  return (
+    <section className="card">
+      <h2>{t('週の目標')}</h2>
+      <p className="muted">{t('1週間（月〜日）に何日トレーニングするか。ホームに達成状況と連続記録が出ます。')}</p>
+      <div className="chips">
+        {[0, 1, 2, 3, 4, 5, 6].map((n) => (
+          <button
+            key={n}
+            className={`chip ${settings.weeklyGoal === n ? 'on' : ''}`}
+            onClick={() => updateSettings({ weeklyGoal: n })}
+          >
+            {n === 0 ? t('なし') : t('週{n}回', { n })}
+          </button>
+        ))}
+      </div>
+
+      <h2 style={{ marginTop: 16 }}>{t('重量の自動アップ')}</h2>
+      <label className="option toggle-row">
+        <input type="checkbox" checked={prog.on} onChange={(e) => setProg({ on: e.target.checked })} />
+        {t('前回すべてのセットで目標回数をこなせたら、次は重量を上げて表示する')}
+      </label>
+      {prog.on && (
+        <>
+          <h3>{t('目標回数')}</h3>
+          <div className="chips">
+            {[5, 6, 8, 10, 12, 15].map((n) => (
+              <button
+                key={n}
+                className={`chip ${prog.reps === n ? 'on' : ''}`}
+                onClick={() => setProg({ reps: n })}
+              >
+                {t('{n}回', { n })}
+              </button>
+            ))}
+          </div>
+          <h3>{t('上げる重さ')}</h3>
+          <div className="chips">
+            {[1, 1.25, 2, 2.5, 5].map((n) => (
+              <button
+                key={n}
+                className={`chip ${prog.step === n ? 'on' : ''}`}
+                onClick={() => setProg({ step: n })}
+              >
+                +{n}kg
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+  )
+}
+
 function formatRest(sec) {
   if (sec % 60 === 0) return t('{m}分', { m: sec / 60 })
   return t('{m}分{s}秒', { m: Math.floor(sec / 60), s: sec % 60 })
@@ -440,6 +499,8 @@ export default function Settings({ onOpenCustomize }) {
 
       <LanguageSection />
       <AppearanceSection />
+
+      <GoalSection />
 
       <section className="card">
         <h2>{t('休憩タイマー')}</h2>

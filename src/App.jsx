@@ -8,6 +8,7 @@ import Settings from './screens/Settings'
 import Customize from './screens/Customize'
 import { formatMinutes } from './lib/date'
 import { nm, t } from './i18n'
+import { shareSessionImage } from './lib/shareImage'
 
 // 今回やったメニューをマイセットに登録するか聞く（同じメニューが登録済みなら聞かない）
 function SaveAsMySet({ exerciseIds }) {
@@ -69,6 +70,22 @@ function SaveAsMySet({ exerciseIds }) {
   )
 }
 
+function ShareButton({ sessionId, className = 'secondary wide' }) {
+  const { sessions, allExercises, allBodyParts } = useData()
+  const session = sessions.find((s) => s.id === sessionId)
+  if (!session) return null
+  return (
+    <button
+      className={className}
+      onClick={() =>
+        shareSessionImage(session, { sessions, exercises: allExercises, bodyParts: allBodyParts })
+      }
+    >
+      {t('📤 画像で共有')}
+    </button>
+  )
+}
+
 function FinishedSummary({ summary, onClose }) {
   return (
     <div className="screen">
@@ -98,6 +115,7 @@ function FinishedSummary({ summary, onClose }) {
           <p className="target">🏆 {t('自己ベスト更新')}：{summary.prs.join(t('・'))}</p>
         )}
         {!summary.isEdit && <SaveAsMySet exerciseIds={summary.exerciseIds ?? []} />}
+        <ShareButton sessionId={summary.sessionId} />
         <button className="primary wide" onClick={onClose}>
           OK
         </button>

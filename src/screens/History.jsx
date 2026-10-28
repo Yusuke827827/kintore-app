@@ -12,6 +12,8 @@ import {
 } from '../lib/stats'
 import BodyLog from '../components/BodyLog'
 import WeeklyStats from '../components/WeeklyStats'
+import PersonalRecords from '../components/PersonalRecords'
+import { shareSessionImage } from '../lib/shareImage'
 import { getLanguage, nm, t } from '../i18n'
 
 function MonthCalendar({ sessions }) {
@@ -148,7 +150,12 @@ export default function History({ onOpenWorkout }) {
       </div>
 
       {view === 'body' && <BodyLog />}
-      {view === 'stats' && <WeeklyStats />}
+      {view === 'stats' && (
+        <>
+          <WeeklyStats />
+          <PersonalRecords />
+        </>
+      )}
       {view === 'log' && (
         <>
       <MonthCalendar sessions={sessions} />
@@ -237,6 +244,13 @@ export default function History({ onOpenWorkout }) {
               {formatDateJa(s.date)} {s.bodyPartIds.map(partName).join(t('＋'))}
             </h2>
             <div className="item-tools">
+              <button
+                className="ghost"
+                onClick={() => shareSessionImage(s, { sessions, exercises, bodyParts: allBodyParts })}
+                aria-label={t('画像で共有')}
+              >
+                📤
+              </button>
               <button className="ghost" onClick={() => handleEdit(s.id)}>
                 {t('修正')}
               </button>

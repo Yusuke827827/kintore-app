@@ -28,6 +28,15 @@ export function formatSet(set) {
   return `${mark}${set.weight}kg×${set.reps}`
 }
 
+// 次の重量の自動アップ：前回の通常セットがすべて目標回数以上なら、重量を step だけ上げる
+export function progressionFor(prevSets, progression) {
+  if (!progression?.on || !prevSets) return null
+  const normal = prevSets.filter((s) => !isCardioSet(s) && !s.type)
+  if (normal.length === 0) return null
+  if (!normal.every((s) => s.reps >= progression.reps)) return null
+  return { step: progression.step, reps: progression.reps }
+}
+
 // 推定1RM（Epley式）
 export function e1rm(weight, reps) {
   if (!weight || !reps) return 0
@@ -183,6 +192,50 @@ export function weekStart(dateStr) {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
+}
+
+// 週の目標：今週の回数と、目標を達成した週が何週続いているか（今週は達成していれば数える）
+export function weeklyGoalStatus(sessions, goal, today) {
+  const daysByWeek = {}
+  for (const s of sessions) (daysByWeek[weekStart(s.date)] ??= new Set()).add(s.date)
+  const thisWeek = weekStart(today)
+  const count = (wk) => daysByWeek[wk]?.size ?? 0
+  const thisCount = count(thisWeek)
+  let streak = thisCount >= goal ? 1 : 0
+  const d = new Date(`${thisWeek}T00:00:00`)
+  for (;;) {
+    d.setDate(d.getDate() - 7)
+    const wk = weekStart(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
+    if (count(wk) >= goal) streak++
+    else break
+  }
+  const best = Object.values(daysByWeek).filter((s) => s.size >= goal).length
+  return { thisCount, streak, achievedWeeks: best }
+}
+
+// 種目ごとの自己ベスト（本番セットの最大重量・推定1RM、有酸素は最長時間・最長距離）と、その日付
+export function personalRecords(sessions, exercises) {
+  const map = {}
+  for (const s of sortSessionsDesc(sessions).reverse()) {
+    for (const en of s.entries) {
+      const ex = exercises.find((e) => e.id === en.exerciseId)
+      const r = (map[en.exerciseId] ??= { exerciseId: en.exerciseId, cardio: isCardio(ex), lastPrDate: null })
+      for (const set of en.sets) {
+        if (isCardioSet(set)) {
+          if (set.min > (r.min ?? 0)) Object.assign(r, { min: set.min, minDate: s.date, lastPrDate: s.date })
+          if ((set.km ?? 0) > (r.km ?? 0)) Object.assign(r, { km: set.km, kmDate: s.date, lastPrDate: s.date })
+          continue
+        }
+        if (!isWorkingSet(set)) continue
+        const est = e1rm(set.weight, set.reps)
+        if (set.weight > (r.weight ?? -1) || (set.weight === r.weight && set.reps > r.reps)) {
+          Object.assign(r, { weight: set.weight, reps: set.reps, weightDate: s.date, lastPrDate: s.date })
+        }
+        if (est > (r.e1rm ?? 0)) Object.assign(r, { e1rm: est, e1rmDate: s.date, lastPrDate: s.date })
+      }
+    }
+  }
+  return Object.values(map)
 }
 
 // 週ごと・部位ごとの本番セット数とボリューム（ウォームアップは除く）、有酸素の分数

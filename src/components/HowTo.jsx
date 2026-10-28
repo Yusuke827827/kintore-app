@@ -34,6 +34,16 @@ const TOPICS_JA = [
     ),
   },
   {
+    title: '重量の自動アップ・目標・回復マップ',
+    body: (
+      <ul>
+        <li>前回すべてのセットで目標回数（設定で変更、最初は10回）をこなせた種目は、次回の重量が自動で上がって表示されます（最初は +2.5kg）</li>
+        <li>設定の「週の目標」で週に何日やるか決めると、ホームに今週の達成状況と「何週連続で達成中か」が出ます</li>
+        <li>ホームの人体図は、部位ごとに前回からの日数で色が変わります（赤＝回復中、黄＝もう少し、緑＝回復済み）。図をタップしてもその部位を選べます</li>
+      </ul>
+    ),
+  },
+  {
     title: '途中でアプリを閉じても大丈夫',
     body: (
       <p>
@@ -68,6 +78,7 @@ const TOPICS_JA = [
       <ul>
         <li>ホームの「編集」か、この設定画面の「カスタマイズ」から</li>
         <li>名前をタップすると編集、↑↓で並べ替え</li>
+        <li>種目にフォーム動画のURL（YouTubeなど）を入れておくと、記録中に種目名の横の ▶ から開けます</li>
         <li>種目のチェックを外すと、種目選びに出なくなります（記録はそのまま）</li>
         <li>削除しても過去の記録は残ります。間違えて消したら「削除済み」タブから復元できます</li>
       </ul>
@@ -82,6 +93,8 @@ const TOPICS_JA = [
         <li>記録の「修正」で数字を直せます。「削除」で記録を消せます</li>
         <li>「体重」タブで体重・体脂肪率を記録してグラフで見られます（1日1件、入れ直すと上書き）</li>
         <li>「分析」タブで、週ごと・部位ごとのセット数を前の週と比べられます。鍛え方の偏りに気づけます</li>
+        <li>「分析」タブの下に種目ごとの自己ベスト一覧。1週間以内に更新したものには NEW が付きます</li>
+        <li>記録の 📤 や終了画面の「画像で共有」で、その日のトレーニングを画像にして LINE や SNS に送れます</li>
       </ul>
     ),
   },
@@ -162,6 +175,16 @@ const TOPICS_EN = [
     ),
   },
   {
+    title: 'Auto weight increase, goals & recovery map',
+    body: (
+      <ul>
+        <li>If you hit the target reps (10 by default, changeable in Settings) on every set last time, next time's weight is raised automatically (+2.5kg by default)</li>
+        <li>Set a "Weekly goal" in Settings to see this week's progress and your streak of weeks achieved on Home</li>
+        <li>The body figure on Home colors each part by days since you trained it (red = recovering, yellow = almost, green = recovered). Tap it to select that part</li>
+      </ul>
+    ),
+  },
+  {
     title: "Closing the app mid-workout is fine",
     body: (
       <p>
@@ -197,6 +220,7 @@ const TOPICS_EN = [
       <ul>
         <li>Open "Edit" on Home or "Customize" in Settings</li>
         <li>Tap a name to edit it; use ↑↓ to reorder</li>
+        <li>Add a form-video URL (YouTube etc.) to an exercise and open it with ▶ next to its name while logging</li>
         <li>Uncheck an exercise to hide it from the list (records are kept)</li>
         <li>Deleting keeps past records. Restore mistakes from the "Deleted" tab</li>
       </ul>
@@ -211,6 +235,8 @@ const TOPICS_EN = [
         <li>Use "Edit" on a workout to fix numbers, or "Delete" to remove it</li>
         <li>The "Body" tab logs body weight and body-fat % with charts (one entry per day; re-entering overwrites)</li>
         <li>The "Analysis" tab compares sets per body part with the previous week, so you can spot imbalances</li>
+        <li>Below it is a personal-records list per exercise; records set within the last week are marked NEW</li>
+        <li>Use 📤 on a workout or "Share as image" after finishing to send the day's workout as an image to LINE or social media</li>
       </ul>
     ),
   },
