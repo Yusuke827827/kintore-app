@@ -2,7 +2,7 @@ import { daysBetween } from '../lib/date'
 import { nm, t } from '../i18n'
 
 // 前回からの日数で色分け：0〜1日＝回復中（赤）、2日＝もう少し（黄）、3日以上＝回復済み（緑）
-export function recoveryColor(days) {
+function recoveryColor(days) {
   if (days == null) return 'var(--surface-2)'
   if (days <= 1) return '#ef4444'
   if (days === 2) return '#f59e0b'
