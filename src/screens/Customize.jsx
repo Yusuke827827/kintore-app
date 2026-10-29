@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useData } from '../state/DataContext'
-import ExercisePicker from '../components/ExercisePicker'
+import MenuEditor from '../components/MenuEditor'
 import { eq, nm, t } from '../i18n'
 
 const GROUPS = [
@@ -359,25 +359,16 @@ function ExercisesTab() {
 
 // ---- マイセット ----
 function RoutineEditor({ routine, onDone }) {
-  const { allExercises, addRoutine, updateRoutine, deleteRoutine } = useData()
+  const { addRoutine, updateRoutine, deleteRoutine } = useData()
   const [name, setName] = useState(routine?.name ?? '')
-  const [ids, setIds] = useState(routine?.exerciseIds ?? [])
-  const [pickerOpen, setPickerOpen] = useState(false)
+  const [menu, setMenu] = useState({
+    exerciseIds: routine?.exerciseIds ?? [],
+    targets: routine?.targets ?? {},
+  })
 
-  function exName(id) {
-    const ex = allExercises.find((e) => e.id === id)
-    return ex ? nm(ex) : t('（削除された種目）')
-  }
-  function move(i, dir) {
-    const j = i + dir
-    if (j < 0 || j >= ids.length) return
-    const next = [...ids]
-    ;[next[i], next[j]] = [next[j], next[i]]
-    setIds(next)
-  }
   function save() {
-    if (routine) updateRoutine(routine.id, { name: name.trim(), exerciseIds: ids })
-    else addRoutine(name.trim(), ids)
+    if (routine) updateRoutine(routine.id, { name: name.trim(), ...menu })
+    else addRoutine(name.trim(), menu.exerciseIds, menu.targets)
     onDone()
   }
 
@@ -390,33 +381,16 @@ function RoutineEditor({ routine, onDone }) {
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <ul className="plain-list">
-        {ids.map((id, i) => (
-          <li key={`${id}-${i}`} className="row-between">
-            <span>
-              {i + 1}. {exName(id)}
-            </span>
-            <div className="item-tools">
-              <MoveButtons onMove={(dir) => move(i, dir)} />
-              <button
-                className="ghost danger"
-                onClick={() => setIds(ids.filter((_, k) => k !== i))}
-                aria-label={t('外す')}
-              >
-                ✕
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <button className="secondary wide" onClick={() => setPickerOpen(true)}>
-        {t('＋ 種目を追加')}
-      </button>
+      <MenuEditor value={menu} onChange={setMenu} />
       <div className="row">
         <button className="secondary" onClick={onDone}>
           {t('キャンセル')}
         </button>
-        <button className="primary" disabled={!name.trim() || ids.length === 0} onClick={save}>
+        <button
+          className="primary"
+          disabled={!name.trim() || menu.exerciseIds.length === 0}
+          onClick={save}
+        >
           {t('保存')}
         </button>
       </div>
@@ -431,13 +405,6 @@ function RoutineEditor({ routine, onDone }) {
         >
           {t('このマイセットを削除')}
         </button>
-      )}
-      {pickerOpen && (
-        <ExercisePicker
-          addedIds={ids}
-          onPick={(id) => setIds((cur) => (cur.includes(id) ? cur : [...cur, id]))}
-          onClose={() => setPickerOpen(false)}
-        />
       )}
     </section>
   )

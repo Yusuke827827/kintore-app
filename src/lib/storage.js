@@ -56,7 +56,30 @@ export function normalizeData(raw) {
     activeWorkout: data?.activeWorkout ?? null,
     bodyLogs: data?.bodyLogs ?? [],
     deletedBodyLogIds: data?.deletedBodyLogIds ?? [],
+    // カレンダーの予定：日付ごと（dates）と、毎週の曜日ごと（weekly: 0=日〜6=土）にマイセットを割り当てる
+    plans: { dates: data?.plans?.dates ?? {}, weekly: data?.plans?.weekly ?? {} },
+    // トレーナー用のプロフィール（身長・体重・目指す体型など）と、通っているジム
+    profile: data?.profile ?? null,
+    gym: data?.gym ?? null,
+    meals: data?.meals ?? [],
+    deletedMealIds: data?.deletedMealIds ?? [],
   }
+}
+
+// id ごとの和集合（同じ id は更新日時が新しい方、削除したものは除く）
+function unionById(a, b, deletedA, deletedB) {
+  const deleted = [...new Set([...deletedA, ...deletedB])].sort()
+  const deletedSet = new Set(deleted)
+  const byId = new Map()
+  for (const x of [...a, ...b]) {
+    if (deletedSet.has(x.id)) continue
+    const cur = byId.get(x.id)
+    if (!cur || (x.updatedAt ?? 0) > (cur.updatedAt ?? 0)) byId.set(x.id, x)
+  }
+  const list = [...byId.values()].sort((x, y) =>
+    x.date !== y.date ? (x.date < y.date ? -1 : 1) : x.id < y.id ? -1 : x.id > y.id ? 1 : 0
+  )
+  return { list, deleted }
 }
 
 export function loadData() {
@@ -111,6 +134,8 @@ export function mergeData(localRaw, otherRaw) {
   )
   workouts.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
 
+  const meals = unionById(local.meals, other.meals, local.deletedMealIds, other.deletedMealIds)
+
   // 体重の記録も、記録と同じく和集合（削除したものは消したまま）
   const deletedLogs = [...new Set([...local.deletedBodyLogIds, ...other.deletedBodyLogIds])].sort()
   const deletedLogSet = new Set(deletedLogs)
@@ -136,5 +161,10 @@ export function mergeData(localRaw, otherRaw) {
     activeWorkout: workouts[0] ?? null,
     bodyLogs,
     deletedBodyLogIds: deletedLogs,
+    plans: master.plans,
+    profile: master.profile,
+    gym: master.gym,
+    meals: meals.list,
+    deletedMealIds: meals.deleted,
   })
 }

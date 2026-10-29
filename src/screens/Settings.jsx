@@ -296,6 +296,11 @@ function BackupSection() {
       activeWorkout: data.activeWorkout,
       bodyLogs: data.bodyLogs,
       deletedBodyLogIds: data.deletedBodyLogIds,
+      plans: data.plans,
+      profile: data.profile,
+      gym: data.gym,
+      meals: data.meals,
+      deletedMealIds: data.deletedMealIds,
       seedVersion: data.seedVersion,
     }
   }

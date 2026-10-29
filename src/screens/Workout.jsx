@@ -3,6 +3,8 @@ import { useData } from '../state/DataContext'
 import useNow from '../hooks/useNow'
 import ExercisePicker from '../components/ExercisePicker'
 import RestTimer from '../components/RestTimer'
+import ExerciseMemo from '../components/ExerciseMemo'
+import { smartOrder } from '../lib/planner'
 import { formatClock, formatDateJa } from '../lib/date'
 import { nm, t } from '../i18n'
 import {
@@ -46,7 +48,15 @@ function setNumber(sets, index) {
 }
 
 // その行に薄く出す「前回の値」（重量アップの対象なら、通常セットの重量を上げて出す）
+// メニューで回数の目標（target）が決まっていれば、回数はそれを出す
 function placeholderFor(item, index, prev, up) {
+  const base = basePlaceholder(item, index, prev, up)
+  const target = item.target
+  if (!target?.reps || item.sets[index]?.type === 'warmup' || isCardioSet(item.sets[index] ?? {})) return base
+  return { ...(base ?? {}), reps: target.reps }
+}
+
+function basePlaceholder(item, index, prev, up) {
   const p = prev?.sets[index]
   if (p) return up && !p.type && !isCardioSet(p) ? { ...p, weight: round(p.weight + up.step) } : p
   for (let i = index - 1; i >= 0; i--) {
@@ -70,6 +80,7 @@ export default function Workout({ onFinished }) {
   } = useData()
   const [pickerOpen, setPickerOpen] = useState(() => !!w && w.items.length === 0)
   const [setMenu, setSetMenu] = useState(null) // { itemIndex, setIndex, cardio }
+  const [orderOpen, setOrderOpen] = useState(false)
   const isEdit = !!w?.sourceSessionId
   const now = useNow(1000, !!w && !isEdit)
 
@@ -282,7 +293,10 @@ export default function Workout({ onFinished }) {
             {prev && !isEdit && !cardio && !up && suggestTarget(prev.sets) && (
               <p className="target">{suggestTarget(prev.sets)}</p>
             )}
-            {prev?.note && <p className="muted">{t('前回メモ')}：{prev.note}</p>}
+            {it.target && !cardio && (
+              <p className="muted">{t('目標 {s}セット×{r}回', { s: it.target.sets, r: it.target.reps })}</p>
+            )}
+            <ExerciseMemo exercise={exercise} fallback={prev?.note} />
 
             {cardio ? (
               <div className="set-head cardio">
@@ -357,20 +371,21 @@ export default function Workout({ onFinished }) {
               <button className="secondary" onClick={() => addSet(itemIndex)}>
                 {t('＋ セット')}
               </button>
-              <input
-                className="note"
-                placeholder={t('メモ（シート位置・フォームなど）')}
-                value={it.note}
-                onChange={(e) => updateItem(itemIndex, (x) => ({ ...x, note: e.target.value }))}
-              />
             </div>
           </section>
         )
       })}
 
-      <button className="secondary wide" onClick={() => setPickerOpen(true)}>
-        {t('＋ 種目を追加')}
-      </button>
+      <div className="row">
+        <button className="secondary grow" onClick={() => setPickerOpen(true)}>
+          {t('＋ 種目を追加')}
+        </button>
+        {w.items.length > 1 && (
+          <button className="secondary" onClick={() => setOrderOpen(true)}>
+            {t('↕ 順番')}
+          </button>
+        )}
+      </div>
 
       <div className="row">
         {w.items.length > 0 && (
@@ -391,6 +406,53 @@ export default function Workout({ onFinished }) {
       </p>
 
       <RestTimer endsAt={w.restEndsAt} onChange={setRestEndsAt} />
+
+      {orderOpen && (
+        <div className="sheet-backdrop" onClick={() => setOrderOpen(false)}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-header">
+              <h2>{t('順番を編集')}</h2>
+              <button className="primary small" onClick={() => setOrderOpen(false)}>
+                {t('完了')}
+              </button>
+            </div>
+            <button
+              className="secondary wide"
+              onClick={() =>
+                updateWorkout((x) => {
+                  const order = smartOrder(x.items.map((it) => it.exerciseId), exercises)
+                  const items = [...x.items].sort(
+                    (a, b) => order.indexOf(a.exerciseId) - order.indexOf(b.exerciseId)
+                  )
+                  return { ...x, items }
+                })
+              }
+            >
+              {t('✨ おまかせ並べ替え（大きい筋肉・多関節を先に）')}
+            </button>
+            <ul className="plain-list order-list">
+              {w.items.map((it, i) => {
+                const e = exercises.find((x) => x.id === it.exerciseId)
+                return (
+                  <li key={`${it.exerciseId}-${i}`} className="row-between">
+                    <span>
+                      {i + 1}. {e ? nm(e) : t('（削除された種目）')}
+                    </span>
+                    <div className="item-tools">
+                      <button className="ghost" onClick={() => moveItem(i, -1)} aria-label={t('上へ')}>
+                        ↑
+                      </button>
+                      <button className="ghost" onClick={() => moveItem(i, 1)} aria-label={t('下へ')}>
+                        ↓
+                      </button>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {setMenu && (
         <div className="sheet-backdrop" onClick={() => setSetMenu(null)}>

@@ -26,11 +26,41 @@ const TOPICS_JA = [
           <li>✓ を押すと休憩タイマーが始まり、終わると音（Androidはバイブも）で知らせます。±15秒・スキップもできます</li>
           <li>「＋ セット」でセット追加。セット番号をタップすると、ウォームアップ（W）・ドロップセット（D）の切り替えや削除ができます。ウォームアップは自己ベストやボリュームに数えません</li>
           <li>種目名の横の ↑↓ で順番入れ替え、✕ で外す。「＋ 種目を追加」で途中から追加</li>
-          <li>メモ欄にシートの位置やフォームの注意などを書いておくと、次回表示されます</li>
+          <li>種目ごとのメモは毎回引き継がれます。普段は2行だけ表示、「編集」で長く書けます。URLはタップで開けます</li>
           <li>セットの番号に「PR」と出たら自己ベスト更新です</li>
           <li>最後に右上の「終了」を押すと保存されます</li>
         </ul>
       </>
+    ),
+  },
+  {
+    title: 'メニューの自動作成とAI連携',
+    body: (
+      <ul>
+        <li>ホームで部位を選び「メニューを自動で作る」→ ライト／スタンダード／アドバンスを選んで「作成する」。種目の入れ替え、セット数と回数の変更、✨おまかせ並べ替えができます</li>
+        <li>「このメニューで始める」でそのまま記録、「マイセットに保存」で次回から使えます</li>
+        <li>「🤖 ChatGPT・Gemini・Claudeに相談する」を押すと、記録や条件をまとめた質問文がコピーされてAIが開きます。貼り付けて送信し、返ってきた答えをアプリに貼ると取り込めます（各AIの無料プランで使えます）</li>
+      </ul>
+    ),
+  },
+  {
+    title: '計画：カレンダー・トレーナー・ジム',
+    body: (
+      <ul>
+        <li>カレンダー：日付をタップしてマイセットを入れます。「毎週の予定」で曜日ごとに決めておくと毎週入ります。今日の予定はホームに出ます</li>
+        <li>トレーナー：身長・体重などと目指す体型（細マッチョ、逆三角形など8種類）を選ぶと、曜日ごとの週のメニューを作ってマイセットと予定に保存できます。食事の目標とアドバイスも出ます</li>
+        <li>ジム：ジムの種類と器具を選ぶと、そこでできる種目にチェックが入ります。AIにジムのサイトを調べてもらうこともできます</li>
+      </ul>
+    ),
+  },
+  {
+    title: '食事の記録',
+    body: (
+      <ul>
+        <li>「食事」タブで朝・昼・夕・間食ごとに「＋ 追加」。「鶏むね肉200g、ご飯大盛り、卵2個」のように書いて「栄養を計算する」</li>
+        <li>わからない料理は一覧から選ぶか、AIに計算してもらって取り込めます。数字は手で直せます</li>
+        <li>目標（トレーナーで設定）と比べたグラフ、その日の点数、目標を満たした連続日数、月のカレンダー（緑＝目標どおり）で確認できます</li>
+      </ul>
     ),
   },
   {
@@ -168,9 +198,39 @@ const TOPICS_EN = [
         <li>✓ starts the rest timer, which plays a sound (and vibrates on Android) when done. You can add/subtract 15s or skip</li>
         <li>"+ Set" adds a set. Tap a set number to mark it as warm-up (W) or drop set (D), or to delete it. Warm-ups don't count toward personal bests or volume</li>
         <li>Use ↑↓ next to an exercise to reorder, ✕ to remove, and "+ Add exercise" to add one mid-workout</li>
-        <li>Notes (seat position, form cues…) are shown next time</li>
+        <li>Each exercise has a memo that carries over every time. Tap "Edit" to write as much as you like; URLs become tappable links</li>
         <li>"PR" on a set means a new personal best</li>
         <li>Press "Finish" at the top right to save</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'Auto menus & AI help',
+    body: (
+      <ul>
+        <li>On Home, pick body parts, choose Light / Standard / Advanced under "Build a menu automatically" and tap "Create". Swap exercises, change sets and reps, or use ✨ Smart order</li>
+        <li>"Start with this menu" begins logging; "Save as My Set" keeps it for next time</li>
+        <li>"🤖 Ask ChatGPT, Gemini or Claude" copies a prompt with your data and opens the AI. Paste it, send, then paste the answer back into the app to import it (works with each AI's free plan)</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'Plan: calendar, trainer & gym',
+    body: (
+      <ul>
+        <li>Calendar: tap a date to schedule a My Set. Set "Every week" per weekday to repeat. Today's plan appears on Home</li>
+        <li>Trainer: enter height, weight etc. and pick a target physique (8 types) to build a weekly plan and save it to My Sets and the schedule. Nutrition targets and advice appear too</li>
+        <li>Gym: choose the gym type and equipment to tick the exercises you can do. You can also ask an AI to look up your gym</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'Logging meals',
+    body: (
+      <ul>
+        <li>In "Meals", tap "+ Add" for breakfast, lunch, dinner or snacks. Type what you ate (e.g. "chicken breast 200g, rice, 2 eggs" in Japanese food names) and tap "Calculate"</li>
+        <li>Pick unknown dishes from the list or have an AI calculate them. You can edit any number</li>
+        <li>See bars against your targets, a daily score, your streak of days on target and a monthly calendar (green = on target)</li>
       </ul>
     ),
   },
