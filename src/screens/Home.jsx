@@ -12,6 +12,11 @@ import {
   weeklyGoalStatus,
 } from '../lib/stats'
 import RecoveryMap from '../components/RecoveryMap'
+import MenuEditor from '../components/MenuEditor'
+import AiBridge from '../components/AiBridge'
+import useAiMenuImport from '../hooks/useAiMenuImport'
+import { LEVELS, generateMenu, planFor } from '../lib/planner'
+import { menuPrompt } from '../lib/aiBridge'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -31,7 +36,11 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
     activeWorkout,
     startWorkout,
     settings,
+    plans,
+    gym,
+    addRoutine,
   } = useData()
+  const importMenu = useAiMenuImport()
   const today = todayStr()
 
   const lastByPart = useMemo(() => lastTrainedByPart(sessions, allExercises), [sessions, allExercises])
@@ -102,10 +111,27 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
     })
   }
 
-  function start(exerciseIds, partIds) {
+  function start(exerciseIds, partIds, targets) {
     if (activeWorkout && !confirm(t('記録中のトレーニングがあります。破棄して新しく始めますか？'))) return
-    startWorkout(exerciseIds, partIds)
+    startWorkout(exerciseIds, partIds, targets)
     onOpenWorkout()
+  }
+
+  // 今日の予定（カレンダー）
+  const plannedId = planFor(today, plans)
+  const planned = routines.find((r) => r.id === plannedId)
+
+  // メニュー自動作成
+  const [level, setLevel] = useState('standard')
+  const [generated, setGenerated] = useState(null)
+  function generate(lv = level) {
+    setGenerated(generateMenu({ partIds: chosen, level: lv, exercises, sessions, gym }))
+  }
+  function saveGenerated() {
+    const name = prompt(t('マイセットの名前（例：胸の日）'), chosen.map(partName).join(t('＋')))
+    if (!name?.trim()) return
+    addRoutine(name.trim(), generated.exerciseIds, generated.targets)
+    alert(t('「{name}」を保存しました。ホームからワンタップで始められます。', { name: name.trim() }))
   }
 
   return (
@@ -143,6 +169,26 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
                 : t('あと{n}回で今週の目標達成', { n: goal - goalStatus.thisCount })}
             </span>
           </div>
+        </section>
+      )}
+
+      {planned && !activeWorkout && (
+        <section className="card today-plan">
+          <div>
+            <span className="muted">{t('今日の予定')}</span>
+            <strong>{planned.name}</strong>
+            <span className="muted">
+              {planned.exerciseIds.map(exName).filter(Boolean).join(t('・'))}
+            </span>
+          </div>
+          <button
+            className="primary small"
+            onClick={() =>
+              start(planned.exerciseIds.filter((id) => visibleIds.has(id)), [], planned.targets)
+            }
+          >
+            {t('始める')}
+          </button>
         </section>
       )}
 
@@ -230,6 +276,71 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
           )}
         </div>
 
+        <div className="generator">
+          <div className="row-between">
+            <strong>{t('🤖 メニューを自動で作る')}</strong>
+          </div>
+          <div className="segmented">
+            {LEVELS.map((l) => (
+              <button
+                key={l.key}
+                className={level === l.key ? 'on' : ''}
+                onClick={() => {
+                  setLevel(l.key)
+                  if (generated) generate(l.key)
+                }}
+              >
+                {t(l.label)}
+              </button>
+            ))}
+          </div>
+          <p className="muted">{t(LEVELS.find((l) => l.key === level).desc)}</p>
+          {!generated ? (
+            <button className="secondary wide" disabled={chosen.length === 0} onClick={() => generate()}>
+              {t('作成する')}
+            </button>
+          ) : (
+            <>
+              <MenuEditor value={generated} onChange={setGenerated} preferPartIds={chosen} />
+              <div className="row">
+                <button className="secondary" onClick={() => generate()}>
+                  {t('作り直す')}
+                </button>
+                <button className="secondary" onClick={saveGenerated} disabled={!generated.exerciseIds.length}>
+                  {t('マイセットに保存')}
+                </button>
+              </div>
+              <button
+                className="primary wide"
+                disabled={!generated.exerciseIds.length}
+                onClick={() => start(generated.exerciseIds, chosen, generated.targets)}
+              >
+                {t('このメニューで始める')}
+              </button>
+            </>
+          )}
+          <AiBridge
+            buildPrompt={() =>
+              menuPrompt({
+                mode: 'day',
+                partNames: chosen.map(partName),
+                levelLabel: t(LEVELS.find((l) => l.key === level).label),
+                gymName: gym?.name,
+                gymEquipment: gym?.equipment,
+                exercises,
+                bodyParts,
+                nameOf: nm,
+              })
+            }
+            onImport={(text) => {
+              const r = importMenu(text)
+              if (r.ok) setGenerated({ exerciseIds: r.days[0].exerciseIds, targets: r.days[0].targets })
+              return r
+            }}
+            importLabel={t('答えをメニューに取り込む')}
+          />
+        </div>
+
         <button
           className="primary wide big"
           disabled={chosen.length === 0}
@@ -257,7 +368,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
               <li key={r.id} className="routine">
                 <button
                   className="routine-main"
-                  onClick={() => start(r.exerciseIds.filter((id) => visibleIds.has(id)), [])}
+                  onClick={() => start(r.exerciseIds.filter((id) => visibleIds.has(id)), [], r.targets)}
                 >
                   <strong>{r.name}</strong>
                   <span className="muted">

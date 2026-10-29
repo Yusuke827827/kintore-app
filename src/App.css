@@ -1209,3 +1209,344 @@ input[type='checkbox'] {
   border-radius: 999px;
   padding: 2px 8px;
 }
+
+/* 自動作成・メニュー編集 */
+.generator {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--sunken);
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-no {
+  width: 22px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.menu-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.steppers {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.stepper button {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+}
+
+.today-plan {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--accent);
+}
+
+.today-plan > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* AI連携 */
+.ai-open {
+  margin-top: 10px;
+}
+
+.ai-bridge {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+textarea.memo-area {
+  width: 100%;
+  background: var(--sunken);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+/* メモ */
+.memo {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.memo.editing {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.memo-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.memo-text.open {
+  display: block;
+}
+
+.memo-empty {
+  flex: 1;
+}
+
+.memo-edit {
+  font-size: 0.8rem;
+}
+
+.order-list li {
+  padding: 6px 0;
+}
+
+/* 計画 */
+.plan-cal .day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px 0;
+  min-height: 42px;
+  border-radius: 8px;
+}
+
+.plan-cal .day small {
+  font-size: 0.55rem;
+  color: var(--accent-text);
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.plan-cal .day.planned {
+  background: var(--surface-2);
+}
+
+.plan-cal .day.trained {
+  background: var(--accent);
+  color: white;
+}
+
+.plan-cal .day.trained small {
+  color: white;
+}
+
+.body-types {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.body-type {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 2px solid transparent;
+  padding: 10px;
+}
+
+.body-type .stars {
+  color: #f59e0b;
+  font-size: 0.7rem;
+}
+
+.body-type small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.body-type.on {
+  border-color: var(--accent-text);
+}
+
+.plan-day {
+  border-bottom: 1px solid var(--surface-2);
+  padding: 8px 0;
+}
+
+.plan-day summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.advice li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.advice-icon {
+  font-size: 1.3rem;
+}
+
+.gym-part summary {
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.gym-ex {
+  padding: 6px 0 6px 8px;
+}
+
+/* 食事 */
+.nutri-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.nutri-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 96px;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.nutri-track {
+  position: relative;
+  height: 12px;
+  background: var(--sunken);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.nutri-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+}
+
+.nutri-goal {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--text);
+}
+
+.nutri-val {
+  text-align: right;
+  font-weight: bold;
+}
+
+.nutri-val small {
+  font-weight: normal;
+  color: var(--muted);
+}
+
+.add-meal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.meal-items li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.meal-nums {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.meal-nums label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.65rem;
+  color: var(--muted);
+  flex: 1;
+}
+
+.meal-nums input {
+  width: 100%;
+  padding: 6px;
+  text-align: right;
+}
+
+.meal-day {
+  background: transparent;
+  color: var(--text-2);
+  padding: 6px 0;
+  border-radius: 8px;
+}
+
+.meal-week .week-col {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.tabbar button {
+  font-size: 0.85rem;
+  padding: 14px 0;
+}

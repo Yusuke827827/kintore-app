@@ -6,6 +6,8 @@ import Workout from './screens/Workout'
 import History from './screens/History'
 import Settings from './screens/Settings'
 import Customize from './screens/Customize'
+import Plan from './screens/Plan'
+import Meals from './screens/Meals'
 import { formatMinutes } from './lib/date'
 import { nm, t } from './i18n'
 import { shareSessionImage } from './lib/shareImage'
@@ -125,7 +127,7 @@ function FinishedSummary({ summary, onClose }) {
 }
 
 function AppInner() {
-  const { activeWorkout, syncStatus } = useData()
+  const { activeWorkout, syncStatus, startWorkout } = useData()
   // 記録の途中でアプリが閉じても、開き直したらそのまま続きから
   const [screen, setScreen] = useState(() => (activeWorkout ? 'workout' : 'home'))
   const [summary, setSummary] = useState(null)
@@ -141,6 +143,8 @@ function AppInner() {
   const tabs = [
     { key: 'home', label: t('ホーム') },
     ...(activeWorkout ? [{ key: 'workout', label: t('記録中') }] : []),
+    { key: 'plan', label: t('計画') },
+    { key: 'meals', label: t('食事') },
     { key: 'history', label: t('履歴') },
     { key: 'settings', label: t('設定') },
   ]
@@ -169,6 +173,16 @@ function AppInner() {
               />
             )}
             {current === 'history' && <History onOpenWorkout={() => setScreen('workout')} />}
+            {current === 'plan' && (
+              <Plan
+                onStartRoutine={(r) => {
+                  if (activeWorkout && !confirm(t('記録中のトレーニングがあります。破棄して新しく始めますか？'))) return
+                  startWorkout(r.exerciseIds, [], r.targets)
+                  setScreen('workout')
+                }}
+              />
+            )}
+            {current === 'meals' && <Meals />}
             {current === 'settings' && <Settings onOpenCustomize={openCustomize} />}
             {current === 'customize' && (
               <Customize

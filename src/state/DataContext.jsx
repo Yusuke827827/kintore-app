@@ -35,13 +35,19 @@ function makeId(prefix) {
 }
 
 // 前回の記録の行数ぶん、空のセットを用意する（入力欄には前回の値が薄く表示される）
-function newItem(state, exerciseId, date, excludeId) {
+// target（{ sets, reps }）があれば、そのセット数を用意し、回数の目安にする
+function newItem(state, exerciseId, date, excludeId, target) {
   const prev = previousRecord(state.sessions, exerciseId, { onOrBefore: date, excludeId })
   const cardio = isCardio(state.exercises.find((e) => e.id === exerciseId))
-  const prevSets = prev ? prev.sets : [null]
+  let prevSets = prev ? prev.sets : [null]
+  if (target?.sets && !cardio) {
+    const warmups = prevSets.filter((p) => p?.type === 'warmup')
+    prevSets = [...warmups, ...Array.from({ length: target.sets }, () => null)]
+  }
   return {
     exerciseId,
     note: '',
+    ...(target ? { target } : {}),
     sets: prevSets.map((p) => emptySet(cardio, p)),
   }
 }
@@ -267,10 +273,67 @@ export function DataProvider({ children }) {
           }
         })
       },
-      addRoutine(name, exerciseIds) {
+      addRoutine(name, exerciseIds, targets) {
+        const id = makeId('routine')
         updateMaster((s) => ({
           ...s,
-          routines: [...s.routines, { id: makeId('routine'), name, exerciseIds }],
+          routines: [...s.routines, { id, name, exerciseIds, ...(targets ? { targets } : {}) }],
+        }))
+        return id
+      },
+      // トレーナーが作った週のメニュー：マイセットをまとめて追加し、曜日に割り当てる
+      applyWeeklyPlan(days) {
+        updateMaster((s) => {
+          const weekly = { ...s.plans.weekly }
+          const added = days.map((d) => {
+            const id = makeId('routine')
+            weekly[d.weekday] = id
+            return { id, name: d.name, exerciseIds: d.exerciseIds, targets: d.targets }
+          })
+          return { ...s, routines: [...s.routines, ...added], plans: { ...s.plans, weekly } }
+        })
+      },
+      setPlanDate(date, routineId) {
+        updateMaster((s) => {
+          const dates = { ...s.plans.dates }
+          if (routineId === undefined) delete dates[date]
+          else dates[date] = routineId // null は「この日は休み」
+          return { ...s, plans: { ...s.plans, dates } }
+        })
+      },
+      setWeeklyPlan(weekday, routineId) {
+        updateMaster((s) => {
+          const weekly = { ...s.plans.weekly }
+          if (routineId) weekly[weekday] = routineId
+          else delete weekly[weekday]
+          return { ...s, plans: { ...s.plans, weekly } }
+        })
+      },
+      setProfile(profile) {
+        updateMaster((s) => ({ ...s, profile }))
+      },
+      setGym(gym, activeExerciseIds) {
+        updateMaster((s) => ({
+          ...s,
+          gym,
+          exercises: activeExerciseIds
+            ? s.exercises.map((e) => ({ ...e, active: activeExerciseIds.includes(e.id) }))
+            : s.exercises,
+        }))
+      },
+
+      // ---- 食事 ----
+      saveMeal(meal) {
+        setState((s) => {
+          const m = { ...meal, id: meal.id ?? makeId('meal'), updatedAt: Date.now() }
+          return { ...s, meals: [...s.meals.filter((x) => x.id !== m.id), m] }
+        })
+      },
+      deleteMeal(id) {
+        setState((s) => ({
+          ...s,
+          meals: s.meals.filter((x) => x.id !== id),
+          deletedMealIds: [...s.deletedMealIds, id],
         }))
       },
       updateRoutine(id, patch) {
@@ -283,7 +346,12 @@ export function DataProvider({ children }) {
         updateMaster((s) => ({ ...s, routines: moveAmong(s.routines, id, dir, () => true) }))
       },
       deleteRoutine(id) {
-        updateMaster((s) => ({ ...s, routines: s.routines.filter((r) => r.id !== id) }))
+        updateMaster((s) => {
+          // 予定に入っていたら外す
+          const dates = Object.fromEntries(Object.entries(s.plans.dates).filter(([, v]) => v !== id))
+          const weekly = Object.fromEntries(Object.entries(s.plans.weekly).filter(([, v]) => v !== id))
+          return { ...s, routines: s.routines.filter((r) => r.id !== id), plans: { dates, weekly } }
+        })
       },
       updateSettings(patch) {
         updateMaster((s) => ({ ...s, settings: { ...s.settings, ...patch } }))
@@ -298,7 +366,7 @@ export function DataProvider({ children }) {
       },
 
       // ---- 記録中のトレーニング（1項目ごとに保存される） ----
-      startWorkout(exerciseIds, bodyPartIds = []) {
+      startWorkout(exerciseIds, bodyPartIds = [], targets = {}) {
         setState((s) => {
           const date = todayStr()
           return {
@@ -310,7 +378,7 @@ export function DataProvider({ children }) {
               updatedAt: Date.now(),
               bodyPartIds,
               restEndsAt: null,
-              items: exerciseIds.map((exId) => newItem(s, exId, date)),
+              items: exerciseIds.map((exId) => newItem(s, exId, date, undefined, targets[exId])),
             },
           }
         })
