@@ -232,6 +232,26 @@ export default {
   '休憩タイマー': 'Rest timer',
   'セットの ✓ を押すと自動で始まります。': 'Starts automatically when you tap ✓ on a set.',
   '終わったら音で知らせる': 'Play a sound when it ends',
+  '記録中は画面を消さない': 'Keep the screen on during a workout',
+  'この端末・ブラウザは画面を消さない機能に対応していません（iPhoneはiOS 16.4以降、ホーム画面に追加したアプリで使えます）。':
+    "This device or browser can't keep the screen on (on iPhone it needs iOS 16.4 or later; use the home-screen app).",
+  '☀ 画面オン': '☀ Screen on',
+  '記録のリセット': 'Reset data',
+  'トレーニング記録（{n}件）': 'Workouts ({n})',
+  '体重の記録（{n}件）': 'Body weight logs ({n})',
+  '食事の記録（{n}件）': 'Meal logs ({n})',
+  'すべて（部位・種目・マイセット・予定・トレーナーの設定も最初の状態に）':
+    'Everything (also resets body parts, exercises, My Sets, schedule and trainer settings)',
+  'リセット': 'RESET',
+  '本当に消しますか？元に戻せません。\n消す場合は「{word}」と入力してください。':
+    'Really delete? This cannot be undone.\nType "{word}" to confirm.',
+  '入力が違うので、何も消していません。': "That didn't match, so nothing was deleted.",
+  'リセットしました。': 'Reset complete.',
+  '消す前に、上の「バックアップ」で「ファイルに書き出す」をしておくと、あとから戻せます。':
+    'Before deleting, use "Export to file" under Backup above so you can restore later.',
+  'クラウド同期がオンなので、同期している他の端末からも消えます。':
+    'Cloud sync is on, so this also deletes the data on your other synced devices.',
+  '選んだ記録を消す': 'Delete selected data',
 
   // 同期
   'クラウド同期': 'Cloud sync',

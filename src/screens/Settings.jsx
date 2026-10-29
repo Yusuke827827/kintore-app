@@ -472,6 +472,64 @@ function GoalSection() {
   )
 }
 
+// 記録のリセット：消すものを選び、確認の文字を入れてから消す
+function ResetSection() {
+  const { sessions, bodyLogs, meals, resetData, syncStatus } = useData()
+  const [scope, setScope] = useState({ workouts: false, body: false, meals: false, all: false })
+  const [done, setDone] = useState('')
+  const any = scope.workouts || scope.body || scope.meals || scope.all
+  const options = [
+    ['workouts', t('トレーニング記録（{n}件）', { n: sessions.length })],
+    ['body', t('体重の記録（{n}件）', { n: bodyLogs.length })],
+    ['meals', t('食事の記録（{n}件）', { n: meals.length })],
+    ['all', t('すべて（部位・種目・マイセット・予定・トレーナーの設定も最初の状態に）')],
+  ]
+
+  function handleReset() {
+    const word = t('リセット')
+    const input = prompt(
+      t('本当に消しますか？元に戻せません。\n消す場合は「{word}」と入力してください。', { word })
+    )
+    if (input?.trim() !== word) {
+      setDone(t('入力が違うので、何も消していません。'))
+      return
+    }
+    resetData(scope)
+    setScope({ workouts: false, body: false, meals: false, all: false })
+    setDone(t('リセットしました。'))
+  }
+
+  return (
+    <section className="card danger-zone">
+      <h2>{t('記録のリセット')}</h2>
+      <p className="muted">
+        {t('消す前に、上の「バックアップ」で「ファイルに書き出す」をしておくと、あとから戻せます。')}
+      </p>
+      {options.map(([key, label]) => (
+        <label key={key} className="option toggle-row">
+          <input
+            type="checkbox"
+            checked={scope[key] || (key !== 'all' && scope.all)}
+            disabled={key !== 'all' && scope.all}
+            onChange={(e) => {
+              setScope({ ...scope, [key]: e.target.checked })
+              setDone('')
+            }}
+          />
+          {label}
+        </label>
+      ))}
+      {syncStatus.configured && (
+        <p className="muted">{t('クラウド同期がオンなので、同期している他の端末からも消えます。')}</p>
+      )}
+      <button className="secondary danger wide" disabled={!any} onClick={handleReset}>
+        {t('選んだ記録を消す')}
+      </button>
+      {done && <p className="muted">{done}</p>}
+    </section>
+  )
+}
+
 function formatRest(sec) {
   if (sec % 60 === 0) return t('{m}分', { m: sec / 60 })
   return t('{m}分{s}秒', { m: Math.floor(sec / 60), s: sec % 60 })
@@ -529,10 +587,24 @@ export default function Settings({ onOpenCustomize }) {
           />
           {t('終わったら音で知らせる')}
         </label>
+        <label className="option toggle-row">
+          <input
+            type="checkbox"
+            checked={settings.keepAwake !== false}
+            onChange={(e) => updateSettings({ keepAwake: e.target.checked })}
+          />
+          {t('記録中は画面を消さない')}
+        </label>
+        {typeof navigator !== 'undefined' && !('wakeLock' in navigator) && (
+          <p className="muted">
+            {t('この端末・ブラウザは画面を消さない機能に対応していません（iPhoneはiOS 16.4以降、ホーム画面に追加したアプリで使えます）。')}
+          </p>
+        )}
       </section>
 
       <SyncSection />
       <BackupSection />
+      <ResetSection />
     </div>
   )
 }
