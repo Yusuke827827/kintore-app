@@ -6,6 +6,8 @@ import { nutritionTargets } from '../lib/planner'
 import { FOODS, foodLabel, parseMealText, searchFoods } from '../lib/foods'
 import { extractJson, foodPrompt } from '../lib/aiBridge'
 import { getLanguage, t } from '../i18n'
+import { usePremium } from '../state/PremiumContext'
+import LockCard from '../components/LockCard'
 
 const MEAL_TYPES = [
   { key: 'breakfast', label: '朝食' },
@@ -58,10 +60,10 @@ function scoreColor(score) {
   return '#ef4444'
 }
 
-function Bars({ tot, target }) {
+function Bars({ tot, target, keys }) {
   return (
     <div className="nutri-bars">
-      {NUTRIENTS.map((n) => {
+      {NUTRIENTS.filter((n) => !keys || keys.includes(n.key)).map((n) => {
         const goal = target?.[n.key]
         const v = Math.round(tot[n.key])
         const pct = goal ? Math.min(150, (v / goal) * 100) : 0
@@ -248,6 +250,7 @@ function AddMeal({ date, mealType, onDone }) {
 
 export default function Meals() {
   const { meals, profile, deleteMeal, sessions } = useData()
+  const { premium } = usePremium()
   const today = todayStr()
   const [date, setDate] = useState(today)
   const [adding, setAdding] = useState(null) // 食事の種類
@@ -298,11 +301,13 @@ export default function Meals() {
             ›
           </button>
         </div>
-        <Bars tot={tot} target={target} />
+        {/* 無料版はカロリーだけ。PFC・点数・カレンダーはプレミアム */}
+        <Bars tot={tot} target={target} keys={premium ? null : ['kcal']} />
+        {!premium && <LockCard feature="nutrition" />}
         {burned > 0 && baseTarget && (
           <p className="muted">{t('🏃 運動で{n}kcal消費（その分を目標に足しています）', { n: burned })}</p>
         )}
-        {score != null && (
+        {premium && score != null && (
           <p className="muted">
             {t('今日の点数 {s}点', { s: score })}
             {streak > 0 && <> ・ {t('🔥 {n}日連続で目標達成', { n: streak })}</>}
@@ -360,7 +365,7 @@ export default function Meals() {
         {target && <p className="muted">{t('1日の目標 {k}kcal', { k: target.kcal })}</p>}
       </section>
 
-      <MealCalendar meals={meals} target={target} selected={date} onPick={setDate} />
+      {premium && <MealCalendar meals={meals} target={target} selected={date} onPick={setDate} />}
       <p className="muted hint">{t('栄養は食品の一般的な値からの概算です。')}{' '}{FOODS.length}{t('品目に対応')}</p>
     </div>
   )

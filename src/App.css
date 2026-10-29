@@ -1650,3 +1650,160 @@ textarea.memo-area {
 .cardio-weeks .week-col.met .week-bar {
   background: var(--ok-strong);
 }
+
+/* ---- プレミアム（有料の画面） ---- */
+.paywall {
+  max-height: 92vh;
+}
+
+.paywall-body {
+  overflow-y: auto;
+  margin-top: 6px;
+  min-height: 0;
+  flex: 1;
+}
+
+.paywall-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.paywall-lead {
+  background: var(--accent-deep);
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 6px 0;
+}
+
+.paywall-features {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.paywall-features li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 5px 8px;
+  border-radius: 10px;
+}
+
+.paywall-features li.on {
+  outline: 2px solid var(--accent-border);
+}
+
+.paywall-features li > span {
+  font-size: 1.3em;
+  line-height: 1.2;
+}
+
+.paywall-features strong,
+.paywall-features small {
+  display: block;
+}
+
+.paywall-features small {
+  color: var(--muted);
+  font-size: 0.82em;
+}
+
+.paywall-plans {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 4px 8px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--sunken);
+  color: var(--text);
+}
+
+.plan.on {
+  border-color: var(--accent-border);
+  background: color-mix(in srgb, var(--accent) 18%, var(--sunken));
+}
+
+.plan-price {
+  font-size: 1.15em;
+  font-weight: 700;
+}
+
+.plan-badge {
+  position: absolute;
+  top: -10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.75em;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.plan-trial {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.paywall-legal {
+  font-size: 0.72em;
+  line-height: 1.45;
+  color: var(--muted);
+  margin: 8px 0 4px;
+}
+
+.paywall-links {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.85em;
+}
+
+.paywall-links a {
+  color: var(--accent-text);
+}
+
+.lock-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--accent-border);
+  background: var(--sunken);
+  color: var(--text);
+  margin: 8px 0;
+}
+
+.lock-card small {
+  display: block;
+  color: var(--muted);
+}
+
+.pro-tag {
+  font-size: 0.7em;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.swatch.locked {
+  opacity: 0.35;
+}

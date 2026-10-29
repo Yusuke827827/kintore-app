@@ -25,6 +25,7 @@ import {
   speedKmh,
 } from '../lib/stats'
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
+import { usePremium } from '../state/PremiumContext'
 
 function formatSets(sets) {
   return sets.map(formatSet).join('　')
@@ -90,7 +91,9 @@ export default function Workout({ onFinished, wake }) {
     finishWorkout,
     discardWorkout,
     addRoutine,
+    routines,
   } = useData()
+  const { gate } = usePremium()
   const [pickerOpen, setPickerOpen] = useState(() => !!w && w.items.length === 0)
   const [setMenu, setSetMenu] = useState(null) // { itemIndex, setIndex, cardio }
   const [orderOpen, setOrderOpen] = useState(false)
@@ -252,6 +255,7 @@ export default function Workout({ onFinished, wake }) {
   }
 
   function handleSaveRoutine() {
+    if (!gate('routines', routines.length)) return
     const name = prompt(t('マイセットの名前（例：胸の日）'))
     if (!name?.trim()) return
     addRoutine(
