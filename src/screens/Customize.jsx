@@ -157,6 +157,7 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
   const [bodyPartId, setBodyPartId] = useState(initial?.bodyPartId ?? bodyParts[0]?.id ?? '')
   const [equipment, setEquipment] = useState(initial?.equipment ?? 'マシン')
   const [type, setType] = useState(initial?.type ?? 'compound')
+  const [videoUrl, setVideoUrl] = useState(initial?.videoUrl ?? '')
   const equipmentOptions = EQUIPMENTS.includes(equipment) ? EQUIPMENTS : [...EQUIPMENTS, equipment]
 
   return (
@@ -196,6 +197,14 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
           <option value="cardio">{t('有酸素（時間・距離で記録）')}</option>
         </select>
       </label>
+      <input
+        className="grow"
+        type="url"
+        inputMode="url"
+        placeholder={t('フォーム動画のURL（YouTubeなど・任意）')}
+        value={videoUrl}
+        onChange={(e) => setVideoUrl(e.target.value)}
+      />
       <div className="row">
         {onCancel && (
           <button className="secondary" onClick={onCancel}>
@@ -206,7 +215,13 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
           className="primary"
           disabled={!name.trim() || !bodyPartId}
           onClick={() =>
-            onSave({ name: keepName(initial, name.trim()), bodyPartId, equipment, type })
+            onSave({
+              name: keepName(initial, name.trim()),
+              bodyPartId,
+              equipment,
+              type,
+              videoUrl: videoUrl.trim(),
+            })
           }
         >
           {saveLabel}
@@ -284,6 +299,7 @@ function ExercisesTab() {
                   <strong>{nm(e)}</strong>
                   <span className="muted">
                     {eq(e.equipment)} ・ {t(TYPE_LABEL[e.type] ?? e.type)}
+                    {e.videoUrl && <> ・ ▶</>}
                   </span>
                 </button>
                 <div className="item-tools">

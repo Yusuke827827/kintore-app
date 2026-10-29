@@ -15,6 +15,7 @@ import {
   isWorkingSet,
   personalBest,
   previousRecord,
+  progressionFor,
   toStoredSet,
 } from '../lib/stats'
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
@@ -35,14 +36,19 @@ function suggestTarget(prevSets) {
   })
 }
 
+function round(n) {
+  return Math.round(n * 100) / 100
+}
+
 // 通常のセットだけを 1, 2, 3… と数える（W・D は番号を使わない）
 function setNumber(sets, index) {
   return sets.slice(0, index + 1).filter((x) => !x.type).length
 }
 
-// その行に薄く出す「前回の値」
-function placeholderFor(item, index, prev) {
-  if (prev?.sets[index]) return prev.sets[index]
+// その行に薄く出す「前回の値」（重量アップの対象なら、通常セットの重量を上げて出す）
+function placeholderFor(item, index, prev, up) {
+  const p = prev?.sets[index]
+  if (p) return up && !p.type && !isCardioSet(p) ? { ...p, weight: round(p.weight + up.step) } : p
   for (let i = index - 1; i >= 0; i--) {
     const s = item.sets[i]
     if (isFilledSet(s)) return toStoredSet(s)
@@ -174,6 +180,7 @@ export default function Workout({ onFinished }) {
       durationMs: isEdit || !w.startedAt ? null : Date.now() - w.startedAt,
       prs,
       exerciseIds: w.items.filter((it) => it.sets.some(isFilledSet)).map((it) => it.exerciseId),
+      sessionId: w.sourceSessionId ?? w.id,
     }
     finishWorkout()
     onFinished(filled > 0 ? summary : null)
@@ -224,11 +231,23 @@ export default function Workout({ onFinished }) {
         const best = personalBest(sessions, it.exerciseId, w.sourceSessionId)
         const doneCount = it.sets.filter((s) => s.done).length
         const cardio = isCardio(exercise)
+        const up = !isEdit && !cardio ? progressionFor(prev?.sets, settings.progression) : null
         return (
           <section className="card" key={`${it.exerciseId}-${itemIndex}`}>
             <div className="item-header">
               <h2>
                 {exercise ? nm(exercise) : t('（削除された種目）')}
+                {/^https?:\/\//.test(exercise?.videoUrl ?? '') && (
+                  <a
+                    className="video-link"
+                    href={exercise.videoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={t('フォーム動画')}
+                  >
+                    ▶
+                  </a>
+                )}
                 {it.sets.length > 0 && (
                   <span className="count">
                     {doneCount}/{it.sets.length}
@@ -255,7 +274,12 @@ export default function Workout({ onFinished }) {
             ) : (
               <p className="muted">{t('はじめての種目です')}</p>
             )}
-            {prev && !isEdit && !cardio && suggestTarget(prev.sets) && (
+            {prev && !isEdit && !cardio && up && (
+              <p className="target">
+                {t('⬆ 前回すべて{reps}回以上できたので、+{step}kg にしています', up)}
+              </p>
+            )}
+            {prev && !isEdit && !cardio && !up && suggestTarget(prev.sets) && (
               <p className="target">{suggestTarget(prev.sets)}</p>
             )}
             {prev?.note && <p className="muted">{t('前回メモ')}：{prev.note}</p>}
@@ -277,7 +301,7 @@ export default function Workout({ onFinished }) {
               </div>
             )}
             {it.sets.map((s, setIndex) => {
-              const ph = placeholderFor(it, setIndex, prev)
+              const ph = placeholderFor(it, setIndex, prev, up)
               const filled = isFilledSet(s)
               const isPr =
                 !cardio &&

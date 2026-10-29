@@ -8,7 +8,16 @@ import { DEFAULT_THEME } from './theme'
 
 const STORAGE_KEY = 'kintore-app-data-v1'
 
-export const DEFAULT_SETTINGS = { restSeconds: 90, lang: 'ja', sound: true, theme: DEFAULT_THEME }
+export const DEFAULT_PROGRESSION = { on: true, reps: 10, step: 2.5 }
+
+export const DEFAULT_SETTINGS = {
+  restSeconds: 90,
+  lang: 'ja',
+  sound: true,
+  theme: DEFAULT_THEME,
+  progression: DEFAULT_PROGRESSION,
+  weeklyGoal: 3,
+}
 
 // 前の版のデータに、あとから増えた初期の部位・種目（有酸素）を足す
 function addNewSeeds(data) {
@@ -40,6 +49,7 @@ export function normalizeData(raw) {
       ...DEFAULT_SETTINGS,
       ...data?.settings,
       theme: { ...DEFAULT_THEME, ...data?.settings?.theme },
+      progression: { ...DEFAULT_PROGRESSION, ...data?.settings?.progression },
     },
     // 初期値のままなら0。以前の版で保存されていたデータは自分で編集した可能性があるので1。
     masterUpdatedAt: data?.masterUpdatedAt ?? (data ? 1 : 0),

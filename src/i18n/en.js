@@ -329,4 +329,40 @@ export default {
   'ウォームアップは数えません。薄い線は前の週です。':
     "Warm-ups aren't counted. The faded bar is the previous week.",
   '直近8週のセット数': 'Sets over the last 8 weeks',
+
+  // 目標・自動アップ・回復マップ・自己ベスト・共有・動画
+  '週の目標': 'Weekly goal',
+  '1週間（月〜日）に何日トレーニングするか。ホームに達成状況と連続記録が出ます。':
+    'How many days a week (Mon–Sun) you plan to train. Progress and your streak appear on Home.',
+  '週{n}回': '{n}× / week',
+  '今週 {n}/{goal}回': 'This week {n}/{goal}',
+  '今週の目標達成！': 'Weekly goal reached!',
+  '🔥 {n}週連続で達成中': '🔥 {n}-week streak',
+  'あと{n}回で今週の目標達成': '{n} more to reach this week’s goal',
+  '重量の自動アップ': 'Auto weight increase',
+  '前回すべてのセットで目標回数をこなせたら、次は重量を上げて表示する':
+    'If every set hit the target reps last time, show a heavier weight next time',
+  '目標回数': 'Target reps',
+  '{n}回': '{n} reps',
+  '上げる重さ': 'Increase by',
+  '⬆ 前回すべて{reps}回以上できたので、+{step}kg にしています':
+    '⬆ You hit {reps}+ reps on every set last time, so it’s +{step}kg',
+  '回復マップを表示': 'Show recovery map',
+  '回復マップを隠す': 'Hide recovery map',
+  '部位の回復マップ': 'Recovery map',
+  '前': 'Front',
+  '後ろ': 'Back',
+  '回復中': 'Recovering',
+  'もう少し': 'Almost',
+  '回復済み': 'Recovered',
+  '自己ベスト': 'Personal records',
+  '推定1RM {w}kg': 'est. 1RM {w}kg',
+  '最長 {m}分': 'Longest {m} min',
+  '最長 {km}km': 'Longest {km}km',
+  '📤 画像で共有': '📤 Share as image',
+  '画像で共有': 'Share as image',
+  'トレーニング': 'Workout',
+  '筋トレ記録': 'Workout Log',
+  'フォーム動画': 'Form video',
+  'フォーム動画のURL（YouTubeなど・任意）': 'Form video URL (YouTube etc., optional)',
 }

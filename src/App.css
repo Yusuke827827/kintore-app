@@ -1087,3 +1087,125 @@ input[type='checkbox'] {
   font-size: 0.6rem;
   color: var(--muted);
 }
+
+/* 目標・回復マップ・自己ベスト・動画 */
+.card.goal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.goal-dots {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 45%;
+}
+
+.goal-dots span {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+
+.goal-dots span.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.goal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.map-toggle {
+  margin: 0 0 4px auto;
+  font-size: 0.75rem;
+}
+
+.recovery-svg {
+  width: 100%;
+  max-width: 300px;
+  display: block;
+  margin: 0 auto;
+}
+
+.silhouette {
+  pointer-events: none;
+}
+
+.silhouette circle,
+.silhouette rect {
+  fill: var(--sunken);
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.recovery-label {
+  font-size: 9px;
+  fill: var(--muted);
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin: 4px 0 8px;
+}
+
+.legend i,
+.chip .dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.chip.small {
+  flex-direction: row;
+  align-items: center;
+}
+
+.pr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.pr-row > div:first-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pr-values {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.pr.inline {
+  position: static;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.video-link {
+  margin-left: 8px;
+  font-size: 0.8rem;
+  text-decoration: none;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
