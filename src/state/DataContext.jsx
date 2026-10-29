@@ -1,6 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { initialBodyParts, initialExercises } from '../data/initialData'
-import { loadData, mergeData, requestPersistentStorage, saveData } from '../lib/storage'
+import {
+  DEFAULT_SETTINGS,
+  loadData,
+  mergeData,
+  requestPersistentStorage,
+  saveData,
+} from '../lib/storage'
 import * as sync from '../lib/sync'
 import { todayStr } from '../lib/date'
 import {
@@ -499,6 +505,52 @@ export function DataProvider({ children }) {
       },
 
       // バックアップの読み込み（今のデータと合わせる。今ある記録は消えない）
+      // 記録のリセット。削除した印を残すので、同期している他の端末からも消える
+      // scope: { workouts, body, meals, all }（all は部位・種目・マイセット・予定・トレーナー設定も最初の状態に）
+      resetData(scope) {
+        setState((s) => {
+          let next = { ...s }
+          if (scope.workouts || scope.all) {
+            next = {
+              ...next,
+              sessions: [],
+              deletedSessionIds: [...s.deletedSessionIds, ...s.sessions.map((x) => x.id)],
+              activeWorkout: null,
+              endedWorkoutIds: s.activeWorkout ? [...s.endedWorkoutIds, s.activeWorkout.id] : s.endedWorkoutIds,
+            }
+          }
+          if (scope.body || scope.all) {
+            next = {
+              ...next,
+              bodyLogs: [],
+              deletedBodyLogIds: [...s.deletedBodyLogIds, ...s.bodyLogs.map((x) => x.id)],
+            }
+          }
+          if (scope.meals || scope.all) {
+            next = {
+              ...next,
+              meals: [],
+              deletedMealIds: [...s.deletedMealIds, ...s.meals.map((x) => x.id)],
+            }
+          }
+          if (scope.all) {
+            next = {
+              ...next,
+              bodyParts: initialBodyParts,
+              exercises: initialExercises,
+              routines: [],
+              plans: { dates: {}, weekly: {} },
+              profile: null,
+              gym: null,
+              // 言語と見た目はそのまま残す
+              settings: { ...DEFAULT_SETTINGS, lang: s.settings.lang, theme: s.settings.theme },
+              masterUpdatedAt: Date.now(),
+            }
+          }
+          return next
+        })
+      },
+
       importData(data) {
         setState((s) => mergeData(s, data))
       },

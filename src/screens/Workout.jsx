@@ -66,7 +66,7 @@ function basePlaceholder(item, index, prev, up) {
   return prev?.sets[prev.sets.length - 1] ?? null
 }
 
-export default function Workout({ onFinished }) {
+export default function Workout({ onFinished, wake }) {
   const {
     activeWorkout: w,
     sessions,
@@ -226,6 +226,7 @@ export default function Workout({ onFinished }) {
             {formatDateJa(w.date)}
             {!isEdit && w.startedAt && <> ・ {formatClock((now - w.startedAt) / 1000)}</>}
             <span className="saved-badge">{t('自動保存 ✓')}</span>
+            {wake?.active && <span className="saved-badge">{t('☀ 画面オン')}</span>}
           </p>
         </div>
         <button className="primary small" onClick={handleFinish}>

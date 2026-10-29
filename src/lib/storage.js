@@ -14,6 +14,7 @@ export const DEFAULT_SETTINGS = {
   restSeconds: 90,
   lang: 'ja',
   sound: true,
+  keepAwake: true,
   theme: DEFAULT_THEME,
   progression: DEFAULT_PROGRESSION,
   weeklyGoal: 3,

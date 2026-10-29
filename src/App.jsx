@@ -11,6 +11,7 @@ import Meals from './screens/Meals'
 import { formatMinutes } from './lib/date'
 import { nm, t } from './i18n'
 import { shareSessionImage } from './lib/shareImage'
+import useWakeLock from './hooks/useWakeLock'
 
 // 今回やったメニューをマイセットに登録するか聞く（同じメニューが登録済みなら聞かない）
 function SaveAsMySet({ exerciseIds }) {
@@ -127,7 +128,9 @@ function FinishedSummary({ summary, onClose }) {
 }
 
 function AppInner() {
-  const { activeWorkout, syncStatus, startWorkout } = useData()
+  const { activeWorkout, syncStatus, startWorkout, settings } = useData()
+  // 記録中は画面を消さない
+  const wake = useWakeLock(!!activeWorkout && settings.keepAwake !== false)
   // 記録の途中でアプリが閉じても、開き直したらそのまま続きから
   const [screen, setScreen] = useState(() => (activeWorkout ? 'workout' : 'home'))
   const [summary, setSummary] = useState(null)
@@ -166,6 +169,7 @@ function AppInner() {
             )}
             {current === 'workout' && (
               <Workout
+                wake={wake}
                 onFinished={(s) => {
                   setSummary(s)
                   setScreen('home')

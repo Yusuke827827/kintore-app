@@ -1550,3 +1550,7 @@ textarea.memo-area {
   font-size: 0.85rem;
   padding: 14px 0;
 }
+
+.danger-zone {
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+}

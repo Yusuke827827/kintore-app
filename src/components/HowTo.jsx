@@ -28,6 +28,7 @@ const TOPICS_JA = [
           <li>種目名の横の ↑↓ で順番入れ替え、✕ で外す。「＋ 種目を追加」で途中から追加</li>
           <li>種目ごとのメモは毎回引き継がれます。普段は2行だけ表示、「編集」で長く書けます。URLはタップで開けます</li>
           <li>セットの番号に「PR」と出たら自己ベスト更新です</li>
+          <li>記録中は画面が自動で暗くならないようにしています（設定で切り替え。上に「☀ 画面オン」と出ます）</li>
           <li>最後に右上の「終了」を押すと保存されます</li>
         </ul>
       </>
@@ -150,6 +151,7 @@ const TOPICS_JA = [
         <li>「ファイルに書き出す」で記録をまるごと保存できます。たまにやっておくと安心です</li>
         <li>「ファイルから読み込む」で戻せます。今ある記録に足される形なので、消えることはありません</li>
         <li>CSV（トレーニング記録・体重）は Excel や Google スプレッドシートで開けます</li>
+        <li>「記録のリセット」で、トレーニング・体重・食事の記録、またはすべてを消せます（確認の文字を入れたときだけ消えます）</li>
       </ul>
     ),
   },
@@ -200,6 +202,7 @@ const TOPICS_EN = [
         <li>Use ↑↓ next to an exercise to reorder, ✕ to remove, and "+ Add exercise" to add one mid-workout</li>
         <li>Each exercise has a memo that carries over every time. Tap "Edit" to write as much as you like; URLs become tappable links</li>
         <li>"PR" on a set means a new personal best</li>
+        <li>The screen stays on while you log (toggle in Settings; "☀ Screen on" shows at the top)</li>
         <li>Press "Finish" at the top right to save</li>
       </ul>
     ),
@@ -323,6 +326,7 @@ const TOPICS_EN = [
         <li>"Export to file" saves everything. Doing it now and then is a good idea</li>
         <li>"Import from file" restores it. Records are added to what you have, never removed</li>
         <li>CSV files (workouts, body weight) open in Excel or Google Sheets</li>
+        <li>"Reset data" deletes workouts, body weight, meals or everything (only after you type the confirmation word)</li>
       </ul>
     ),
   },
