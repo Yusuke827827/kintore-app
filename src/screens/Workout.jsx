@@ -19,6 +19,10 @@ import {
   previousRecord,
   progressionFor,
   toStoredSet,
+  cardioProgression,
+  estimateKcal,
+  formatPace,
+  speedKmh,
 } from '../lib/stats'
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
 
@@ -49,9 +53,16 @@ function setNumber(sets, index) {
 
 // その行に薄く出す「前回の値」（重量アップの対象なら、通常セットの重量を上げて出す）
 // メニューで回数の目標（target）が決まっていれば、回数はそれを出す
-function placeholderFor(item, index, prev, up) {
+function placeholderFor(item, index, prev, up, cup) {
   const base = basePlaceholder(item, index, prev, up)
   const target = item.target
+  // 有酸素：目標の時間 → 次回の目安（前回より少し長く）→ 前回の値 の順
+  if (isCardioSet(item.sets[index] ?? {})) {
+    const p = { ...(base ?? {}) }
+    if (cup && index === 0) Object.assign(p, { min: cup.min, ...(cup.km ? { km: cup.km } : {}) })
+    if (target?.min) p.min = target.min
+    return Object.keys(p).length ? p : null
+  }
   if (!target?.reps || item.sets[index]?.type === 'warmup' || isCardioSet(item.sets[index] ?? {})) return base
   return { ...(base ?? {}), reps: target.reps }
 }
@@ -72,6 +83,8 @@ export default function Workout({ onFinished, wake }) {
     sessions,
     allExercises: exercises,
     settings,
+    profile,
+    bodyLogs,
     updateWorkout,
     addWorkoutExercise,
     finishWorkout,
@@ -81,6 +94,17 @@ export default function Workout({ onFinished, wake }) {
   const [pickerOpen, setPickerOpen] = useState(() => !!w && w.items.length === 0)
   const [setMenu, setSetMenu] = useState(null) // { itemIndex, setIndex, cardio }
   const [orderOpen, setOrderOpen] = useState(false)
+  const [details, setDetails] = useState(() => new Set()) // 有酸素の詳しい入力を開いている種目
+  function toggleDetails(i) {
+    setDetails((cur) => {
+      const next = new Set(cur)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
+  }
+  const bodyWeight =
+    profile?.weight ?? [...bodyLogs].sort((a, b) => (a.date < b.date ? 1 : -1))[0]?.weight ?? 65
   const isEdit = !!w?.sourceSessionId
   const now = useNow(1000, !!w && !isEdit)
 
@@ -120,7 +144,15 @@ export default function Workout({ onFinished, wake }) {
           : fallback
     let next
     if (isCardioSet(set)) {
-      next = { min: fill('min'), km: fill('km'), kcal: fill('kcal'), done: true }
+      next = {
+        min: fill('min'),
+        km: fill('km'),
+        kcal: fill('kcal'),
+        incline: fill('incline'),
+        level: fill('level'),
+        hr: fill('hr'),
+        done: true,
+      }
       if (next.min === '') return
     } else {
       next = { ...set, weight: fill('weight', '0'), reps: fill('reps'), done: true }
@@ -192,6 +224,18 @@ export default function Workout({ onFinished, wake }) {
       prs,
       exerciseIds: w.items.filter((it) => it.sets.some(isFilledSet)).map((it) => it.exerciseId),
       sessionId: w.sourceSessionId ?? w.id,
+      cardio: w.items.reduce(
+        (acc, it) => {
+          const ex = exercises.find((e) => e.id === it.exerciseId)
+          for (const s of it.sets.filter(isFilledSet).filter(isCardioSet)) {
+            acc.min += Number(s.min) || 0
+            acc.km += Number(s.km) || 0
+            acc.kcal += Number(s.kcal) || estimateKcal(ex, s, bodyWeight) || 0
+          }
+          return acc
+        },
+        { min: 0, km: 0, kcal: 0 }
+      ),
     }
     finishWorkout()
     onFinished(filled > 0 ? summary : null)
@@ -244,6 +288,7 @@ export default function Workout({ onFinished, wake }) {
         const doneCount = it.sets.filter((s) => s.done).length
         const cardio = isCardio(exercise)
         const up = !isEdit && !cardio ? progressionFor(prev?.sets, settings.progression) : null
+        const cup = !isEdit && cardio && !it.target?.min ? cardioProgression(prev?.sets, settings.progression) : null
         return (
           <section className="card" key={`${it.exerciseId}-${itemIndex}`}>
             <div className="item-header">
@@ -294,6 +339,14 @@ export default function Workout({ onFinished, wake }) {
             {prev && !isEdit && !cardio && !up && suggestTarget(prev.sets) && (
               <p className="target">{suggestTarget(prev.sets)}</p>
             )}
+            {cup && (
+              <p className="target">
+                {cup.min !== prev?.sets.at(-1)?.min
+                  ? t('⬆ 前回{m}分できたので、{n}分にしています', { m: prev.sets.at(-1).min, n: cup.min })
+                  : t('⬆ 前回{m}分できたので、距離を{km}kmにしています', { m: cup.min, km: cup.km })}
+              </p>
+            )}
+            {it.target?.min && cardio && <p className="muted">{t('目標 {m}分', { m: it.target.min })}</p>}
             {it.target && !cardio && (
               <p className="muted">{t('目標 {s}セット×{r}回', { s: it.target.sets, r: it.target.reps })}</p>
             )}
@@ -316,7 +369,13 @@ export default function Workout({ onFinished, wake }) {
               </div>
             )}
             {it.sets.map((s, setIndex) => {
-              const ph = placeholderFor(it, setIndex, prev, up)
+              const basePh = placeholderFor(it, setIndex, prev, up, cup)
+              // 有酸素の kcal は入れていなければ、時間・距離・体重から自動で見積もる
+              const cur = (k) => (s[k] !== '' && s[k] != null ? s[k] : basePh?.[k])
+              const kcalEst = cardio
+                ? estimateKcal(exercise, { min: cur('min'), km: cur('km'), incline: cur('incline'), level: cur('level') }, bodyWeight)
+                : null
+              const ph = cardio && kcalEst ? { ...basePh, kcal: kcalEst } : basePh
               const filled = isFilledSet(s)
               const isPr =
                 !cardio &&
@@ -365,6 +424,35 @@ export default function Workout({ onFinished, wake }) {
                   >
                     ✓
                   </button>
+                  {cardio && (
+                    <div className="cardio-info">
+                      {speedKmh(Number(cur('min')), Number(cur('km'))) && (
+                        <span>
+                          {t('時速{v}km', { v: speedKmh(Number(cur('min')), Number(cur('km'))) })} ・{' '}
+                          {formatPace(Number(cur('min')), Number(cur('km')))}
+                        </span>
+                      )}
+                      <button className="ghost" onClick={() => toggleDetails(itemIndex)}>
+                        {details.has(itemIndex) ? t('閉じる') : t('傾斜・レベル・心拍')}
+                      </button>
+                    </div>
+                  )}
+                  {cardio && details.has(itemIndex) && (
+                    <div className="cardio-details">
+                      <label>
+                        <small>{t('傾斜%')}</small>
+                        {field('incline', 'decimal', '0')}
+                      </label>
+                      <label>
+                        <small>{t('レベル')}</small>
+                        {field('level', 'numeric', '—')}
+                      </label>
+                      <label>
+                        <small>{t('平均心拍')}</small>
+                        {field('hr', 'numeric', '—')}
+                      </label>
+                    </div>
+                  )}
                 </div>
               )
             })}

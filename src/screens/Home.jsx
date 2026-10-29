@@ -12,6 +12,7 @@ import {
   weeklyGoalStatus,
 } from '../lib/stats'
 import RecoveryMap from '../components/RecoveryMap'
+import CardioHome from '../components/CardioHome'
 import MenuEditor from '../components/MenuEditor'
 import AiBridge from '../components/AiBridge'
 import useAiMenuImport from '../hooks/useAiMenuImport'
@@ -41,6 +42,8 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
     addRoutine,
   } = useData()
   const importMenu = useAiMenuImport()
+  const focus = settings.focus ?? 'strength'
+  const [showStrength, setShowStrength] = useState(false)
   const today = todayStr()
 
   const lastByPart = useMemo(() => lastTrainedByPart(sessions, allExercises), [sessions, allExercises])
@@ -204,6 +207,16 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
         </section>
       )}
 
+      {focus !== 'strength' && <CardioHome onStart={(ids, parts) => start(ids, parts)} />}
+
+      {focus === 'cardio' && !showStrength && (
+        <button className="link" onClick={() => setShowStrength(true)}>
+          {t('＋ 筋トレもする')}
+        </button>
+      )}
+
+      {(focus !== 'cardio' || showStrength) && (
+        <>
       <section className="card">
         <div className="item-header">
           <h2>
@@ -354,6 +367,8 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
           {t('種目を自分で選んで始める')}
         </button>
       </section>
+        </>
+      )}
 
       {routines.length > 0 && (
         <section className="card">

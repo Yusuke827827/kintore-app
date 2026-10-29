@@ -1554,3 +1554,99 @@ textarea.memo-area {
 .danger-zone {
   border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
 }
+
+/* 有酸素の行 */
+.cardio-info,
+.cardio-details {
+  grid-column: 1 / -1;
+}
+
+.cardio-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: -2px;
+}
+
+.cardio-info .ghost {
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+
+.cardio-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.cardio-details label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardio-details small {
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.cardio-details input {
+  font-size: 0.95rem;
+  padding: 8px 4px;
+}
+
+/* 有酸素ホーム */
+.cardio-home {
+  border: 1px solid var(--accent);
+}
+
+.cardio-ring-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0;
+}
+
+.cardio-big strong {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.cardio-big span {
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.cardio-sub {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.goal-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--sunken);
+  overflow: hidden;
+}
+
+.goal-bar div {
+  height: 100%;
+  background: var(--ok-strong);
+  border-radius: 999px;
+}
+
+.cardio-recent {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cardio-weeks .week-col.met .week-bar {
+  background: var(--ok-strong);
+}

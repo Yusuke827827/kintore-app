@@ -125,7 +125,10 @@ export function generateMenu({ partIds, level = 'standard', exercises, sessions,
   const targets = {}
   for (const id of ordered) {
     const e = exercises.find((x) => x.id === id)
-    if (isCardio(e)) continue
+    if (isCardio(e)) {
+      targets[id] = { min: { light: 20, standard: 30, advanced: 45 }[level] ?? 30 }
+      continue
+    }
     const iso = e?.type === 'isolation'
     targets[id] = {
       sets: setsOverride ?? (level === 'advanced' && iso ? 3 : rule.sets),
@@ -221,6 +224,46 @@ export const BODY_TYPES = [
     protein: 2.2,
     cardio: 0,
   },
+  // 有酸素メインのタイプ（cardio に1日の目安時間と内容）
+  {
+    key: 'diet',
+    label: 'ダイエット',
+    stars: 5,
+    desc: '有酸素で体脂肪を落としたい人',
+    reps: 15,
+    sets: 2,
+    emphasis: {},
+    kcal: -400,
+    protein: 1.6,
+    cardioType: true,
+    cardio: [{ kind: 'main', min: 30 }, { kind: 'sub', min: 15 }],
+  },
+  {
+    key: 'endurance',
+    label: '持久力アップ',
+    stars: 4,
+    desc: '長く走れる・疲れにくい体を作りたい人',
+    reps: 15,
+    sets: 2,
+    emphasis: {},
+    kcal: 0,
+    protein: 1.6,
+    cardioType: true,
+    cardio: [{ kind: 'main', min: 40 }],
+  },
+  {
+    key: 'health',
+    label: '健康維持',
+    stars: 5,
+    desc: '無理なく続けて健康を保ちたい人',
+    reps: 15,
+    sets: 2,
+    emphasis: {},
+    kcal: -100,
+    protein: 1.2,
+    cardioType: true,
+    cardio: [{ kind: 'main', min: 30 }],
+  },
   {
     key: 'athlete',
     label: 'アスリート',
@@ -264,6 +307,7 @@ export function buildWeeklyPlan({ profile, bodyParts, exercises, sessions, gym, 
   const type = BODY_TYPES.find((b) => b.key === profile.bodyType) ?? BODY_TYPES[0]
   const days = Math.min(6, Math.max(1, profile.days ?? 3))
   const weekdays = (profile.weekdays?.length === days ? profile.weekdays : DEFAULT_WEEKDAYS[days]).slice().sort()
+  if (type.cardioType) return buildCardioPlan({ type, profile, weekdays, exercises, sessions, gym })
   const visible = new Set(bodyParts.map((p) => p.id))
   const levelKey = profile.level === 'beginner' ? 'light' : profile.level === 'advanced' ? 'advanced' : 'standard'
   const base = LEVEL_RULES[levelKey]
@@ -302,7 +346,10 @@ export function buildWeeklyPlan({ profile, bodyParts, exercises, sessions, gym, 
     const targets = {}
     for (const id of ordered) {
       const e = exercises.find((x) => x.id === id)
-      if (isCardio(e)) continue
+      if (isCardio(e)) {
+        if (type.cardio) targets[id] = { min: type.cardio }
+        continue
+      }
       const iso = e?.type === 'isolation'
       targets[id] = { sets: iso ? Math.min(type.sets, 3) : type.sets, reps: iso ? Math.max(type.reps, 10) + 2 : type.reps }
     }
@@ -313,6 +360,37 @@ export function buildWeeklyPlan({ profile, bodyParts, exercises, sessions, gym, 
       exerciseIds: ordered,
       targets,
       name: `${t(type.label)} ${weekdayLabel(wd)}：${parts.map(partName).join(t('・'))}`,
+    }
+  })
+}
+
+// 有酸素メインの週の計画：日ごとに種目を入れ替え、経験と週の回数で時間を調整する
+function buildCardioPlan({ type, profile, weekdays, exercises, sessions, gym }) {
+  const scale = profile.level === 'beginner' ? 0.7 : profile.level === 'advanced' ? 1.3 : 1
+  const round5 = (n) => Math.max(10, Math.round(n / 5) * 5)
+  return weekdays.map((wd, i) => {
+    const ids = []
+    const targets = {}
+    // 持久力アップは「長め」と「短く速め」を交互に
+    const blocks =
+      type.key === 'endurance'
+        ? i % 2 === 0
+          ? [{ min: 45 }]
+          : [{ min: 25, fast: true }]
+        : type.cardio
+    blocks.forEach((b, k) => {
+      const [id] = pickForPart('cardio', 1, { exercises, sessions, gym, offset: i + k, exclude: ids })
+      if (!id) return
+      ids.push(id)
+      targets[id] = { min: round5(b.min * scale), ...(b.fast ? { note: 'fast' } : {}) }
+    })
+    const total = Object.values(targets).reduce((a, x) => a + x.min, 0)
+    return {
+      weekday: wd,
+      partIds: ['cardio'],
+      exerciseIds: ids,
+      targets,
+      name: `${t(type.label)} ${weekdayLabel(wd)}：${t('有酸素{n}分', { n: total })}`,
     }
   })
 }
@@ -359,9 +437,26 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
     out.push({ icon: '💪', title: t('いいペースです'), text: t('直近4週は週{n}回ペースで、目標の週{goal}回を守れています。', { n: perWeek, goal }) })
   }
 
+  // 有酸素の時間（有酸素中心・両方のとき、または有酸素メインの体型）
+  const cardioGoal = settings.cardioGoal?.weeklyMin ?? 0
+  if ((settings.focus === 'cardio' || settings.focus === 'mixed' || type?.cardioType) && cardioGoal) {
+    const ws = weeklyStats(sessions, exercises)
+    const lastWeek = (() => {
+      const d = new Date(`${weekStart(today)}T00:00:00`)
+      d.setDate(d.getDate() - 7)
+      return weekStart(todayStr(d))
+    })()
+    const m = Math.round(ws[lastWeek]?.cardioMin ?? 0)
+    if (m < cardioGoal) {
+      out.push({ icon: '🏃', title: t('先週の有酸素は{m}分でした', { m }), text: t('目標の週{goal}分まであと{n}分。1回10分でも、こまめに足すと届きやすくなります。', { goal: cardioGoal, n: cardioGoal - m }) })
+    } else {
+      out.push({ icon: '🏃', title: t('先週の有酸素は{m}分', { m }), text: t('目標の週{goal}分を達成しています。慣れてきたら、時間はそのままで速度や傾斜を少し上げてみましょう。', { goal: cardioGoal }) })
+    }
+  }
+
   // 空いている部位
   const last = lastTrainedByPart(sessions, exercises)
-  for (const p of bodyParts) {
+  for (const p of type?.cardioType ? [] : bodyParts) {
     if (p.id === 'cardio') continue
     const d = last[p.id] ? daysBetween(last[p.id], today) : null
     if (d != null && d >= 10) {

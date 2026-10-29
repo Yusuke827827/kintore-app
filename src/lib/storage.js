@@ -15,6 +15,9 @@ export const DEFAULT_SETTINGS = {
   lang: 'ja',
   sound: true,
   keepAwake: true,
+  // 使い方：strength（筋トレ中心）／ cardio（有酸素中心）／ mixed（両方）
+  focus: 'strength',
+  cardioGoal: { weeklyMin: 150, monthlyKm: 0 },
   theme: DEFAULT_THEME,
   progression: DEFAULT_PROGRESSION,
   weeklyGoal: 3,
@@ -51,6 +54,7 @@ export function normalizeData(raw) {
       ...data?.settings,
       theme: { ...DEFAULT_THEME, ...data?.settings?.theme },
       progression: { ...DEFAULT_PROGRESSION, ...data?.settings?.progression },
+      cardioGoal: { ...DEFAULT_SETTINGS.cardioGoal, ...data?.settings?.cardioGoal },
     },
     // 初期値のままなら0。以前の版で保存されていたデータは自分で編集した可能性があるので1。
     masterUpdatedAt: data?.masterUpdatedAt ?? (data ? 1 : 0),

@@ -247,11 +247,18 @@ function AddMeal({ date, mealType, onDone }) {
 }
 
 export default function Meals() {
-  const { meals, profile, deleteMeal } = useData()
+  const { meals, profile, deleteMeal, sessions } = useData()
   const today = todayStr()
   const [date, setDate] = useState(today)
   const [adding, setAdding] = useState(null) // 食事の種類
-  const target = nutritionTargets(profile)
+  const baseTarget = nutritionTargets(profile)
+  // その日に有酸素で消費した分は、食べてよい量（カロリーと炭水化物）に足す
+  const burned = Math.round(
+    sessions
+      .filter((s) => s.date === date)
+      .reduce((sum, s) => sum + s.entries.reduce((a, en) => a + en.sets.reduce((b, x) => b + (x.kcal || 0), 0), 0), 0)
+  )
+  const target = baseTarget && burned ? { ...baseTarget, kcal: baseTarget.kcal + burned, c: baseTarget.c + Math.round((burned * 0.6) / 4) } : baseTarget
   const tot = dayTotals(meals, date)
   const score = dayScore(tot, target)
 
@@ -292,6 +299,9 @@ export default function Meals() {
           </button>
         </div>
         <Bars tot={tot} target={target} />
+        {burned > 0 && baseTarget && (
+          <p className="muted">{t('🏃 運動で{n}kcal消費（その分を目標に足しています）', { n: burned })}</p>
+        )}
         {score != null && (
           <p className="muted">
             {t('今日の点数 {s}点', { s: score })}

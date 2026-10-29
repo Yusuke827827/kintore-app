@@ -191,7 +191,12 @@ function Trainer() {
   }
   function savePlan() {
     applyWeeklyPlan(plan)
-    updateSettings({ weeklyGoal: plan.length })
+    const cardioType = BODY_TYPES.find((b) => b.key === p.bodyType)?.cardioType
+    updateSettings({
+      weeklyGoal: plan.length,
+      // 有酸素メインの体型を選んだら、ホームも有酸素向けに
+      ...(cardioType && settings.focus !== 'mixed' ? { focus: 'cardio' } : {}),
+    })
     setSaved(true)
   }
 

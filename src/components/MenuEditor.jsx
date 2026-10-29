@@ -29,8 +29,9 @@ export default function MenuEditor({ value, onChange, preferPartIds = [] }) {
     set({ exerciseIds: exerciseIds.filter((_, k) => k !== i), targets: rest })
   }
   function changeTarget(id, key, delta) {
-    const cur = targets[id] ?? { sets: 3, reps: 10 }
-    const v = Math.max(1, Math.min(key === 'sets' ? 10 : 50, (cur[key] ?? 0) + delta))
+    const cur = targets[id] ?? (key === 'min' ? { min: 30 } : { sets: 3, reps: 10 })
+    const max = { sets: 10, reps: 50, min: 180 }[key]
+    const v = Math.max(key === 'min' ? 5 : 1, Math.min(max, (cur[key] ?? 0) + delta))
     set({ targets: { ...targets, [id]: { ...cur, [key]: v } } })
   }
 
@@ -55,6 +56,15 @@ export default function MenuEditor({ value, onChange, preferPartIds = [] }) {
               <span className="menu-no">{i + 1}</span>
               <div className="menu-main">
                 <strong>{e ? nm(e) : t('（削除された種目）')}</strong>
+                {isCardio(e) && (
+                  <div className="steppers">
+                    <span className="stepper">
+                      <button onClick={() => changeTarget(id, 'min', -5)}>−</button>
+                      {t('{m}分', { m: tg?.min ?? 30 })}
+                      <button onClick={() => changeTarget(id, 'min', 5)}>＋</button>
+                    </span>
+                  </div>
+                )}
                 {!isCardio(e) && (
                   <div className="steppers">
                     <span className="stepper">
@@ -97,7 +107,7 @@ export default function MenuEditor({ value, onChange, preferPartIds = [] }) {
             const e = allExercises.find((x) => x.id === id)
             set({
               exerciseIds: [...exerciseIds, id],
-              targets: isCardio(e) ? targets : { ...targets, [id]: { sets: 3, reps: 10 } },
+              targets: { ...targets, [id]: isCardio(e) ? { min: 30 } : { sets: 3, reps: 10 } },
             })
           }}
           onClose={() => setPickerOpen(false)}
