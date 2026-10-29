@@ -9,6 +9,7 @@ import Customize from './screens/Customize'
 import Plan from './screens/Plan'
 import Meals from './screens/Meals'
 import { formatMinutes } from './lib/date'
+import { formatPace } from './lib/stats'
 import { nm, t } from './i18n'
 import { shareSessionImage } from './lib/shareImage'
 import useWakeLock from './hooks/useWakeLock'
@@ -99,14 +100,36 @@ function FinishedSummary({ summary, onClose }) {
             <strong>{summary.exercises}</strong>
             <span>{t('種目')}</span>
           </div>
-          <div>
-            <strong>{summary.sets}</strong>
-            <span>{t('セット')}</span>
-          </div>
-          <div>
-            <strong>{Math.round(summary.volume).toLocaleString()}</strong>
-            <span>kg</span>
-          </div>
+          {(summary.volume > 0 || !summary.cardio?.min) && (
+            <div>
+              <strong>{summary.sets}</strong>
+              <span>{t('セット')}</span>
+            </div>
+          )}
+          {summary.volume > 0 && (
+            <div>
+              <strong>{Math.round(summary.volume).toLocaleString()}</strong>
+              <span>kg</span>
+            </div>
+          )}
+          {summary.cardio?.min > 0 && (
+            <div>
+              <strong>{summary.cardio.min}</strong>
+              <span>{t('分')}</span>
+            </div>
+          )}
+          {summary.cardio?.km > 0 && (
+            <div>
+              <strong>{Math.round(summary.cardio.km * 100) / 100}</strong>
+              <span>km</span>
+            </div>
+          )}
+          {summary.cardio?.kcal > 0 && (
+            <div>
+              <strong>{Math.round(summary.cardio.kcal)}</strong>
+              <span>kcal</span>
+            </div>
+          )}
           {formatMinutes(summary.durationMs) && (
             <div>
               <strong>{formatMinutes(summary.durationMs)}</strong>
@@ -114,6 +137,11 @@ function FinishedSummary({ summary, onClose }) {
             </div>
           )}
         </div>
+        {summary.cardio?.km > 0 && summary.cardio?.min > 0 && (
+          <p className="muted">
+            {t('平均ペース {p}', { p: formatPace(summary.cardio.min, summary.cardio.km) })}
+          </p>
+        )}
         {summary.prs.length > 0 && (
           <p className="target">🏆 {t('自己ベスト更新')}：{summary.prs.join(t('・'))}</p>
         )}

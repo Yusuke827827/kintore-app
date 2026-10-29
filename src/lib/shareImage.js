@@ -1,7 +1,7 @@
 // トレーニング記録を1枚の画像にして、スマホの共有シート（LINE・インスタ等）に渡す
 import { nm, t } from '../i18n'
 import { formatDateJa, formatMinutes } from './date'
-import { e1rm, formatSet, isWorkingSet, personalBest, sessionVolume } from './stats'
+import { cardioTotals, e1rm, formatPace, formatSet, isWorkingSet, personalBest, sessionVolume } from './stats'
 
 const W = 1080
 const PAD = 72
@@ -94,13 +94,20 @@ export function drawSessionImage(session, { sessions, exercises, bodyParts }) {
 
   // 数字のまとめ
   const sets = session.entries.reduce((n, en) => n + en.sets.filter((s) => s.type !== 'warmup').length, 0)
-  const stats = [
-    [String(session.entries.length), t('種目')],
-    [String(sets), t('セット')],
-    [`${Math.round(sessionVolume(session)).toLocaleString()}`, 'kg'],
-  ]
+  const volume = sessionVolume(session)
+  const cardio = cardioTotals(session)
+  const stats = volume > 0 ? [[String(session.entries.length), t('種目')], [String(sets), t('セット')], [`${Math.round(volume).toLocaleString()}`, 'kg']] : []
+  // 有酸素があれば時間・距離・ペース・kcal を出す（有酸素だけの日はそれが主役）
+  if (cardio.min > 0) {
+    stats.push([String(cardio.min), t('分')])
+    if (cardio.km > 0) stats.push([String(cardio.km), 'km'])
+    if (cardio.km > 0 && volume === 0) stats.push([formatPace(cardio.min, cardio.km).replace('/km', ''), '/km'])
+    if (cardio.kcal > 0) stats.push([String(Math.round(cardio.kcal)), 'kcal'])
+  }
+  while (stats.length > 4) stats.splice(volume > 0 ? 1 : 3, 1)
+  if (stats.length === 0) stats.push([String(session.entries.length), t('種目')])
   const dur = formatMinutes((session.finishedAt ?? 0) - (session.startedAt ?? 0))
-  if (dur) stats.push([dur, t('時間')])
+  if (dur && stats.length < 4 && cardio.min === 0) stats.push([dur, t('時間')])
   const colW = (W - PAD * 2) / stats.length
   const statsY = 380
   ctx.fillStyle = 'rgba(255,255,255,0.06)'

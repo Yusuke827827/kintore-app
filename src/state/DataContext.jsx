@@ -11,7 +11,9 @@ import * as sync from '../lib/sync'
 import { todayStr } from '../lib/date'
 import {
   emptySet,
+  estimateKcal,
   isCardio,
+  isCardioSet,
   isFilledSet,
   previousRecord,
   sessionPartIds,
@@ -34,6 +36,11 @@ function moveAmong(list, id, dir, sameGroup) {
   const next = [...list]
   ;[next[i], next[j]] = [next[j], next[i]]
   return next
+}
+
+// 消費カロリーの見積もりに使う体重（プロフィール → 最新の体重記録 → 65kg）
+function bodyWeightOf(s) {
+  return s.profile?.weight ?? [...s.bodyLogs].sort((a, b) => (a.date < b.date ? 1 : -1))[0]?.weight ?? 65
 }
 
 function makeId(prefix) {
@@ -436,7 +443,14 @@ export function DataProvider({ children }) {
             .map((it) => ({
               exerciseId: it.exerciseId,
               ...(it.note ? { note: it.note } : {}),
-              sets: it.sets.filter(isFilledSet).map(toStoredSet),
+              sets: it.sets
+                .filter(isFilledSet)
+                .map(toStoredSet)
+                .map((set) =>
+                  isCardioSet(set) && set.kcal == null
+                    ? { ...set, kcal: estimateKcal(s.exercises.find((e) => e.id === it.exerciseId), set, bodyWeightOf(s)) }
+                    : set
+                ),
             }))
             .filter((en) => en.sets.length > 0)
           const ended = { ...s, activeWorkout: null, endedWorkoutIds: [...s.endedWorkoutIds, w.id] }

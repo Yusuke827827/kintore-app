@@ -414,12 +414,65 @@ function BackupSection() {
   )
 }
 
+const FOCUS = [
+  { key: 'strength', label: '筋トレ中心' },
+  { key: 'cardio', label: '有酸素中心' },
+  { key: 'mixed', label: '両方' },
+]
+
 function GoalSection() {
   const { settings, updateSettings } = useData()
   const prog = { ...DEFAULT_PROGRESSION, ...settings.progression }
   const setProg = (patch) => updateSettings({ progression: { ...prog, ...patch } })
+  const cg = settings.cardioGoal ?? { weeklyMin: 150, monthlyKm: 0 }
 
   return (
+    <>
+    <section className="card">
+      <h2>{t('トレーニングのスタイル')}</h2>
+      <p className="muted">{t('有酸素中心にすると、ホームが有酸素向け（今週の時間・距離、ワンタップで開始）になります。')}</p>
+      <div className="segmented">
+        {FOCUS.map((f) => (
+          <button
+            key={f.key}
+            className={(settings.focus ?? 'strength') === f.key ? 'on' : ''}
+            onClick={() => updateSettings({ focus: f.key })}
+          >
+            {t(f.label)}
+          </button>
+        ))}
+      </div>
+      {(settings.focus === 'cardio' || settings.focus === 'mixed') && (
+        <>
+          <h3>{t('有酸素の目標（週の時間）')}</h3>
+          <div className="chips">
+            {[60, 90, 120, 150, 200, 300].map((n) => (
+              <button
+                key={n}
+                className={`chip small ${cg.weeklyMin === n ? 'on' : ''}`}
+                onClick={() => updateSettings({ cardioGoal: { ...cg, weeklyMin: n } })}
+              >
+                {t('{m}分', { m: n })}
+              </button>
+            ))}
+          </div>
+          <p className="muted">{t('健康づくりの目安は週150分（WHO）です。')}</p>
+          <h3>{t('有酸素の目標（月の距離）')}</h3>
+          <div className="chips">
+            {[0, 20, 50, 100, 150, 200].map((n) => (
+              <button
+                key={n}
+                className={`chip small ${cg.monthlyKm === n ? 'on' : ''}`}
+                onClick={() => updateSettings({ cardioGoal: { ...cg, monthlyKm: n } })}
+              >
+                {n === 0 ? t('なし') : `${n}km`}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+
     <section className="card">
       <h2>{t('週の目標')}</h2>
       <p className="muted">{t('1週間（月〜日）に何日トレーニングするか。ホームに達成状況と連続記録が出ます。')}</p>
@@ -469,6 +522,7 @@ function GoalSection() {
         </>
       )}
     </section>
+    </>
   )
 }
 

@@ -7,6 +7,8 @@ import {
   formatSet,
   isCardio,
   isWorkingSet,
+  cardioTotals,
+  formatPace,
   sessionVolume,
   sortSessionsDesc,
 } from '../lib/stats'
@@ -268,7 +270,15 @@ export default function History({ onOpenWorkout }) {
               s: s.entries.reduce((n, en) => n + en.sets.length, 0),
             })}{' '}
             ・{' '}
-            {Math.round(sessionVolume(s)).toLocaleString()}kg
+            {sessionVolume(s) > 0 && <>{Math.round(sessionVolume(s)).toLocaleString()}kg</>}
+            {cardioTotals(s).min > 0 && (
+              <>
+                {sessionVolume(s) > 0 && ' ・ '}
+                {t('有酸素 {m}分', { m: cardioTotals(s).min })}
+                {cardioTotals(s).km > 0 && <> {cardioTotals(s).km}km（{formatPace(cardioTotals(s).min, cardioTotals(s).km)}）</>}
+                {cardioTotals(s).kcal > 0 && <> {Math.round(cardioTotals(s).kcal)}kcal</>}
+              </>
+            )}
             {formatMinutes(s.finishedAt - s.startedAt) && <> ・ {formatMinutes(s.finishedAt - s.startedAt)}</>}
           </p>
           {s.entries.map((en) => (

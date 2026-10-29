@@ -3,7 +3,7 @@ import { t } from '../i18n'
 
 // セットの形
 // ・筋トレ：{ weight, reps, type? }  type は 'warmup'（ウォームアップ）/ 'drop'（ドロップセット）/ なし（通常）
-// ・有酸素：{ min, km, kcal }
+// ・有酸素：{ min, km?, kcal?, incline?（傾斜%）, level?（負荷レベル）, hr?（平均心拍） }
 export function isCardio(exercise) {
   return exercise?.type === 'cardio'
 }
@@ -21,11 +21,97 @@ export function formatSet(set) {
   if (isCardioSet(set)) {
     const parts = [t('{m}分', { m: set.min })]
     if (set.km) parts.push(`${set.km}km`)
+    if (set.km && set.min) parts.push(formatPace(set.min, set.km))
     if (set.kcal) parts.push(`${set.kcal}kcal`)
+    if (set.incline) parts.push(t('傾斜{n}%', { n: set.incline }))
+    if (set.level) parts.push(t('Lv{n}', { n: set.level }))
+    if (set.hr) parts.push(`♥${set.hr}`)
     return parts.join(' ')
   }
   const mark = set.type === 'warmup' ? 'W ' : set.type === 'drop' ? 'D ' : ''
   return `${mark}${set.weight}kg×${set.reps}`
+}
+
+// ---- 有酸素 ----
+// 速度（km/h）とペース（1kmあたり）
+export function speedKmh(min, km) {
+  if (!min || !km) return null
+  return Math.round((km / (min / 60)) * 10) / 10
+}
+
+export function formatPace(min, km) {
+  if (!min || !km) return ''
+  const sec = Math.round((min * 60) / km)
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}/km`
+}
+
+// 種目の種類（初期の種目はid、自分で作った種目は名前から推測）
+function cardioKind(exercise) {
+  const byId = {
+    'cardio-01': 'treadmill',
+    'cardio-02': 'bike',
+    'cardio-03': 'cross',
+    'cardio-04': 'stair',
+    'cardio-05': 'row',
+    'cardio-06': 'walk',
+    'cardio-07': 'run',
+  }
+  if (byId[exercise?.id]) return byId[exercise.id]
+  const n = exercise?.name ?? ''
+  if (/ラン|走|ジョグ|run/i.test(n)) return 'run'
+  if (/ウォーク|歩|walk/i.test(n)) return 'walk'
+  if (/バイク|自転車|サイクル|bike|cycl/i.test(n)) return 'bike'
+  if (/ステア|階段|stair/i.test(n)) return 'stair'
+  if (/ロー|row/i.test(n)) return 'row'
+  if (/水泳|スイム|泳|swim/i.test(n)) return 'swim'
+  return 'other'
+}
+
+// 運動の強さ（MET）の目安。歩く・走る種目は速度と傾斜から
+function metFor(exercise, set) {
+  const kind = cardioKind(exercise)
+  const v = speedKmh(Number(set.min), Number(set.km))
+  if (['treadmill', 'walk', 'run'].includes(kind) && v) {
+    const base = v < 4 ? 2.8 : v < 5.5 ? 3.5 : v < 6.5 ? 4.3 : v < 8 ? 6 : v < 9.7 ? 8.3 : v < 11 ? 9.8 : v < 13 ? 11 : 12.8
+    const incline = Number(set.incline) || 0
+    return base + (v < 7 ? incline * 0.45 : incline * 0.3)
+  }
+  const level = Number(set.level) || 0
+  const table = { treadmill: 6, walk: 3.5, run: 9, bike: 6.8, cross: 5, stair: 9, row: 7, swim: 7, other: 6 }
+  return table[kind] + (level ? Math.min(3, (level - 5) * 0.3) : 0)
+}
+
+// 消費カロリーの目安（入れていないときの自動計算）
+export function estimateKcal(exercise, set, weightKg = 65) {
+  const min = Number(set.min)
+  if (!min) return null
+  return Math.round(metFor(exercise, set) * weightKg * (min / 60) * 1.05)
+}
+
+// 1回のトレーニングの有酸素の合計
+export function cardioTotals(session) {
+  const tot = { min: 0, km: 0, kcal: 0, count: 0 }
+  for (const en of session.entries) {
+    for (const set of en.sets) {
+      if (!isCardioSet(set)) continue
+      tot.min += set.min || 0
+      tot.km += set.km || 0
+      tot.kcal += set.kcal || 0
+      tot.count++
+    }
+  }
+  tot.km = Math.round(tot.km * 100) / 100
+  return tot
+}
+
+// 有酸素の次回の目安：前回の時間をこなせていたら少し伸ばす（60分までは+5分、それより長ければ距離を+0.5km）
+export function cardioProgression(prevSets, progression) {
+  if (!progression?.on || !prevSets) return null
+  const last = [...prevSets].reverse().find(isCardioSet)
+  if (!last?.min) return null
+  if (last.min < 60) return { min: last.min + 5, km: last.km ? Math.round((last.km * (last.min + 5)) / last.min * 10) / 10 : undefined }
+  if (last.km) return { min: last.min, km: Math.round((last.km + 0.5) * 10) / 10 }
+  return null
 }
 
 // 次の重量の自動アップ：前回の通常セットがすべて目標回数以上なら、重量を step だけ上げる
@@ -161,8 +247,9 @@ export function isFilledSet(set) {
 export function toStoredSet(set) {
   if (isCardioSet(set)) {
     const out = { min: Number(set.min) }
-    if (set.km !== '' && set.km != null) out.km = Number(set.km)
-    if (set.kcal !== '' && set.kcal != null) out.kcal = Number(set.kcal)
+    for (const k of ['km', 'kcal', 'incline', 'level', 'hr']) {
+      if (set[k] !== '' && set[k] != null) out[k] = Number(set[k])
+    }
     return out
   }
   const out = { weight: Number(set.weight), reps: Number(set.reps) }
@@ -173,14 +260,15 @@ export function toStoredSet(set) {
 // 保存した数値 → 入力欄の文字列（記録を修正するとき）
 export function toDraftSet(set) {
   if (isCardioSet(set)) {
-    return { min: String(set.min), km: set.km != null ? String(set.km) : '', kcal: set.kcal != null ? String(set.kcal) : '', done: true }
+    const s = (v) => (v != null ? String(v) : '')
+    return { min: s(set.min), km: s(set.km), kcal: s(set.kcal), incline: s(set.incline), level: s(set.level), hr: s(set.hr), done: true }
   }
   return { weight: String(set.weight), reps: String(set.reps), type: set.type, done: true }
 }
 
 // 新しく始めるときの空のセット（前回のセットの種類はそのまま引き継ぐ）
 export function emptySet(cardio, like) {
-  if (cardio) return { min: '', km: '', kcal: '', done: false }
+  if (cardio) return { min: '', km: '', kcal: '', incline: '', level: '', hr: '', done: false }
   return { weight: '', reps: '', done: false, ...(like?.type ? { type: like.type } : {}) }
 }
 
@@ -243,13 +331,16 @@ export function weeklyStats(sessions, exercises) {
   const weeks = {}
   for (const s of sessions) {
     const wk = weekStart(s.date)
-    const w = (weeks[wk] ??= { sets: {}, volume: {}, cardioMin: 0, days: new Set() })
+    const w = (weeks[wk] ??= { sets: {}, volume: {}, cardioMin: 0, cardioKm: 0, cardioKcal: 0, days: new Set(), cardioDays: new Set() })
     w.days.add(s.date)
     for (const en of s.entries) {
       const partId = exercises.find((e) => e.id === en.exerciseId)?.bodyPartId ?? '?'
       for (const set of en.sets) {
         if (isCardioSet(set)) {
           w.cardioMin += set.min || 0
+          w.cardioKm += set.km || 0
+          w.cardioKcal += set.kcal || 0
+          w.cardioDays.add(s.date)
           continue
         }
         if (!isWorkingSet(set)) continue

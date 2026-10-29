@@ -12,7 +12,8 @@ function addDays(dateStr, n) {
 
 // 部位ごとの週のセット数（ウォームアップ除く）。先週と比べて偏りに気づけるように。
 export default function WeeklyStats() {
-  const { sessions, allExercises, allBodyParts } = useData()
+  const { sessions, allExercises, allBodyParts, settings } = useData()
+  const cardioGoal = settings.cardioGoal?.weeklyMin ?? 0
   const [offset, setOffset] = useState(0) // 0 = 今週, -1 = 先週…
   const weeks = useMemo(() => weeklyStats(sessions, allExercises), [sessions, allExercises])
 
@@ -34,6 +35,10 @@ export default function WeeklyStats() {
     return { wk, sets: w ? Object.values(w.sets).reduce((a, b) => a + b, 0) : 0 }
   })
   const max8 = Math.max(1, ...last8.map((w) => w.sets))
+  // 直近8週の有酸素の時間
+  const cardio8 = last8.map((w) => ({ wk: w.wk, min: Math.round(weeks[w.wk]?.cardioMin ?? 0), km: weeks[w.wk]?.cardioKm ?? 0 }))
+  const maxCardio = Math.max(1, cardioGoal, ...cardio8.map((w) => w.min))
+  const hasCardio = cardio8.some((w) => w.min > 0) || settings.focus === 'cardio'
 
   const label =
     offset === 0
@@ -115,6 +120,32 @@ export default function WeeklyStats() {
           ))}
         </div>
       </section>
+      {hasCardio && (
+        <section className="card">
+          <h2>{t('有酸素の時間（直近8週）')}</h2>
+          <p className="muted">
+            {t('{label}：{m}分・{km}km・{kcal}kcal', {
+              label,
+              m: Math.round(cur.cardioMin ?? 0),
+              km: Math.round((cur.cardioKm ?? 0) * 10) / 10,
+              kcal: Math.round(cur.cardioKcal ?? 0),
+            })}
+          </p>
+          <div className="week-columns cardio-weeks">
+            {cardio8.map((w) => (
+              <div
+                key={w.wk}
+                className={`week-col ${w.wk === thisWeek ? 'current' : ''} ${cardioGoal && w.min >= cardioGoal ? 'met' : ''}`}
+              >
+                <span className="week-num">{w.min || ''}</span>
+                <div className="week-bar" style={{ height: `${(w.min / maxCardio) * 100}%` }} />
+                <span className="week-label">{`${Number(w.wk.slice(5, 7))}/${Number(w.wk.slice(8))}`}</span>
+              </div>
+            ))}
+          </div>
+          {cardioGoal > 0 && <p className="muted">{t('緑の週は目標（週{m}分）を達成', { m: cardioGoal })}</p>}
+        </section>
+      )}
     </>
   )
 }
