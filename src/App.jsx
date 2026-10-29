@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import './App.css'
 import { DataProvider, useData } from './state/DataContext'
+import { PremiumProvider, usePremium } from './state/PremiumContext'
 import Home from './screens/Home'
 import Workout from './screens/Workout'
 import History from './screens/History'
@@ -17,6 +18,7 @@ import useWakeLock from './hooks/useWakeLock'
 // 今回やったメニューをマイセットに登録するか聞く（同じメニューが登録済みなら聞かない）
 function SaveAsMySet({ exerciseIds }) {
   const { routines, allExercises, allBodyParts, addRoutine } = useData()
+  const { gate } = usePremium()
   const defaultName = useMemo(() => {
     const partIds = [
       ...new Set(exerciseIds.map((id) => allExercises.find((e) => e.id === id)?.bodyPartId)),
@@ -63,6 +65,7 @@ function SaveAsMySet({ exerciseIds }) {
           className="primary"
           disabled={!name.trim()}
           onClick={() => {
+            if (!gate('routines', routines.length)) return
             addRoutine(name.trim(), exerciseIds)
             setState('saved')
           }}
@@ -247,8 +250,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <DataProvider>
-      <AppInner />
-    </DataProvider>
+    <PremiumProvider>
+      <DataProvider>
+        <AppInner />
+      </DataProvider>
+    </PremiumProvider>
   )
 }

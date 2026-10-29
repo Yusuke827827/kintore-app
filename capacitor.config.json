@@ -1,0 +1,8 @@
+{
+  "appId": "io.github.yusuke827827.kintore",
+  "appName": "筋トレ記録",
+  "webDir": "dist-app",
+  "ios": {
+    "contentInset": "always"
+  }
+}
