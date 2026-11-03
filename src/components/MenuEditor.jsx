@@ -4,6 +4,7 @@ import ExercisePicker from './ExercisePicker'
 import { smartOrder } from '../lib/planner'
 import { isCardio } from '../lib/stats'
 import { nm, t } from '../i18n'
+import Icon from './Icon'
 
 // 作ったメニューを使う人が直す：種目の追加・削除・並べ替え・セット数と回数の変更、おまかせ並べ替え
 // value: { exerciseIds: [...], targets: { [id]: { sets, reps } } }
@@ -44,7 +45,7 @@ export default function MenuEditor({ value, onChange, preferPartIds = [] }) {
           onClick={() => set({ exerciseIds: smartOrder(exerciseIds, allExercises) })}
           disabled={exerciseIds.length < 2}
         >
-          {t('✨ おまかせ並べ替え')}
+          <Icon name="sort" size={16} /> {t('おまかせ並べ替え')}
         </button>
       </div>
       <ul className="plain-list">
@@ -88,7 +89,7 @@ export default function MenuEditor({ value, onChange, preferPartIds = [] }) {
                   ↓
                 </button>
                 <button className="ghost danger" onClick={() => remove(i)} aria-label={t('外す')}>
-                  ✕
+                  <Icon name="close" size={18} />
                 </button>
               </div>
             </li>

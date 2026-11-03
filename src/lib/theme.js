@@ -2,7 +2,7 @@
 
 export const DEFAULT_THEME = {
   mode: 'dark', // dark | black | light | auto
-  accent: 'indigo',
+  accent: 'orange',
   wallpaper: 'none',
   dim: 0.55, // 壁紙の上に重ねる暗さ（0〜0.9）
   fontSize: 'm', // s | m | l | xl
@@ -10,12 +10,12 @@ export const DEFAULT_THEME = {
 
 // 600 / 500 / 400 / 900 / 300 / 700 の順（Tailwind の色）
 export const ACCENTS = {
+  orange: { label: 'オレンジ', c: ['#ff5a1f', '#ff7a45', '#ff8a5c', '#3a1608', '#ffb899', '#e64a12'] },
   indigo: { label: 'インディゴ', c: ['#4f46e5', '#6366f1', '#818cf8', '#312e81', '#a5b4fc', '#4338ca'] },
   blue: { label: 'ブルー', c: ['#2563eb', '#3b82f6', '#60a5fa', '#1e3a8a', '#93c5fd', '#1d4ed8'] },
   sky: { label: 'スカイ', c: ['#0284c7', '#0ea5e9', '#38bdf8', '#0c4a6e', '#7dd3fc', '#0369a1'] },
   teal: { label: 'ティール', c: ['#0d9488', '#14b8a6', '#2dd4bf', '#134e4a', '#5eead4', '#0f766e'] },
   green: { label: 'グリーン', c: ['#16a34a', '#22c55e', '#4ade80', '#14532d', '#86efac', '#15803d'] },
-  orange: { label: 'オレンジ', c: ['#ea580c', '#f97316', '#fb923c', '#7c2d12', '#fdba74', '#c2410c'] },
   red: { label: 'レッド', c: ['#dc2626', '#ef4444', '#f87171', '#7f1d1d', '#fca5a5', '#b91c1c'] },
   pink: { label: 'ピンク', c: ['#db2777', '#ec4899', '#f472b6', '#831843', '#f9a8d4', '#be185d'] },
   purple: { label: 'パープル', c: ['#9333ea', '#a855f7', '#c084fc', '#581c87', '#d8b4fe', '#7e22ce'] },
@@ -95,7 +95,7 @@ export function applyTheme(theme) {
   const mode = resolveMode(th.mode)
   root.dataset.mode = mode
 
-  const [a600, a500, a400, a900, a300, a700] = (ACCENTS[th.accent] ?? ACCENTS.indigo).c
+  const [a600, a500, a400, a900, a300, a700] = (ACCENTS[th.accent] ?? ACCENTS.orange).c
   root.style.setProperty('--accent', a600)
   root.style.setProperty('--accent-border', a500)
   root.style.setProperty('--accent-text', mode === 'light' ? a700 : a400)
@@ -118,5 +118,5 @@ export function applyTheme(theme) {
   root.dataset.wallpaper = image === 'none' ? 'off' : 'on'
 
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.content = mode === 'light' ? '#f3f4f6' : mode === 'black' ? '#000000' : '#0b0f19'
+  if (meta) meta.content = mode === 'light' ? '#f2f2f7' : mode === 'black' ? '#000000' : '#0b0b0c'
 }

@@ -18,6 +18,7 @@ import { usePremium } from '../state/PremiumContext'
 import { FREE_ACCENTS, FREE_WALLPAPERS } from '../lib/pricing'
 import LockCard from '../components/LockCard'
 import { PRIVACY_URL, TERMS_URL } from '../components/Paywall'
+import Icon from '../components/Icon'
 
 // プレミアムの状態と、プランの確認・復元
 function PremiumSection() {
@@ -30,7 +31,7 @@ function PremiumSection() {
   return (
     <section className="card">
       <h2>
-        {t('💪 プレミアム')}{' '}
+        <Icon name="crown" size={20} /> {t('プレミアム')}{' '}
         {premium && kind !== 'beta' && <span className="badge ok">{t('利用中')}</span>}
       </h2>
       {kind === 'beta' ? (
@@ -187,7 +188,7 @@ function AppearanceSection() {
             onClick={() => (!locked(FREE_WALLPAPERS, w.key) || gate('theme')) && setTheme({ wallpaper: w.key })}
           >
             <span>
-              {locked(FREE_WALLPAPERS, w.key) && '🔒 '}
+              {locked(FREE_WALLPAPERS, w.key) && <Icon name="lock" size={12} className="inline-lock" />}
               {t(w.label)}
             </span>
           </button>
@@ -203,7 +204,7 @@ function AppearanceSection() {
         )}
         <button className="wallpaper add" onClick={() => gate('theme') && fileRef.current?.click()}>
           <span>
-            {!premium && '🔒 '}
+            {!premium && <Icon name="lock" size={12} className="inline-lock" />}
             {t('＋ 写真')}
           </span>
         </button>
@@ -306,7 +307,7 @@ function SyncSettings() {
         <p className="muted">
           {syncStatus.state === 'syncing' && t('同期中…')}
           {syncStatus.state === 'ok' && t('最終同期 {time}', { time })}
-          {syncStatus.state === 'error' && <span className="error">⚠ {syncStatus.message}</span>}
+          {syncStatus.state === 'error' && <span className="error"><Icon name="alert" size={14} /> {syncStatus.message}</span>}
           {syncStatus.state === 'idle' && t('待機中')}
         </p>
         <p className="muted">

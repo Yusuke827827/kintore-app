@@ -418,10 +418,10 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
   const type = BODY_TYPES.find((b) => b.key === profile?.bodyType)
 
   if (!profile?.bodyType) {
-    out.push({ icon: '👤', title: t('目指す体型を設定しましょう'), text: t('「計画 → トレーナー」で身長・体重と目指す体型を選ぶと、週のメニューと食事の目標を作れます。') })
+    out.push({ icon: 'user', title: t('目指す体型を設定しましょう'), text: t('「計画 → トレーナー」で身長・体重と目指す体型を選ぶと、週のメニューと食事の目標を作れます。') })
   }
   if (sessions.length === 0) {
-    out.push({ icon: '🏁', title: t('まずは1回記録してみましょう'), text: t('記録がたまるほど、アドバイスが具体的になります。') })
+    out.push({ icon: 'flag', title: t('まずは1回記録してみましょう'), text: t('記録がたまるほど、アドバイスが具体的になります。') })
     return out
   }
 
@@ -432,9 +432,9 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
   const perWeek = Math.round((recentDays / 4) * 10) / 10
   const goal = settings.weeklyGoal || profile?.days || 0
   if (goal && perWeek < goal * 0.75) {
-    out.push({ icon: '📅', title: t('頻度が目標より少なめです'), text: t('直近4週は週{n}回ペース（目標 週{goal}回）。予定を「計画」のカレンダーに入れておくと続けやすくなります。', { n: perWeek, goal }) })
+    out.push({ icon: 'calendar', title: t('頻度が目標より少なめです'), text: t('直近4週は週{n}回ペース（目標 週{goal}回）。予定を「計画」のカレンダーに入れておくと続けやすくなります。', { n: perWeek, goal }) })
   } else if (goal && perWeek >= goal) {
-    out.push({ icon: '💪', title: t('いいペースです'), text: t('直近4週は週{n}回ペースで、目標の週{goal}回を守れています。', { n: perWeek, goal }) })
+    out.push({ icon: 'live', title: t('いいペースです'), text: t('直近4週は週{n}回ペースで、目標の週{goal}回を守れています。', { n: perWeek, goal }) })
   }
 
   // 有酸素の時間（有酸素中心・両方のとき、または有酸素メインの体型）
@@ -448,9 +448,9 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
     })()
     const m = Math.round(ws[lastWeek]?.cardioMin ?? 0)
     if (m < cardioGoal) {
-      out.push({ icon: '🏃', title: t('先週の有酸素は{m}分でした', { m }), text: t('目標の週{goal}分まであと{n}分。1回10分でも、こまめに足すと届きやすくなります。', { goal: cardioGoal, n: cardioGoal - m }) })
+      out.push({ icon: 'pulse', title: t('先週の有酸素は{m}分でした', { m }), text: t('目標の週{goal}分まであと{n}分。1回10分でも、こまめに足すと届きやすくなります。', { goal: cardioGoal, n: cardioGoal - m }) })
     } else {
-      out.push({ icon: '🏃', title: t('先週の有酸素は{m}分', { m }), text: t('目標の週{goal}分を達成しています。慣れてきたら、時間はそのままで速度や傾斜を少し上げてみましょう。', { goal: cardioGoal }) })
+      out.push({ icon: 'pulse', title: t('先週の有酸素は{m}分', { m }), text: t('目標の週{goal}分を達成しています。慣れてきたら、時間はそのままで速度や傾斜を少し上げてみましょう。', { goal: cardioGoal }) })
     }
   }
 
@@ -471,12 +471,12 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
   const chest = sum('chest')
   const back = sum('back')
   if (chest >= 6 && back < chest * 0.6) {
-    out.push({ icon: '⚖️', title: t('背中が胸より少なめです'), text: t('直近4週で胸{c}セット・背中{b}セット。背中を増やすと姿勢と肩の見た目が良くなります。', { c: chest, b: back }) })
+    out.push({ icon: 'scale', title: t('背中が胸より少なめです'), text: t('直近4週で胸{c}セット・背中{b}セット。背中を増やすと姿勢と肩の見た目が良くなります。', { c: chest, b: back }) })
   }
   if (type) {
     for (const [p, w] of Object.entries(type.emphasis)) {
       if (w >= 2 && sum(p) < 8 && bodyParts.some((b) => b.id === p)) {
-        out.push({ icon: '🎯', title: t('{type}には{part}が大事です', { type: t(type.label), part: partName(p) }), text: t('直近4週で{n}セット。週に2回は入れるのがおすすめです。', { n: sum(p) }) })
+        out.push({ icon: 'target', title: t('{type}には{part}が大事です', { type: t(type.label), part: partName(p) }), text: t('直近4週で{n}セット。週に2回は入れるのがおすすめです。', { n: sum(p) }) })
       }
     }
   }
@@ -492,7 +492,7 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
   }
   for (const [id, scores] of Object.entries(byEx)) {
     if (scores.length >= 3 && scores[0] <= scores[2] && scores[1] <= scores[2]) {
-      out.push({ icon: '🔁', title: t('{ex}が伸び悩み中', { ex: exName(id) }), text: t('3回続けて記録が伸びていません。回数を変える（例：8回→12回）、別の種目に替える、1週間軽めにする、のどれかを試してみましょう。') })
+      out.push({ icon: 'repeat', title: t('{ex}が伸び悩み中', { ex: exName(id) }), text: t('3回続けて記録が伸びていません。回数を変える（例：8回→12回）、別の種目に替える、1週間軽めにする、のどれかを試してみましょう。') })
       break
     }
   }
@@ -500,7 +500,7 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
   // 自己ベスト
   const recent = sortSessionsDesc(sessions).slice(0, 3)
   if (recent.length && daysBetween(recent[0].date, today) <= 7) {
-    out.push({ icon: '🏆', title: t('最近の記録を確認しましょう'), text: t('「履歴 → 分析」で自己ベストの更新を確認できます。') })
+    out.push({ icon: 'trophy', title: t('最近の記録を確認しましょう'), text: t('「履歴 → 分析」で自己ベストの更新を確認できます。') })
   }
 
   // 体重の変化と目指す体型
@@ -510,14 +510,14 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
     const lastLog = logs[logs.length - 1]
     const diff = Math.round((lastLog.weight - first.weight) * 10) / 10
     if (type.kcal < 0 && diff > 0.5) {
-      out.push({ icon: '📈', title: t('体重が増えています（{d}kg）', { d: diff > 0 ? `+${diff}` : diff }), text: t('{type}を目指すなら、食事を少し減らすか有酸素を増やしましょう。', { type: t(type.label) }) })
+      out.push({ icon: 'trend', title: t('体重が増えています（{d}kg）', { d: diff > 0 ? `+${diff}` : diff }), text: t('{type}を目指すなら、食事を少し減らすか有酸素を増やしましょう。', { type: t(type.label) }) })
     } else if (type.kcal > 0 && diff < -0.3) {
-      out.push({ icon: '🍚', title: t('体重が減っています（{d}kg）', { d: diff }), text: t('{type}を目指すなら、もう少し食べて体重を増やしましょう。', { type: t(type.label) }) })
+      out.push({ icon: 'bowl', title: t('体重が減っています（{d}kg）', { d: diff }), text: t('{type}を目指すなら、もう少し食べて体重を増やしましょう。', { type: t(type.label) }) })
     } else if (Math.abs(diff) <= 0.5 && type.kcal < 0 && daysBetween(first.date, lastLog.date) >= 21) {
-      out.push({ icon: '⚖️', title: t('体重が横ばいです'), text: t('引き締めが目的なら、1日の食事を100〜200kcal減らすか、有酸素を10分増やしてみましょう。') })
+      out.push({ icon: 'scale', title: t('体重が横ばいです'), text: t('引き締めが目的なら、1日の食事を100〜200kcal減らすか、有酸素を10分増やしてみましょう。') })
     }
   } else if (logs.length === 0) {
-    out.push({ icon: '⚖️', title: t('体重を記録しましょう'), text: t('「履歴 → 体重」に週1回でも入れると、体つきの変化に合わせたアドバイスができます。') })
+    out.push({ icon: 'scale', title: t('体重を記録しましょう'), text: t('「履歴 → 体重」に週1回でも入れると、体つきの変化に合わせたアドバイスができます。') })
   }
 
   // 食事（直近7日のタンパク質）
@@ -531,7 +531,7 @@ export function trainerAdvice({ sessions, exercises, bodyParts, bodyLogs, meals,
     if (vals.length >= 3) {
       const avg = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
       if (avg < target.p * 0.85) {
-        out.push({ icon: '🥩', title: t('タンパク質が不足ぎみです'), text: t('直近の平均は1日{n}g（目標{goal}g）。鶏むね肉・卵・プロテインなどで足しましょう。', { n: avg, goal: target.p }) })
+        out.push({ icon: 'bowl', title: t('タンパク質が不足ぎみです'), text: t('直近の平均は1日{n}g（目標{goal}g）。鶏むね肉・卵・プロテインなどで足しましょう。', { n: avg, goal: target.p }) })
       }
     }
   }

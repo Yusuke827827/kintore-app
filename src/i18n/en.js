@@ -129,8 +129,7 @@ export default {
     'This menu is already saved as "{name}".',
   'マイセット「{name}」に登録しました。ホームからワンタップで始められます。':
     'Saved as "{name}". Start it with one tap from Home.',
-  '⚠ 同期できていません（記録はこの端末に保存済み）':
-    '⚠ Not synced (your records are saved on this device)',
+  '同期できていません（記録はこの端末に保存済み）': 'Not synced (your records are saved on this device)',
 
   // 履歴
   '{date} の記録を削除しますか？': 'Delete the workout on {date}?',
@@ -235,7 +234,7 @@ export default {
   '記録中は画面を消さない': 'Keep the screen on during a workout',
   'この端末・ブラウザは画面を消さない機能に対応していません（iPhoneはiOS 16.4以降、ホーム画面に追加したアプリで使えます）。':
     "This device or browser can't keep the screen on (on iPhone it needs iOS 16.4 or later; use the home-screen app).",
-  '☀ 画面オン': '☀ Screen on',
+  '画面オン': 'Screen on',
   '記録のリセット': 'Reset data',
   'トレーニング記録（{n}件）': 'Workouts ({n})',
   '体重の記録（{n}件）': 'Body weight logs ({n})',
@@ -357,7 +356,7 @@ export default {
   '週{n}回': '{n}× / week',
   '今週 {n}/{goal}回': 'This week {n}/{goal}',
   '今週の目標達成！': 'Weekly goal reached!',
-  '🔥 {n}週連続で達成中': '🔥 {n}-week streak',
+  '{n}週連続で達成中': '{n}-week streak',
   'あと{n}回で今週の目標達成': '{n} more to reach this week’s goal',
   '重量の自動アップ': 'Auto weight increase',
   '前回すべてのセットで目標回数をこなせたら、次は重量を上げて表示する':
@@ -379,7 +378,7 @@ export default {
   '推定1RM {w}kg': 'est. 1RM {w}kg',
   '最長 {m}分': 'Longest {m} min',
   '最長 {km}km': 'Longest {km}km',
-  '📤 画像で共有': '📤 Share as image',
+
   '画像で共有': 'Share as image',
   'トレーニング': 'Workout',
   '筋トレ記録': 'Workout Log',
@@ -427,7 +426,7 @@ export default {
   '作成する': 'Create',
   'マイセットに保存': 'Save as My Set',
   'このメニューで始める': 'Start with this menu',
-  '🤖 メニューを自動で作る': '🤖 Build a menu automatically',
+  'メニューを自動で作る': 'Build a menu automatically',
   'スタンダード': 'Standard',
   'アドバンス': 'Advanced',
   '短時間・軽め（1部位2種目×2セット）': 'Short & light (2 exercises × 2 sets per part)',
@@ -435,8 +434,8 @@ export default {
   'しっかり（1部位4種目×3〜4セット）': 'Thorough (4 exercises × 3–4 sets per part)',
   '{n}種目': '{n} exercises',
   '{n}セット': '{n} sets',
-  '✨ おまかせ並べ替え': '✨ Smart order',
-  '✨ おまかせ並べ替え（大きい筋肉・多関節を先に）': '✨ Smart order (big muscles & compound lifts first)',
+  'おまかせ並べ替え': 'Smart order',
+  'おまかせ並べ替え（大きい筋肉・多関節を先に）': 'Smart order (big muscles & compound lifts first)',
   '↕ 順番': '↕ Order',
   '順番を編集': 'Edit order',
   '目標 {s}セット×{r}回': 'Target {s} sets × {r} reps',
@@ -487,7 +486,7 @@ export default {
   'この内容で保存': 'Save',
   '答えを種目のチェックに反映': 'Apply answer to checklist',
   '答えの中に種目のJSONが見つかりませんでした。': "Couldn't find the exercise JSON in the answer.",
-  '🤖 ChatGPT・Gemini・Claudeに相談する（無料）': '🤖 Ask ChatGPT, Gemini or Claude (free)',
+  'ChatGPT・Gemini・Claudeに相談する（無料）': 'Ask ChatGPT, Gemini or Claude (free)',
   '質問文をコピーしてAIのサイトを開きます。貼り付けて送信し、返ってきた答えを下に貼ってください。':
     'Copies a prompt and opens the AI. Paste and send it, then paste the answer below.',
   '質問文をコピーしました。{ai}に貼り付けて送信してください。': 'Prompt copied. Paste it into {ai} and send.',
@@ -504,7 +503,7 @@ export default {
   '{n}件のメニューを取り込みました。': 'Imported {n} menus.',
   '（新しい種目を{n}個追加）': ' ({n} new exercises added)',
   '＋ メモ': '+ Memo',
-  '📝 メモなし': '📝 No memo',
+  'メモなし': 'No memo',
   'シートの位置、フォームの注意、参考動画のURLなど。次回以降もずっと表示されます。':
     'Seat position, form cues, video URLs… Shown every time from now on.',
   '朝食': 'Breakfast',
@@ -515,7 +514,7 @@ export default {
   '「計画 → トレーナー」で身長・体重・目指す体型を入れると、1日の目標が決まり、記録と比べられます。':
     'Enter your height, weight and target physique in "Plan → Trainer" to set daily targets to compare against.',
   '今日の点数 {s}点': "Today's score {s}",
-  '🔥 {n}日連続で目標達成': '🔥 {n}-day streak on target',
+  '{n}日連続で目標達成': '{n}-day streak on target',
   '食べたものを書く（例：鶏むね肉200g、ご飯大盛り、卵2個）': 'What did you eat? (Japanese food names, e.g. 鶏むね肉200g、ご飯、卵2個)',
   '栄養を計算する': 'Calculate',
   'わからなかったもの：{list}（下の一覧から選ぶか、AIに聞いてください）':
@@ -585,7 +584,7 @@ export default {
   '有酸素の目標（月の距離）': 'Cardio goal (distance per month)',
   '健康づくりの目安は週150分（WHO）です。': 'The WHO recommends at least 150 minutes a week.',
   '今週の有酸素': 'Cardio this week',
-  '🔥 {n}週連続': '🔥 {n}-week streak',
+  '{n}週連続': '{n}-week streak',
   'あと{m}分で今週の目標': '{m} min to this week’s goal',
   '今月 {km}/{goal}km': 'This month {km}/{goal}km',
   '前回と同じで始める': 'Start like last time',
@@ -607,7 +606,7 @@ export default {
   '有酸素の時間（直近8週）': 'Cardio minutes (last 8 weeks)',
   '{label}：{m}分・{km}km・{kcal}kcal': '{label}: {m} min · {km}km · {kcal} kcal',
   '緑の週は目標（週{m}分）を達成': 'Green weeks met the goal ({m} min/week)',
-  '🏃 運動で{n}kcal消費（その分を目標に足しています）': '🏃 Burned {n} kcal exercising (added to your target)',
+  '運動で{n}kcal消費（その分を目標に足しています）': 'Burned {n} kcal exercising (added to your target)',
   'ダイエット': 'Fat loss',
   '持久力アップ': 'Endurance',
   '健康維持': 'Healthy living',
@@ -621,7 +620,7 @@ export default {
   '目標の週{goal}分を達成しています。慣れてきたら、時間はそのままで速度や傾斜を少し上げてみましょう。':
     'You hit your {goal} min goal. Once it feels easy, keep the time and raise speed or incline a little.',
   // プレミアム
-  '💪 プレミアム': '💪 Premium',
+  'プレミアム': 'Premium',
   '年': 'yr',
   '月': 'mo',
   '年額プラン': 'Yearly',
@@ -682,4 +681,5 @@ export default {
   'スマホ・PC・別のブラウザで同じ記録': 'Same logs on phone, PC and other browsers',
   'テーマカラー・壁紙': 'Theme colors & wallpapers',
   '好きな色と写真で自分仕様に': 'Make it yours with colors and photos',
+  'すべて見る（{n}項目）': 'See all ({n})',
 }

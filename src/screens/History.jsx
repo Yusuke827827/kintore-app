@@ -17,6 +17,7 @@ import WeeklyStats from '../components/WeeklyStats'
 import PersonalRecords from '../components/PersonalRecords'
 import { shareSessionImage } from '../lib/shareImage'
 import { getLanguage, nm, t } from '../i18n'
+import Icon from '../components/Icon'
 
 function MonthCalendar({ sessions }) {
   const [offset, setOffset] = useState(0)
@@ -251,7 +252,7 @@ export default function History({ onOpenWorkout }) {
                 onClick={() => shareSessionImage(s, { sessions, exercises, bodyParts: allBodyParts })}
                 aria-label={t('画像で共有')}
               >
-                📤
+                <Icon name="share" size={18} />
               </button>
               <button className="ghost" onClick={() => handleEdit(s.id)}>
                 {t('修正')}
@@ -287,7 +288,7 @@ export default function History({ onOpenWorkout }) {
               <span className="muted">
                 {en.sets.map(formatSet).join('　')}
               </span>
-              {en.note && <span className="muted">📝 {en.note}</span>}
+              {en.note && <span className="muted"><Icon name="note" size={14} /> {en.note}</span>}
             </div>
           ))}
         </section>

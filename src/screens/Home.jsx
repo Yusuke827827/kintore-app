@@ -20,6 +20,7 @@ import { LEVELS, generateMenu, planFor } from '../lib/planner'
 import { menuPrompt } from '../lib/aiBridge'
 import { usePremium } from '../state/PremiumContext'
 import LockCard from '../components/LockCard'
+import Icon from '../components/Icon'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -27,6 +28,32 @@ const GROUPS = [
   { key: 'core', label: '体幹' },
   { key: 'other', label: 'その他' },
 ] // label は表示時に t() で訳す
+
+// 今週の達成度を円で表す（中に回数）
+function GoalRing({ done, goal }) {
+  const r = 22
+  const len = 2 * Math.PI * r
+  const ratio = Math.min(1, done / goal)
+  return (
+    <div className="goal-ring">
+      <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">
+        <circle cx="28" cy="28" r={r} className="goal-ring-track" />
+        {ratio > 0 && <circle
+          cx="28"
+          cy="28"
+          r={r}
+          className="goal-ring-fill"
+          strokeDasharray={`${len * ratio} ${len}`}
+          transform="rotate(-90 28 28)"
+        />}
+      </svg>
+      <span>
+        {done}
+        <small>/{goal}</small>
+      </span>
+    </div>
+  )
+}
 
 export default function Home({ onOpenWorkout, onOpenCustomize }) {
   const {
@@ -160,11 +187,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
 
       {goalStatus && (
         <section className="card goal">
-          <div className="goal-dots">
-            {Array.from({ length: Math.max(goal, goalStatus.thisCount) }, (_, i) => (
-              <span key={i} className={i < goalStatus.thisCount ? 'on' : ''} />
-            ))}
-          </div>
+          <GoalRing done={goalStatus.thisCount} goal={goal} />
           <div className="goal-text">
             <strong>
               {goalStatus.thisCount >= goal
@@ -173,7 +196,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
             </strong>
             <span className="muted">
               {goalStatus.streak > 0
-                ? t('🔥 {n}週連続で達成中', { n: goalStatus.streak })
+                ? <><Icon name="flame" size={14} /> {t('{n}週連続で達成中', { n: goalStatus.streak })}</>
                 : t('あと{n}回で今週の目標達成', { n: goal - goalStatus.thisCount })}
             </span>
           </div>
@@ -297,7 +320,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
 
         <div className="generator">
           <div className="row-between">
-            <strong>{t('🤖 メニューを自動で作る')}</strong>
+            <strong className="with-icon"><Icon name="bolt" size={18} /> {t('メニューを自動で作る')}</strong>
           </div>
           <div className="segmented">
             {LEVELS.map((l) => (
@@ -311,7 +334,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
                 }}
               >
                 {t(l.label)}
-                {l.key !== 'light' && !premium && ' 🔒'}
+                {l.key !== 'light' && !premium && <Icon name="lock" size={13} className="inline-lock" />}
               </button>
             ))}
           </div>

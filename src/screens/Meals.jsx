@@ -8,6 +8,7 @@ import { extractJson, foodPrompt } from '../lib/aiBridge'
 import { getLanguage, t } from '../i18n'
 import { usePremium } from '../state/PremiumContext'
 import LockCard from '../components/LockCard'
+import Icon from '../components/Icon'
 
 const MEAL_TYPES = [
   { key: 'breakfast', label: '朝食' },
@@ -305,12 +306,12 @@ export default function Meals() {
         <Bars tot={tot} target={target} keys={premium ? null : ['kcal']} />
         {!premium && <LockCard feature="nutrition" />}
         {burned > 0 && baseTarget && (
-          <p className="muted">{t('🏃 運動で{n}kcal消費（その分を目標に足しています）', { n: burned })}</p>
+          <p className="muted"><Icon name="pulse" size={14} /> {t('運動で{n}kcal消費（その分を目標に足しています）', { n: burned })}</p>
         )}
         {premium && score != null && (
           <p className="muted">
             {t('今日の点数 {s}点', { s: score })}
-            {streak > 0 && <> ・ {t('🔥 {n}日連続で目標達成', { n: streak })}</>}
+            {streak > 0 && <> ・ <Icon name="flame" size={14} /> {t('{n}日連続で目標達成', { n: streak })}</>}
           </p>
         )}
       </section>
@@ -341,7 +342,7 @@ export default function Meals() {
                     </small>
                   </span>
                   <button className="ghost danger" onClick={() => deleteMeal(m.id)} aria-label={t('削除')}>
-                    ✕
+                    <Icon name="close" size={16} />
                   </button>
                 </li>
               ))}

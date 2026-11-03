@@ -3,6 +3,7 @@ import { useData } from '../state/DataContext'
 import { daysAgoLabel, todayStr } from '../lib/date'
 import { doneExercisesForPart, formatSet, previousRecord, weekStart, weeklyStats } from '../lib/stats'
 import { nm, t } from '../i18n'
+import Icon from './Icon'
 
 function addDays(date, n) {
   const d = new Date(`${date}T00:00:00`)
@@ -48,7 +49,7 @@ export default function CardioHome({ onStart }) {
     <section className="card cardio-home">
       <div className="item-header">
         <h2>{t('今週の有酸素')}</h2>
-        {streak > 0 && <span className="badge ok">{t('🔥 {n}週連続', { n: streak })}</span>}
+        {streak > 0 && <span className="badge ok"><Icon name="flame" size={13} /> {t('{n}週連続', { n: streak })}</span>}
       </div>
       <div className="cardio-ring-row">
         <div className="cardio-big">

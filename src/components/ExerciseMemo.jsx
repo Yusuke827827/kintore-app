@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useData } from '../state/DataContext'
 import { t } from '../i18n'
+import Icon from './Icon'
 
 const URL_RE = /(https?:\/\/[^\s　、。）)」]+)/g
 
@@ -63,10 +64,10 @@ export default function ExerciseMemo({ exercise, fallback }) {
     <div className="memo">
       {shown ? (
         <p className={`memo-text ${expanded ? 'open' : ''}`} onClick={() => setExpanded(!expanded)}>
-          📝 <Linkified text={shown} />
+          <Icon name="note" size={15} /> <Linkified text={shown} />
         </p>
       ) : (
-        <p className="muted memo-empty">{t('📝 メモなし')}</p>
+        <p className="muted memo-empty"><Icon name="note" size={15} /> {t('メモなし')}</p>
       )}
       <button
         className="ghost memo-edit"

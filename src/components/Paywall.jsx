@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { usePremium } from '../state/PremiumContext'
 import { DEFAULT_PLAN, FEATURES, FREE_LIMITS, annualSavingPct, yen } from '../lib/pricing'
 import { t } from '../i18n'
+import Icon from './Icon'
 
 export const PRIVACY_URL = 'https://yusuke827827.github.io/kintore-app/privacy.html'
 export const TERMS_URL = 'https://yusuke827827.github.io/kintore-app/terms.html'
@@ -74,16 +75,16 @@ export default function Paywall({ feature, onClose }) {
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet paywall" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-header">
-          <h2>{t('💪 プレミアム')}</h2>
+          <h2 className="with-icon"><Icon name="crown" size={22} /> {t('プレミアム')}</h2>
           <button className="ghost" onClick={onClose} aria-label={t('閉じる')}>
-            ✕
+            <Icon name="close" size={20} />
           </button>
         </div>
 
         <div className="paywall-body">
           {highlight && (
             <p className="paywall-lead">
-              {highlight.icon} {t('「{f}」はプレミアムの機能です', { f: t(highlight.label) })}
+              <Icon name={highlight.icon} size={18} /> {t('「{f}」はプレミアムの機能です', { f: t(highlight.label) })}
             </p>
           )}
           {kind === 'beta' && (
@@ -93,7 +94,7 @@ export default function Paywall({ feature, onClose }) {
           <ul className="paywall-features">
             {FEATURES.map((f) => (
               <li key={f.key} className={f.key === feature ? 'on' : ''}>
-                <span>{f.icon}</span>
+                <span className="feature-icon"><Icon name={f.icon} size={20} /></span>
                 <div>
                   <strong>{t(f.label)}</strong>
                   <small>{t(f.desc, { n: FREE_LIMITS.routines })}</small>

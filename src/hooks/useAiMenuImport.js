@@ -41,7 +41,7 @@ export default function useAiMenuImport() {
     const message =
       t('{n}件のメニューを取り込みました。', { n: days.length }) +
       (created ? t('（新しい種目を{n}個追加）', { n: created }) : '') +
-      (data.advice ? `\n💬 ${data.advice}` : '')
+      (data.advice ? `\n${data.advice}` : '')
     return { ok: days.length > 0, message, days }
   }
 }

@@ -8,6 +8,12 @@ import { DEFAULT_THEME } from './theme'
 
 const STORAGE_KEY = 'kintore-app-data-v1'
 
+// デザイン刷新（v2）：以前の標準色（インディゴ）のままの人は、新しい標準色（オレンジ）にする
+function migrateTheme(theme) {
+  if (theme.v >= 2) return theme
+  return { ...theme, accent: theme.accent === 'indigo' ? 'orange' : theme.accent, v: 2 }
+}
+
 export const DEFAULT_PROGRESSION = { on: true, reps: 10, step: 2.5 }
 
 export const DEFAULT_SETTINGS = {
@@ -52,7 +58,7 @@ export function normalizeData(raw) {
     settings: {
       ...DEFAULT_SETTINGS,
       ...data?.settings,
-      theme: { ...DEFAULT_THEME, ...data?.settings?.theme },
+      theme: migrateTheme({ ...DEFAULT_THEME, ...data?.settings?.theme }),
       progression: { ...DEFAULT_PROGRESSION, ...data?.settings?.progression },
       cardioGoal: { ...DEFAULT_SETTINGS.cardioGoal, ...data?.settings?.cardioGoal },
     },
