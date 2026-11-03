@@ -49,3 +49,10 @@ export function formatDateJa(dateStr) {
   if (getLanguage() === 'en') return `${WEEKDAYS_EN[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`
   return `${d.getMonth() + 1}/${d.getDate()}（${WEEKDAYS[d.getDay()]}）`
 }
+
+// n日後（マイナスなら前）の日付
+export function addDays(dateStr, n) {
+  const d = new Date(`${dateStr}T00:00:00`)
+  d.setDate(d.getDate() + n)
+  return todayStr(d)
+}

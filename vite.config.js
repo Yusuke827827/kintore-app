@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
   const app = mode === 'app'
   return {
     base: app ? './' : '/kintore-app/',
+    build: { chunkSizeWarningLimit: 800 },
     plugins: [
       react(),
       !app &&

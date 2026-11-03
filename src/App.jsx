@@ -14,6 +14,8 @@ import { formatPace } from './lib/stats'
 import { nm, t } from './i18n'
 import { shareSessionImage } from './lib/shareImage'
 import useWakeLock from './hooks/useWakeLock'
+import { newBadges } from './lib/badges'
+import { BadgeGrid } from './components/Badges'
 import Icon from './components/Icon'
 
 // 今回やったメニューをマイセットに登録するか聞く（同じメニューが登録済みなら聞かない）
@@ -95,6 +97,22 @@ function ShareButton({ sessionId, className = 'secondary wide' }) {
   )
 }
 
+// 今回のトレーニングで新しく取ったバッジ
+function NewBadges({ sessionId }) {
+  const { sessions, allExercises, meals, bodyLogs, settings } = useData()
+  const badges = useMemo(
+    () => (sessionId ? newBadges({ sessions, exercises: allExercises, meals, bodyLogs, settings }, sessionId) : []),
+    [sessionId, sessions, allExercises, meals, bodyLogs, settings]
+  )
+  if (badges.length === 0) return null
+  return (
+    <div className="new-badges">
+      <p className="target">{t('新しいバッジを獲得しました')}</p>
+      <BadgeGrid badges={badges} />
+    </div>
+  )
+}
+
 function FinishedSummary({ summary, onClose }) {
   return (
     <div className="screen">
@@ -150,6 +168,7 @@ function FinishedSummary({ summary, onClose }) {
         {summary.prs.length > 0 && (
           <p className="target"><Icon name="trophy" size={16} /> {t('自己ベスト更新')}：{summary.prs.join(t('・'))}</p>
         )}
+        {!summary.isEdit && <NewBadges sessionId={summary.sessionId} />}
         {!summary.isEdit && <SaveAsMySet exerciseIds={summary.exerciseIds ?? []} />}
         <ShareButton sessionId={summary.sessionId} />
         <button className="primary wide" onClick={onClose}>
@@ -168,6 +187,8 @@ function AppInner() {
   const [screen, setScreen] = useState(() => (activeWorkout ? 'workout' : 'home'))
   const [summary, setSummary] = useState(null)
   const [customizeTab, setCustomizeTab] = useState('parts')
+  // 履歴をどの表示で開くか（ホームのレポートから来たときはレポート）
+  const [historyOpen, setHistoryOpen] = useState({ view: 'log', n: 0 })
 
   function openCustomize(tab) {
     setCustomizeTab(tab)
@@ -198,7 +219,14 @@ function AppInner() {
         ) : (
           <>
             {current === 'home' && (
-              <Home onOpenWorkout={() => setScreen('workout')} onOpenCustomize={openCustomize} />
+              <Home
+                onOpenWorkout={() => setScreen('workout')}
+                onOpenCustomize={openCustomize}
+                onOpenReport={(kind, offset) => {
+                  setHistoryOpen((h) => ({ view: 'report', kind, offset, n: h.n + 1 }))
+                  setScreen('history')
+                }}
+              />
             )}
             {current === 'workout' && (
               <Workout
@@ -209,12 +237,19 @@ function AppInner() {
                 }}
               />
             )}
-            {current === 'history' && <History onOpenWorkout={() => setScreen('workout')} />}
+            {current === 'history' && (
+              <History
+                key={historyOpen.n}
+                initialView={historyOpen.view}
+                reportProps={{ initialKind: historyOpen.kind, initialOffset: historyOpen.offset }}
+                onOpenWorkout={() => setScreen('workout')}
+              />
+            )}
             {current === 'plan' && (
               <Plan
                 onStartRoutine={(r) => {
                   if (activeWorkout && !confirm(t('記録中のトレーニングがあります。破棄して新しく始めますか？'))) return
-                  startWorkout(r.exerciseIds, [], r.targets)
+                  startWorkout(r.exerciseIds, [], r.targets, r.id)
                   setScreen('workout')
                 }}
               />
@@ -239,6 +274,7 @@ function AppInner() {
             className={`${(current === t.key || (t.key === 'settings' && current === 'customize')) && !summary ? 'active' : ''} ${t.key === 'workout' ? 'live' : ''}`}
             onClick={() => {
               setSummary(null)
+              if (t.key === 'history') setHistoryOpen((h) => ({ view: 'log', n: h.n + 1 }))
               setScreen(t.key)
             }}
           >

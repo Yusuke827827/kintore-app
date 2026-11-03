@@ -18,8 +18,11 @@ import PersonalRecords from '../components/PersonalRecords'
 import { shareSessionImage } from '../lib/shareImage'
 import { getLanguage, nm, t } from '../i18n'
 import Icon from '../components/Icon'
+import Report from '../components/Report'
+import { routineColor, routineOfSession } from '../lib/routineColors'
 
-function MonthCalendar({ sessions }) {
+// 日付ごとに、やったマイセットの色を付ける（マイセット以外はテーマの色）
+function MonthCalendar({ sessions, routines }) {
   const [offset, setOffset] = useState(0)
   const base = new Date()
   base.setDate(1)
@@ -29,6 +32,14 @@ function MonthCalendar({ sessions }) {
   const firstDow = (new Date(year, month, 1).getDay() + 6) % 7 // 月曜はじまり
   const days = new Date(year, month + 1, 0).getDate()
   const trained = new Set(sessions.map((s) => s.date))
+  const colorOf = {} // 日付 → 色
+  const used = {} // マイセットID → その月の回数
+  const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
+  for (const s of [...sessions].sort((a, b) => (a.finishedAt ?? 0) - (b.finishedAt ?? 0))) {
+    const r = routineOfSession(s, routines)
+    if (r && !colorOf[s.date]) colorOf[s.date] = routineColor(r, routines)
+    if (r && s.date.startsWith(monthKey)) used[r.id] = (used[r.id] ?? 0) + 1
+  }
   const today = todayStr()
 
   const cells = []
@@ -63,16 +74,29 @@ function MonthCalendar({ sessions }) {
           <span
             key={i}
             className={`day ${d && trained.has(d) ? 'trained' : ''} ${d === today ? 'today' : ''}`}
+            style={d && colorOf[d] ? { background: colorOf[d] } : undefined}
           >
             {d ? Number(d.slice(8)) : ''}
           </span>
         ))}
       </div>
+      {Object.keys(used).length > 0 && (
+        <div className="routine-legend">
+          {routines
+            .filter((r) => used[r.id])
+            .map((r) => (
+              <span key={r.id}>
+                <i className="routine-dot" style={{ background: routineColor(r, routines) }} />
+                {r.name} <small>{t('{n}回', { n: used[r.id] })}</small>
+              </span>
+            ))}
+        </div>
+      )}
     </section>
   )
 }
 
-export default function History({ onOpenWorkout }) {
+export default function History({ onOpenWorkout, initialView = 'log', reportProps }) {
   const {
     sessions,
     bodyParts,
@@ -81,10 +105,11 @@ export default function History({ onOpenWorkout }) {
     deleteSession,
     editSession,
     activeWorkout,
+    routines,
   } = useData()
   const [filterPart, setFilterPart] = useState('all')
   const [graphExerciseId, setGraphExerciseId] = useState('')
-  const [view, setView] = useState('log') // log | body | stats
+  const [view, setView] = useState(initialView) // log | body | stats | report
 
   const sorted = useMemo(() => sortSessionsDesc(sessions), [sessions])
   const filtered = sorted.filter(
@@ -145,6 +170,7 @@ export default function History({ onOpenWorkout }) {
           ['log', t('記録')],
           ['body', t('体重')],
           ['stats', t('分析')],
+          ['report', t('レポート')],
         ].map(([key, label]) => (
           <button key={key} className={view === key ? 'on' : ''} onClick={() => setView(key)}>
             {label}
@@ -153,6 +179,7 @@ export default function History({ onOpenWorkout }) {
       </div>
 
       {view === 'body' && <BodyLog />}
+      {view === 'report' && <Report {...reportProps} />}
       {view === 'stats' && (
         <>
           <WeeklyStats />
@@ -161,7 +188,7 @@ export default function History({ onOpenWorkout }) {
       )}
       {view === 'log' && (
         <>
-      <MonthCalendar sessions={sessions} />
+      <MonthCalendar sessions={sessions} routines={routines} />
 
       <section className="card">
         <h2>{t('種目の推移')}</h2>
@@ -245,6 +272,11 @@ export default function History({ onOpenWorkout }) {
           <div className="item-header">
             <h2>
               {formatDateJa(s.date)} {s.bodyPartIds.map(partName).join(t('＋'))}
+              {routineOfSession(s, routines) && (
+                <span className="routine-tag" style={{ '--rc': routineColor(routineOfSession(s, routines), routines) }}>
+                  {routineOfSession(s, routines).name}
+                </span>
+              )}
             </h2>
             <div className="item-tools">
               <button

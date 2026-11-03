@@ -3,17 +3,17 @@ import { nm, t } from '../i18n'
 import { formatDateJa, formatMinutes } from './date'
 import { cardioTotals, e1rm, formatPace, formatSet, isWorkingSet, personalBest, sessionVolume } from './stats'
 
-const W = 1080
-const PAD = 72
-const FONT = '-apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif'
+export const W = 1080
+export const PAD = 72
+export const FONT = '-apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif'
 
-function cssVar(name, fallback) {
+export function cssVar(name, fallback) {
   const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
   return v || fallback
 }
 
 // 幅に収まるように折り返した行を返す
-function wrap(ctx, text, maxWidth) {
+export function wrap(ctx, text, maxWidth) {
   const lines = []
   let line = ''
   for (const ch of text) {
@@ -27,7 +27,7 @@ function wrap(ctx, text, maxWidth) {
 }
 
 // 古いSafariには roundRect がないので、そのときは四角で描く
-function roundRect(ctx, x, y, w, h, r) {
+export function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath()
   if (ctx.roundRect) ctx.roundRect(x, y, w, h, r)
   else ctx.rect(x, y, w, h)
@@ -156,9 +156,13 @@ export function drawSessionImage(session, { sessions, exercises, bodyParts }) {
 }
 
 export async function shareSessionImage(session, data) {
-  const canvas = drawSessionImage(session, data)
+  return shareCanvas(drawSessionImage(session, data), `kintore-${session.date}.png`)
+}
+
+// 画像をスマホの共有シートに渡す（使えなければ保存）
+export async function shareCanvas(canvas, filename) {
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
-  const file = new File([blob], `kintore-${session.date}.png`, { type: 'image/png' })
+  const file = new File([blob], filename, { type: 'image/png' })
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file] })

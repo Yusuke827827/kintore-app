@@ -2674,3 +2674,517 @@ a {
   fill: var(--surface-2);
   stroke: transparent;
 }
+
+/* ---- レポート ---- */
+.report .cal-header {
+  margin: 4px 0 -2px;
+}
+
+.score-ring {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.score-ring svg {
+  display: block;
+}
+
+.score-ring .goal-ring-track,
+.score-ring .goal-ring-fill {
+  stroke-width: 9;
+}
+
+.score-ring span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.score-ring strong {
+  font-size: 2.1em;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.score-ring small {
+  margin-top: 3px;
+  font-size: 0.72em;
+  color: var(--muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-ring-fill.grade-S,
+.bar-fill.grade-S {
+  stroke: var(--gold);
+  background: var(--gold);
+}
+
+.goal-ring-fill.grade-A,
+.goal-ring-fill.grade-B,
+.bar-fill.grade-A {
+  stroke: var(--ok);
+  background: var(--ok);
+}
+
+.goal-ring-fill.grade-C,
+.bar-fill.grade-C {
+  stroke: var(--accent);
+  background: var(--accent);
+}
+
+.goal-ring-fill.grade-D,
+.bar-fill.grade-D {
+  stroke: var(--danger);
+  background: var(--danger);
+}
+
+.report-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.report-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.report-summary .badge {
+  margin: 0;
+}
+
+.report-nums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.report-nums strong {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-right: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.score-row .row-between {
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.score-row .bar-track {
+  height: 8px;
+}
+
+.score-row .bar-fill {
+  border-radius: 999px;
+}
+
+.score-row small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+.report-comments h3:first-child {
+  margin-top: 0;
+}
+
+.report-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.report-list li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.report-list li > .icon {
+  margin-top: 3px;
+}
+
+.report-list.good .icon {
+  color: var(--ok);
+}
+
+.report-list.improve .icon {
+  color: var(--gold);
+}
+
+.report-list.next {
+  counter-reset: goal;
+}
+
+.report-list.next li::before {
+  counter-increment: goal;
+  content: counter(goal);
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.report-teaser {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.report-teaser .score-ring strong {
+  font-size: 1.35em;
+}
+
+.report-teaser .score-ring small {
+  display: none;
+}
+
+.report-teaser .score-ring .goal-ring-track,
+.report-teaser .score-ring .goal-ring-fill {
+  stroke-width: 11;
+}
+
+.report-teaser-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.report-teaser > .icon {
+  color: var(--faint);
+}
+
+/* ---- バッジ ---- */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 12px 4px 10px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  min-width: 0;
+}
+
+.medal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--faint);
+  margin-bottom: 2px;
+}
+
+.medal.earned .medal-icon {
+  background: linear-gradient(145deg, var(--accent-border), var(--accent-strong));
+  color: #fff;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.medal strong {
+  font-size: 0.74rem;
+  line-height: 1.25;
+}
+
+.medal:not(.earned) strong {
+  color: var(--muted);
+}
+
+.medal small {
+  font-size: 0.64rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.medal-bar {
+  width: 70%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.medal-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.new-badges {
+  margin: 16px 0 4px;
+}
+
+.new-badges .badge-grid {
+  grid-template-columns: repeat(auto-fit, minmax(96px, 120px));
+  justify-content: center;
+}
+
+/* ---- 年間まとめ ---- */
+.year-hero {
+  font-size: 2.6rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin: 2px 0 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.year-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.year-tiles div {
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.year-tiles strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.year-tiles span {
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.year-months {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+  height: 120px;
+  align-items: end;
+}
+
+.year-months > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 3px;
+}
+
+.year-months .week-bar {
+  width: 80%;
+  background: var(--accent);
+}
+
+/* ---- PDF（印刷）用 ---- */
+#print-root {
+  display: none;
+}
+
+@media print {
+  body > *:not(#print-root),
+  body::before,
+  body::after {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  #print-root {
+    display: block;
+    color: #111;
+    font-family: -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    padding: 8mm;
+  }
+
+  #print-root h1 {
+    font-size: 20pt;
+    margin: 0 0 10pt;
+    border-bottom: 3pt solid #ff5a1f;
+    padding-bottom: 6pt;
+  }
+
+  #print-root h2 {
+    font-size: 13pt;
+    margin: 14pt 0 6pt;
+    color: #e64a12;
+  }
+
+  #print-root table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6pt 0;
+  }
+
+  #print-root th,
+  #print-root td {
+    border-bottom: 0.5pt solid #ccc;
+    padding: 4pt 6pt;
+    text-align: left;
+  }
+
+  #print-root .p-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6pt;
+  }
+
+  #print-root .p-tiles div {
+    border: 0.5pt solid #ccc;
+    border-radius: 6pt;
+    padding: 6pt;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #print-root .p-tiles strong {
+    font-size: 15pt;
+  }
+
+  #print-root .p-tiles span {
+    font-size: 9pt;
+    color: #555;
+  }
+
+  #print-root .p-score {
+    font-size: 28pt;
+    font-weight: 900;
+    margin: 0 0 6pt;
+  }
+
+  #print-root .p-score span {
+    font-size: 14pt;
+    color: #555;
+  }
+
+  #print-root .p-foot {
+    margin-top: 18pt;
+    font-size: 9pt;
+    color: #888;
+    text-align: right;
+  }
+}
+
+/* ---- マイセットの色分け ---- */
+.routine-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.routine-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--text-2);
+}
+
+.routine-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.routine-legend small {
+  color: var(--muted);
+}
+
+.routine-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+  color: var(--rc);
+  background: color-mix(in srgb, var(--rc) 16%, transparent);
+}
+
+.calendar .day.trained {
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+/* 計画のカレンダー：角丸の四角にして、マイセット名を入れる */
+.plan-cal .day {
+  aspect-ratio: auto;
+  max-width: none;
+  border-radius: 10px;
+  min-height: 46px;
+  font-weight: 600;
+}
+
+.plan-cal .day.planned {
+  background: color-mix(in srgb, var(--rc) 18%, transparent);
+  color: var(--text);
+}
+
+.plan-cal .day.planned small {
+  color: var(--rc);
+  font-weight: 700;
+}
+
+.plan-cal .day.trained {
+  background: var(--rc);
+  color: #fff;
+}
+
+.plan-cal .day.trained small {
+  color: #fff;
+}

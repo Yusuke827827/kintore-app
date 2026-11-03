@@ -183,6 +183,19 @@ const TOPICS_JA = [
       </ul>
     ),
   },
+  {
+    title: 'レポート・バッジ・年間まとめ',
+    body: (
+      <ul>
+        <li>「履歴 → レポート」で、週・月ごとに点数（S〜D）と、頻度・ボリューム・部位のバランス・有酸素・食事の点数が見られます</li>
+        <li>良かった点・改善点・次の目標、PDFでの保存はプレミアムです。AIに評価してもらうこともできます</li>
+        <li>月〜水曜はホームに「先週のレポート」が出ます</li>
+        <li>「年」では1年の総重量・回数・ベストリフトなどをまとめて、画像で共有したりPDFで保存したりできます（iPhoneは印刷画面の共有ボタン →「ファイルに保存」）</li>
+        <li>バッジは記録すると自動でたまります。新しく取ったバッジはトレーニングの終了画面に出ます</li>
+        <li>マイセットには色が付き、カレンダーでどのマイセットをやった日か見分けられます。色はマイセットの編集で変えられます</li>
+      </ul>
+    ),
+  },
 ]
 
 const TOPICS_EN = [
@@ -361,6 +374,19 @@ const TOPICS_EN = [
         <li>Android: open in Chrome, menu → "Add to Home screen"</li>
         <li>It runs full-screen like an app and works even with weak signal in the gym</li>
         <li>If an update doesn't show, fully close the app and open it again</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'Reports, badges & year in review',
+    body: (
+      <ul>
+        <li>History → Report shows a weekly or monthly grade (S–D) with scores for frequency, volume, balance, cardio and meals</li>
+        <li>What went well, what to improve, next goals and PDF export are Premium. You can also ask an AI to review it</li>
+        <li>From Monday to Wednesday, last week's report appears on Home</li>
+        <li>"Year" sums up total weight, sessions, best lifts and more — share it as an image or save it as a PDF (on iPhone: Share in the print screen → Save to Files)</li>
+        <li>Badges are earned automatically as you log. New ones appear on the workout summary</li>
+        <li>Each My Set has a color, so the calendars show which set you did. Change it when editing the My Set</li>
       </ul>
     ),
   },
