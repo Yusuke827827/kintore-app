@@ -158,7 +158,14 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
   const [name, setName] = useState(initial?.name ? nm(initial) : '')
   const [bodyPartId, setBodyPartId] = useState(initial?.bodyPartId ?? bodyParts[0]?.id ?? '')
   const [equipment, setEquipment] = useState(initial?.equipment ?? 'マシン')
-  const [type, setType] = useState(initial?.type ?? 'compound')
+  const [type, setType] = useState(initial?.type ?? (bodyPartId === 'cardio' ? 'cardio' : 'compound'))
+
+  // 部位を「有酸素」にしたら種類も有酸素に（時間・距離・kcalで記録する）
+  function changePart(id) {
+    setBodyPartId(id)
+    if (id === 'cardio') setType('cardio')
+    else if (type === 'cardio') setType('compound')
+  }
   const [videoUrl, setVideoUrl] = useState(initial?.videoUrl ?? '')
   const equipmentOptions = EQUIPMENTS.includes(equipment) ? EQUIPMENTS : [...EQUIPMENTS, equipment]
 
@@ -173,7 +180,7 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
       />
       <label className="field">
         {t('部位')}
-        <select value={bodyPartId} onChange={(e) => setBodyPartId(e.target.value)}>
+        <select value={bodyPartId} onChange={(e) => changePart(e.target.value)}>
           {bodyParts.map((p) => (
             <option key={p.id} value={p.id}>
               {nm(p)}

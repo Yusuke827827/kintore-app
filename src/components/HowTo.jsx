@@ -89,9 +89,10 @@ const TOPICS_JA = [
       <ul>
         <li>部位「有酸素」にトレッドミル・エアロバイクなどが入っています</li>
         <li>時間（分）・距離（km）・kcal を入れて ✓。距離とkcalは空でもOK</li>
-        <li>自分で追加するときは、種目の「種類」を「有酸素」にしてください</li>
+        <li>部位「有酸素」に追加した種目は、自動で時間・距離・kcalの記録になります（ほかの部位なら「種類」を「有酸素」に）</li>
         <li>kcal は空欄なら、時間・距離・傾斜と体重から自動で計算します。時速とペース（1kmあたり）も自動で出ます</li>
-        <li>「傾斜・レベル・心拍」を押すと、傾斜（%）・負荷レベル・平均心拍も残せます</li>
+        <li>「歩数・ペース・心拍など」を押すと、歩数・歩幅（cm）・ペース（1kmあたり何分、例 6:30）・傾斜（%）・負荷レベル・平均心拍も残せます</li>
+        <li>歩数と歩幅を入れると距離を、ペースを入れると距離か時間を自動で計算します（距離と歩数があれば歩幅も）</li>
         <li>前回の時間をこなせていたら、次回は少し長い時間（60分以上なら距離）が入ります</li>
         <li>設定の「トレーニングのスタイル」を「有酸素中心」にすると、ホームが今週の時間・距離と目標、前回の種目からワンタップで始められる形になります。トレーナーには「ダイエット」「持久力アップ」「健康維持」もあります</li>
         <li>有酸素で消費したカロリーは、その日の食事の目標に足されます</li>
@@ -268,9 +269,10 @@ const TOPICS_EN = [
       <ul>
         <li>The "Cardio" body part includes treadmill, exercise bike and more</li>
         <li>Enter minutes, distance (km) and kcal, then tap ✓. Distance and kcal are optional</li>
-        <li>For your own cardio exercise, set its type to "Cardio"</li>
+        <li>Exercises you add under "Cardio" are logged by time, distance and kcal automatically (in other body parts, set the type to "Cardio")</li>
         <li>Leave kcal empty and it's estimated from time, distance, incline and your weight. Speed and pace per km are shown too</li>
-        <li>Tap "Incline · level · HR" to also log incline (%), resistance level and average heart rate</li>
+        <li>Tap "Steps, pace, HR…" to also log steps, stride (cm), pace (min per km, e.g. 6:30), incline (%), resistance level and average heart rate</li>
+        <li>Enter steps and stride to get distance, or a pace to get distance or time (stride is worked out from distance and steps)</li>
         <li>If you completed last time's duration, next time suggests a bit longer (or more distance past 60 min)</li>
         <li>Set "Training style" to "Cardio-focused" in Settings for a cardio Home: weekly minutes and distance vs goal, and one-tap start. The trainer also has Fat loss, Endurance and Healthy living</li>
         <li>Calories burned by cardio are added to that day's nutrition target</li>

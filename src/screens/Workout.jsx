@@ -22,6 +22,7 @@ import {
   cardioProgression,
   estimateKcal,
   formatPace,
+  deriveCardio,
   speedKmh,
 } from '../lib/stats'
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
@@ -60,7 +61,10 @@ function placeholderFor(item, index, prev, up, cup) {
   const target = item.target
   // 有酸素：目標の時間 → 次回の目安（前回より少し長く）→ 前回の値 の順
   if (isCardioSet(item.sets[index] ?? {})) {
+    // 歩数とペースはその回ごとの値なので引き継がない（歩幅は前回の値を目安に使う）
     const p = { ...(base ?? {}) }
+    delete p.steps
+    delete p.paceSec
     if (cup && index === 0) Object.assign(p, { min: cup.min, ...(cup.km ? { km: cup.km } : {}) })
     if (target?.min) p.min = target.min
     return Object.keys(p).length ? p : null
@@ -155,6 +159,9 @@ export default function Workout({ onFinished, wake }) {
         incline: fill('incline'),
         level: fill('level'),
         hr: fill('hr'),
+        steps: fill('steps'),
+        stride: fill('stride'),
+        pace: fill('pace'),
         done: true,
       }
       if (next.min === '') return
@@ -376,11 +383,19 @@ export default function Workout({ onFinished, wake }) {
             {it.sets.map((s, setIndex) => {
               const basePh = placeholderFor(it, setIndex, prev, up, cup)
               // 有酸素の kcal は入れていなければ、時間・距離・体重から自動で見積もる
-              const cur = (k) => (s[k] !== '' && s[k] != null ? s[k] : basePh?.[k])
+              const typed = (k) => (s[k] !== '' && s[k] != null ? s[k] : null)
+              // 歩数×歩幅・ペースなど、入れた値から距離や時間を計算する（入力した欄が優先）
+              const derived = cardio
+                ? deriveCardio({
+                    ...Object.fromEntries(['min', 'km', 'steps', 'pace'].map((k) => [k, typed(k)])),
+                    stride: typed('stride') ?? basePh?.stride,
+                  })
+                : {}
+              const cur = (k) => typed(k) ?? derived[k] ?? basePh?.[k]
               const kcalEst = cardio
                 ? estimateKcal(exercise, { min: cur('min'), km: cur('km'), incline: cur('incline'), level: cur('level') }, bodyWeight)
                 : null
-              const ph = cardio && kcalEst ? { ...basePh, kcal: kcalEst } : basePh
+              const ph = cardio ? { ...basePh, ...derived, ...(kcalEst ? { kcal: kcalEst } : {}) } : basePh
               const filled = isFilledSet(s)
               const isPr =
                 !cardio &&
@@ -388,9 +403,9 @@ export default function Workout({ onFinished, wake }) {
                 isWorkingSet(s) &&
                 best &&
                 e1rm(Number(s.weight), Number(s.reps)) > best.maxE1rm
-              const field = (key, mode, fallbackLabel) => (
+              const field = (key, mode, fallbackLabel, text) => (
                 <input
-                  type="number"
+                  type={text ? 'text' : 'number'}
                   inputMode={mode}
                   placeholder={ph?.[key] != null ? String(ph[key]) : fallbackLabel}
                   value={s[key] ?? ''}
@@ -438,12 +453,24 @@ export default function Workout({ onFinished, wake }) {
                         </span>
                       )}
                       <button className="ghost" onClick={() => toggleDetails(itemIndex)}>
-                        {details.has(itemIndex) ? t('閉じる') : t('傾斜・レベル・心拍')}
+                        {details.has(itemIndex) ? t('閉じる') : t('歩数・ペース・心拍など')}
                       </button>
                     </div>
                   )}
                   {cardio && details.has(itemIndex) && (
                     <div className="cardio-details">
+                      <label>
+                        <small>{t('歩数')}</small>
+                        {field('steps', 'numeric', '—')}
+                      </label>
+                      <label>
+                        <small>{t('歩幅cm')}</small>
+                        {field('stride', 'numeric', '—')}
+                      </label>
+                      <label>
+                        <small>{t('ペース 分/km')}</small>
+                        {field('pace', 'decimal', '6:00', true)}
+                      </label>
                       <label>
                         <small>{t('傾斜%')}</small>
                         {field('incline', 'decimal', '0')}
