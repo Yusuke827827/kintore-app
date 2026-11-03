@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { getLanguage, t } from '../i18n'
 
 // 設定画面の「使い方」。項目をタップすると開く。
@@ -363,19 +364,28 @@ const TOPICS_EN = [
   },
 ]
 
+// 最初はよく使う3項目だけ。残りは「すべて見る」で開く
+const FIRST = 3
+
 export default function HowTo() {
   const topics = getLanguage() === 'en' ? TOPICS_EN : TOPICS_JA
+  const [all, setAll] = useState(false)
   return (
     <section className="card">
       <h2>{t('使い方')}</h2>
       <div className="howto">
-        {topics.map((topic) => (
+        {(all ? topics : topics.slice(0, FIRST)).map((topic) => (
           <details key={topic.title}>
             <summary>{topic.title}</summary>
             <div className="howto-body">{topic.body}</div>
           </details>
         ))}
       </div>
+      {!all && (
+        <button className="link" onClick={() => setAll(true)}>
+          {t('すべて見る（{n}項目）', { n: topics.length })}
+        </button>
+      )}
     </section>
   )
 }

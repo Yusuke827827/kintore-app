@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AI_SERVICES, copyAndOpen } from '../lib/aiBridge'
 import { t } from '../i18n'
+import Icon from './Icon'
 
 // ChatGPT・Gemini・Claude に質問文をコピーして開き、答えを貼り付けて取り込む
 // buildPrompt: () => 質問文、onImport: (答えの文字列) => { ok, message }（省略すると貼り付け欄なし）
@@ -18,7 +19,7 @@ export default function AiBridge({ buildPrompt, onImport, importLabel, hint }) {
   if (!open) {
     return (
       <button className="link ai-open" onClick={() => setOpen(true)}>
-        {t('🤖 ChatGPT・Gemini・Claudeに相談する（無料）')}
+        <Icon name="chat" size={16} /> {t('ChatGPT・Gemini・Claudeに相談する（無料）')}
       </button>
     )
   }

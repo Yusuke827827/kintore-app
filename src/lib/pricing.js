@@ -40,17 +40,17 @@ export const FREE_LIMITS = {
 
 // プレミアムの機能（有料の画面で上から順に並べる）
 export const FEATURES = [
-  { key: 'menu', icon: '🤖', label: 'メニュー自動作成（スタンダード・アドバンス）', desc: '部位を選ぶだけで、種目・セット数・回数まで決めてくれる' },
-  { key: 'trainer', icon: '🧑‍🏫', label: '体型別トレーナーの週メニュー', desc: '目指す体型から1週間の計画を作って、曜日に入れてくれる' },
-  { key: 'routines', icon: '📋', label: 'マイセット無制限', desc: '無料版は{n}つまで' },
-  { key: 'recovery', icon: '🗺️', label: '回復マップ', desc: '部位ごとの回復具合をひと目で' },
-  { key: 'nutrition', icon: '🥗', label: '食事のPFC分析・点数・カレンダー', desc: 'たんぱく質・脂質・炭水化物を目標と比べる' },
-  { key: 'sync', icon: '☁️', label: 'クラウド同期', desc: 'スマホ・PC・別のブラウザで同じ記録' },
-  { key: 'theme', icon: '🎨', label: 'テーマカラー・壁紙', desc: '好きな色と写真で自分仕様に' },
+  { key: 'menu', icon: 'bolt', label: 'メニュー自動作成（スタンダード・アドバンス）', desc: '部位を選ぶだけで、種目・セット数・回数まで決めてくれる' },
+  { key: 'trainer', icon: 'user', label: '体型別トレーナーの週メニュー', desc: '目指す体型から1週間の計画を作って、曜日に入れてくれる' },
+  { key: 'routines', icon: 'list', label: 'マイセット無制限', desc: '無料版は{n}つまで' },
+  { key: 'recovery', icon: 'battery', label: '回復マップ', desc: '部位ごとの回復具合をひと目で' },
+  { key: 'nutrition', icon: 'bowl', label: '食事のPFC分析・点数・カレンダー', desc: 'たんぱく質・脂質・炭水化物を目標と比べる' },
+  { key: 'sync', icon: 'cloud', label: 'クラウド同期', desc: 'スマホ・PC・別のブラウザで同じ記録' },
+  { key: 'theme', icon: 'palette', label: 'テーマカラー・壁紙', desc: '好きな色と写真で自分仕様に' },
 ]
 
 // 無料で使える見た目（それ以外の色・壁紙はプレミアム）
-export const FREE_ACCENTS = ['indigo', 'blue']
+export const FREE_ACCENTS = ['orange', 'blue']
 export const FREE_WALLPAPERS = ['none']
 
 // 円の表示（¥3,000）

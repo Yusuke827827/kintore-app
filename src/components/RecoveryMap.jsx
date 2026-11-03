@@ -4,9 +4,9 @@ import { nm, t } from '../i18n'
 // 前回からの日数で色分け：0〜1日＝回復中（赤）、2日＝もう少し（黄）、3日以上＝回復済み（緑）
 function recoveryColor(days) {
   if (days == null) return 'var(--surface-2)'
-  if (days <= 1) return '#ef4444'
-  if (days === 2) return '#f59e0b'
-  return '#22c55e'
+  if (days <= 1) return '#ff453a'
+  if (days === 2) return '#ffb627'
+  return '#32d74b'
 }
 
 // 初期の部位を人体図のどこに描くか（前・後ろ）
@@ -57,8 +57,8 @@ export default function RecoveryMap({ bodyParts, lastByPart, today, selected, on
           const on = selected.includes(id)
           const style = {
             fill: recoveryColor(daysOf(id)),
-            stroke: on ? 'var(--text)' : 'transparent',
-            strokeWidth: on ? 2 : 0,
+            stroke: on ? 'var(--accent)' : 'transparent',
+            strokeWidth: on ? 2.5 : 0,
             cursor: 'pointer',
           }
           return (
@@ -97,15 +97,15 @@ export default function RecoveryMap({ bodyParts, lastByPart, today, selected, on
       )}
       <div className="legend">
         <span>
-          <i style={{ background: '#ef4444' }} />
+          <i style={{ background: '#ff453a' }} />
           {t('回復中')}
         </span>
         <span>
-          <i style={{ background: '#f59e0b' }} />
+          <i style={{ background: '#ffb627' }} />
           {t('もう少し')}
         </span>
         <span>
-          <i style={{ background: '#22c55e' }} />
+          <i style={{ background: '#32d74b' }} />
           {t('回復済み')}
         </span>
         <span>

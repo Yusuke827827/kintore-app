@@ -21,6 +21,7 @@ import { advicePrompt, extractJson, matchExercise, menuPrompt } from '../lib/aiB
 import { getLanguage, nm, t } from '../i18n'
 import { formatSet, sortSessionsDesc } from '../lib/stats'
 import { usePremium } from '../state/PremiumContext'
+import Icon from '../components/Icon'
 
 // ---- カレンダー：日ごと・毎週の曜日ごとにマイセットを予定に入れる ----
 function PlanCalendar({ onStart }) {
@@ -302,7 +303,7 @@ function Trainer() {
         </div>
         <button className="primary wide big" disabled={!p.bodyType} onClick={makePlan}>
           {t('週のメニューを作る')}
-          {!premium && ' 🔒'}
+          {!premium && <Icon name="lock" size={15} className="inline-lock" />}
         </button>
       </section>
 
@@ -391,7 +392,7 @@ function Trainer() {
         <ul className="plain-list advice">
           {advice.map((a, i) => (
             <li key={i}>
-              <span className="advice-icon">{a.icon}</span>
+              <span className="advice-icon"><Icon name={a.icon} size={20} /></span>
               <div>
                 <strong>{a.title}</strong>
                 <p className="muted">{a.text}</p>
@@ -498,7 +499,7 @@ function GymSetup() {
             const ids = data.available.map((n) => matchExercise(n, exercises, nm)?.id).filter(Boolean)
             setChecked(new Set(ids))
             setSaved(false)
-            return { ok: true, message: t('{n}種目にチェックを入れました。確認して保存してください。', { n: ids.length }) + (data.note ? `\n💬 ${data.note}` : '') }
+            return { ok: true, message: t('{n}種目にチェックを入れました。確認して保存してください。', { n: ids.length }) + (data.note ? `\n${data.note}` : '') }
           }}
           importLabel={t('答えを種目のチェックに反映')}
         />

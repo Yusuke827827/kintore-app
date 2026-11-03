@@ -26,6 +26,7 @@ import {
 } from '../lib/stats'
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
 import { usePremium } from '../state/PremiumContext'
+import Icon from '../components/Icon'
 
 function formatSets(sets) {
   return sets.map(formatSet).join('　')
@@ -274,7 +275,7 @@ export default function Workout({ onFinished, wake }) {
             {formatDateJa(w.date)}
             {!isEdit && w.startedAt && <> ・ {formatClock((now - w.startedAt) / 1000)}</>}
             <span className="saved-badge">{t('自動保存 ✓')}</span>
-            {wake?.active && <span className="saved-badge">{t('☀ 画面オン')}</span>}
+            {wake?.active && <span className="saved-badge"><Icon name="sun" size={13} /> {t('画面オン')}</span>}
           </p>
         </div>
         <button className="primary small" onClick={handleFinish}>
@@ -323,7 +324,7 @@ export default function Workout({ onFinished, wake }) {
                   ↓
                 </button>
                 <button className="ghost danger" onClick={() => removeItem(itemIndex)} aria-label={t('外す')}>
-                  ✕
+                  <Icon name="close" size={18} />
                 </button>
               </div>
             </div>
@@ -426,7 +427,7 @@ export default function Workout({ onFinished, wake }) {
                     onClick={() => toggleDone(itemIndex, setIndex, ph)}
                     aria-label={t('セット完了')}
                   >
-                    ✓
+                    <Icon name="check" size={20} strokeWidth={2.4} />
                   </button>
                   {cardio && (
                     <div className="cardio-info">
@@ -521,7 +522,7 @@ export default function Workout({ onFinished, wake }) {
                 })
               }
             >
-              {t('✨ おまかせ並べ替え（大きい筋肉・多関節を先に）')}
+              <Icon name="sort" size={16} /> {t('おまかせ並べ替え（大きい筋肉・多関節を先に）')}
             </button>
             <ul className="plain-list order-list">
               {w.items.map((it, i) => {

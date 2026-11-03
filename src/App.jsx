@@ -14,6 +14,7 @@ import { formatPace } from './lib/stats'
 import { nm, t } from './i18n'
 import { shareSessionImage } from './lib/shareImage'
 import useWakeLock from './hooks/useWakeLock'
+import Icon from './components/Icon'
 
 // 今回やったメニューをマイセットに登録するか聞く（同じメニューが登録済みなら聞かない）
 function SaveAsMySet({ exerciseIds }) {
@@ -88,7 +89,8 @@ function ShareButton({ sessionId, className = 'secondary wide' }) {
         shareSessionImage(session, { sessions, exercises: allExercises, bodyParts: allBodyParts })
       }
     >
-      {t('📤 画像で共有')}
+      <Icon name="share" size={18} />
+      {t('画像で共有')}
     </button>
   )
 }
@@ -146,7 +148,7 @@ function FinishedSummary({ summary, onClose }) {
           </p>
         )}
         {summary.prs.length > 0 && (
-          <p className="target">🏆 {t('自己ベスト更新')}：{summary.prs.join(t('・'))}</p>
+          <p className="target"><Icon name="trophy" size={16} /> {t('自己ベスト更新')}：{summary.prs.join(t('・'))}</p>
         )}
         {!summary.isEdit && <SaveAsMySet exerciseIds={summary.exerciseIds ?? []} />}
         <ShareButton sessionId={summary.sessionId} />
@@ -175,19 +177,19 @@ function AppInner() {
   const current = screen === 'workout' && !activeWorkout ? 'home' : screen
 
   const tabs = [
-    { key: 'home', label: t('ホーム') },
-    ...(activeWorkout ? [{ key: 'workout', label: t('記録中') }] : []),
-    { key: 'plan', label: t('計画') },
-    { key: 'meals', label: t('食事') },
-    { key: 'history', label: t('履歴') },
-    { key: 'settings', label: t('設定') },
+    { key: 'home', label: t('ホーム'), icon: 'home' },
+    ...(activeWorkout ? [{ key: 'workout', label: t('記録中'), icon: 'live' }] : []),
+    { key: 'plan', label: t('計画'), icon: 'calendar' },
+    { key: 'meals', label: t('食事'), icon: 'meals' },
+    { key: 'history', label: t('履歴'), icon: 'history' },
+    { key: 'settings', label: t('設定'), icon: 'settings' },
   ]
 
   return (
     <div className="app">
       {syncStatus.state === 'error' && current !== 'settings' && (
         <button className="sync-error" onClick={() => setScreen('settings')}>
-          {t('⚠ 同期できていません（記録はこの端末に保存済み）')}
+          <Icon name="alert" size={16} /> {t('同期できていません（記録はこの端末に保存済み）')}
         </button>
       )}
       <main>
@@ -240,7 +242,8 @@ function AppInner() {
               setScreen(t.key)
             }}
           >
-            {t.label}
+            <Icon name={t.icon} size={24} strokeWidth={t.key === current ? 2.1 : 1.7} />
+            <span>{t.label}</span>
           </button>
         ))}
       </nav>

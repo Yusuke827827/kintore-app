@@ -49,8 +49,8 @@ function prExerciseIds(session, sessions) {
 }
 
 export function drawSessionImage(session, { sessions, exercises, bodyParts }) {
-  const accent = cssVar('--accent', '#4f46e5')
-  const accentText = cssVar('--accent-soft', '#a5b4fc')
+  const accent = cssVar('--accent', '#ff5a1f')
+  const accentText = cssVar('--accent-soft', '#ffb899')
   const prs = prExerciseIds(session, sessions)
 
   // 先に高さを計算するため、同じ設定の仮キャンバスで行を組む
@@ -71,8 +71,8 @@ export function drawSessionImage(session, { sessions, exercises, bodyParts }) {
   const ctx = canvas.getContext('2d')
 
   const bg = ctx.createLinearGradient(0, 0, W, H)
-  bg.addColorStop(0, '#0b0f19')
-  bg.addColorStop(1, '#1e1b4b')
+  bg.addColorStop(0, '#0b0b0c')
+  bg.addColorStop(1, '#1d1d21')
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, W, H)
   ctx.fillStyle = accent
@@ -132,9 +132,9 @@ export function drawSessionImage(session, { sessions, exercises, bodyParts }) {
     ctx.fillText(b.name, PAD, y)
     if (b.pr) {
       const x = PAD + ctx.measureText(b.name).width + 18
-      ctx.fillStyle = '#f59e0b'
+      ctx.fillStyle = '#ffb627'
       roundRect(ctx, x, y - 34, 84, 42, 21)
-      ctx.fillStyle = '#111827'
+      ctx.fillStyle = '#0b0b0c'
       ctx.font = `800 26px ${FONT}`
       ctx.fillText('PR', x + 24, y - 5)
     }
