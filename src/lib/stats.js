@@ -4,8 +4,9 @@ import { t } from '../i18n'
 // セットの形
 // ・筋トレ：{ weight, reps, type? }  type は 'warmup'（ウォームアップ）/ 'drop'（ドロップセット）/ なし（通常）
 // ・有酸素：{ min, km?, kcal?, incline?（傾斜%）, level?（負荷レベル）, hr?（平均心拍） }
+// 種類を「有酸素」にした種目と、部位「有酸素」に入れた種目は、時間・距離で記録する
 export function isCardio(exercise) {
-  return exercise?.type === 'cardio'
+  return exercise?.type === 'cardio' || exercise?.bodyPartId === 'cardio'
 }
 
 export function isCardioSet(set) {
@@ -21,8 +22,12 @@ export function formatSet(set) {
   if (isCardioSet(set)) {
     const parts = [t('{m}分', { m: set.min })]
     if (set.km) parts.push(`${set.km}km`)
-    if (set.km && set.min) parts.push(formatPace(set.min, set.km))
+    // 自分で入れたペースを優先。なければ時間と距離から
+    if (set.paceSec) parts.push(`${formatPaceSec(set.paceSec)}/km`)
+    else if (set.km && set.min) parts.push(formatPace(set.min, set.km))
     if (set.kcal) parts.push(`${set.kcal}kcal`)
+    if (set.steps) parts.push(t('{n}歩', { n: set.steps.toLocaleString() }))
+    if (set.stride) parts.push(t('歩幅{n}cm', { n: set.stride }))
     if (set.incline) parts.push(t('傾斜{n}%', { n: set.incline }))
     if (set.level) parts.push(t('Lv{n}', { n: set.level }))
     if (set.hr) parts.push(`♥${set.hr}`)
@@ -37,6 +42,40 @@ export function formatSet(set) {
 export function speedKmh(min, km) {
   if (!min || !km) return null
   return Math.round((km / (min / 60)) * 10) / 10
+}
+
+// ペースの入力（「6:30」または「6.5」分）→ 1kmあたりの秒数
+export function parsePace(text) {
+  if (text == null || text === '') return null
+  const str = String(text).trim()
+  const m = str.match(/^(\d{1,2})[:：'](\d{1,2})$/)
+  const sec = m ? Number(m[1]) * 60 + Number(m[2]) : Math.round(Number(str) * 60)
+  return Number.isFinite(sec) && sec > 0 ? sec : null
+}
+
+// 1kmあたりの秒数 → 「6:30」
+export function formatPaceSec(sec) {
+  if (!sec) return ''
+  const r = Math.round(sec)
+  return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`
+}
+
+// 時間・距離・歩数・歩幅・ペースのうち、分かっているものから空いているものを計算する
+// v は入力欄の値（文字列でもよい）。計算できたものだけ返す
+export function deriveCardio(v) {
+  const num = (k) => (v[k] !== '' && v[k] != null && Number(v[k]) > 0 ? Number(v[k]) : null)
+  let min = num('min')
+  let km = num('km')
+  const steps = num('steps')
+  let stride = num('stride')
+  const paceSec = parsePace(v.pace)
+  const out = {}
+  if (!km && steps && stride) km = out.km = Math.round((steps * stride) / 1000) / 100
+  if (!km && min && paceSec) km = out.km = Math.round(((min * 60) / paceSec) * 100) / 100
+  if (!min && km && paceSec) min = out.min = Math.round((km * paceSec) / 6) / 10
+  if (!stride && steps && km) stride = out.stride = Math.round((km * 100000) / steps)
+  if (!paceSec && min && km) out.pace = formatPaceSec((min * 60) / km)
+  return out
 }
 
 export function formatPace(min, km) {
@@ -247,9 +286,11 @@ export function isFilledSet(set) {
 export function toStoredSet(set) {
   if (isCardioSet(set)) {
     const out = { min: Number(set.min) }
-    for (const k of ['km', 'kcal', 'incline', 'level', 'hr']) {
+    for (const k of ['km', 'kcal', 'incline', 'level', 'hr', 'steps', 'stride']) {
       if (set[k] !== '' && set[k] != null) out[k] = Number(set[k])
     }
+    const paceSec = parsePace(set.pace)
+    if (paceSec) out.paceSec = paceSec
     return out
   }
   const out = { weight: Number(set.weight), reps: Number(set.reps) }
@@ -261,14 +302,25 @@ export function toStoredSet(set) {
 export function toDraftSet(set) {
   if (isCardioSet(set)) {
     const s = (v) => (v != null ? String(v) : '')
-    return { min: s(set.min), km: s(set.km), kcal: s(set.kcal), incline: s(set.incline), level: s(set.level), hr: s(set.hr), done: true }
+    return {
+      min: s(set.min),
+      km: s(set.km),
+      kcal: s(set.kcal),
+      incline: s(set.incline),
+      level: s(set.level),
+      hr: s(set.hr),
+      steps: s(set.steps),
+      stride: s(set.stride),
+      pace: set.paceSec ? formatPaceSec(set.paceSec) : '',
+      done: true,
+    }
   }
   return { weight: String(set.weight), reps: String(set.reps), type: set.type, done: true }
 }
 
 // 新しく始めるときの空のセット（前回のセットの種類はそのまま引き継ぐ）
 export function emptySet(cardio, like) {
-  if (cardio) return { min: '', km: '', kcal: '', incline: '', level: '', hr: '', done: false }
+  if (cardio) return { min: '', km: '', kcal: '', incline: '', level: '', hr: '', steps: '', stride: '', pace: '', done: false }
   return { weight: '', reps: '', done: false, ...(like?.type ? { type: like.type } : {}) }
 }
 

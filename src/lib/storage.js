@@ -5,8 +5,23 @@ import {
   initialExercises,
 } from '../data/initialData'
 import { DEFAULT_THEME } from './theme'
+import { emptySet } from './stats'
 
 const STORAGE_KEY = 'kintore-app-data-v1'
+
+// 有酸素なのに重さ・回数の欄で始まっている種目（部位「有酸素」に追加した種目など）を、時間・距離の欄にする
+function fixCardioDrafts(w, exercises) {
+  if (!w) return w
+  return {
+    ...w,
+    items: w.items.map((it) => {
+      const ex = exercises.find((e) => e.id === it.exerciseId)
+      const cardio = ex?.type === 'cardio' || ex?.bodyPartId === 'cardio'
+      const blank = it.sets.every((x) => !('min' in x) && (x.weight ?? '') === '' && (x.reps ?? '') === '')
+      return cardio && blank ? { ...it, sets: it.sets.map(() => emptySet(true)) } : it
+    }),
+  }
+}
 
 // デザイン刷新（v2）：以前の標準色（インディゴ）のままの人は、新しい標準色（オレンジ）にする
 function migrateTheme(theme) {
@@ -64,7 +79,7 @@ export function normalizeData(raw) {
     },
     // 初期値のままなら0。以前の版で保存されていたデータは自分で編集した可能性があるので1。
     masterUpdatedAt: data?.masterUpdatedAt ?? (data ? 1 : 0),
-    activeWorkout: data?.activeWorkout ?? null,
+    activeWorkout: fixCardioDrafts(data?.activeWorkout ?? null, data?.exercises ?? []),
     bodyLogs: data?.bodyLogs ?? [],
     deletedBodyLogIds: data?.deletedBodyLogIds ?? [],
     // カレンダーの予定：日付ごと（dates）と、毎週の曜日ごと（weekly: 0=日〜6=土）にマイセットを割り当てる

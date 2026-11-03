@@ -1,6 +1,6 @@
 // Excel・Googleスプレッドシートで開けるCSVを作る
 import { nm, t } from '../i18n'
-import { e1rm, isCardioSet, sortSessionsDesc } from './stats'
+import { e1rm, formatPaceSec, isCardioSet, sortSessionsDesc } from './stats'
 
 function cell(v) {
   if (v == null) return ''
@@ -29,6 +29,9 @@ export function workoutsCsv(sessions, exercises, bodyParts) {
       t('時間（分）'),
       t('距離（km）'),
       'kcal',
+      t('ペース（分/km）'),
+      t('歩数'),
+      t('歩幅（cm）'),
       t('メモ'),
     ],
   ]
@@ -39,7 +42,8 @@ export function workoutsCsv(sessions, exercises, bodyParts) {
       en.sets.forEach((set, i) => {
         const base = [s.date, nm(part), ex ? nm(ex) : t('（削除された種目）'), i + 1]
         if (isCardioSet(set)) {
-          rows.push([...base, t('有酸素'), '', '', '', set.min, set.km, set.kcal, i === 0 ? en.note : ''])
+          const pace = set.paceSec ? formatPaceSec(set.paceSec) : set.km && set.min ? formatPaceSec((set.min * 60) / set.km) : ''
+          rows.push([...base, t('有酸素'), '', '', '', set.min, set.km, set.kcal, pace, set.steps, set.stride, i === 0 ? en.note : ''])
         } else {
           rows.push([
             ...base,
@@ -47,6 +51,9 @@ export function workoutsCsv(sessions, exercises, bodyParts) {
             set.weight,
             set.reps,
             set.type === 'warmup' ? '' : e1rm(set.weight, set.reps),
+            '',
+            '',
+            '',
             '',
             '',
             '',
