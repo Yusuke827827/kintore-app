@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useData } from '../state/DataContext'
 import MenuEditor from '../components/MenuEditor'
 import { eq, nm, t } from '../i18n'
+import { usePremium } from '../state/PremiumContext'
+import { FREE_LIMITS } from '../lib/pricing'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -412,6 +414,7 @@ function RoutineEditor({ routine, onDone }) {
 
 function RoutinesTab() {
   const { routines, allExercises, moveRoutine } = useData()
+  const { premium, gate } = usePremium()
   const [editing, setEditing] = useState(null) // routine id | 'new' | null
 
   if (editing) {
@@ -448,9 +451,20 @@ function RoutinesTab() {
           </li>
         ))}
       </ul>
-      <button className="secondary wide" onClick={() => setEditing('new')}>
+      <button
+        className="secondary wide"
+        onClick={() => gate('routines', routines.length) && setEditing('new')}
+      >
         {t('＋ マイセットを作る')}
       </button>
+      {!premium && (
+        <p className="muted">
+          {t('無料版はマイセット{n}つまで（{c}/{n}）。プレミアムで無制限になります。', {
+            n: FREE_LIMITS.routines,
+            c: routines.length,
+          })}
+        </p>
+      )}
     </section>
   )
 }

@@ -14,6 +14,77 @@ import {
   resizeImage,
   saveCustomWallpaper,
 } from '../lib/theme'
+import { usePremium } from '../state/PremiumContext'
+import { FREE_ACCENTS, FREE_WALLPAPERS } from '../lib/pricing'
+import LockCard from '../components/LockCard'
+import { PRIVACY_URL, TERMS_URL } from '../components/Paywall'
+
+// プレミアムの状態と、プランの確認・復元
+function PremiumSection() {
+  const { premium, entitlement, kind, openPaywall, restore, resetTest } = usePremium()
+  const [message, setMessage] = useState('')
+  const until =
+    entitlement?.expiresAt &&
+    new Date(entitlement.expiresAt).toLocaleDateString(getLanguage() === 'en' ? 'en-US' : 'ja-JP')
+
+  return (
+    <section className="card">
+      <h2>
+        {t('💪 プレミアム')}{' '}
+        {premium && kind !== 'beta' && <span className="badge ok">{t('利用中')}</span>}
+      </h2>
+      {kind === 'beta' ? (
+        <p className="muted">{t('Web版はベータ期間中のため、すべての機能を無料で使えます。')}</p>
+      ) : premium ? (
+        <p className="muted">
+          {entitlement?.plan === 'lifetime'
+            ? t('買い切り：ずっと使えます')
+            : entitlement?.trial
+              ? t('無料お試し中（{d}まで）', { d: until })
+              : until
+                ? t('次の更新日 {d}', { d: until })
+                : ''}
+        </p>
+      ) : (
+        <p className="muted">{t('記録はずっと無料。メニュー自動作成・トレーナー・分析などはプレミアムで。')}</p>
+      )}
+      <div className="row">
+        <button className={premium ? 'secondary' : 'primary'} onClick={() => openPaywall()}>
+          {premium ? t('プランを見る') : t('プレミアムを見る')}
+        </button>
+        {kind === 'store' && (
+          <button
+            className="secondary"
+            onClick={async () => {
+              setMessage('')
+              try {
+                setMessage((await restore()) ? t('復元しました。') : t('復元できる購入が見つかりませんでした。'))
+              } catch (e) {
+                setMessage(e?.message || t('復元できませんでした。'))
+              }
+            }}
+          >
+            {t('購入を復元')}
+          </button>
+        )}
+        {kind === 'test' && premium && (
+          <button className="secondary" onClick={resetTest}>
+            {t('無料版に戻す（テスト）')}
+          </button>
+        )}
+      </div>
+      {message && <p className="muted">{message}</p>}
+      <div className="paywall-links">
+        <a href={TERMS_URL} target="_blank" rel="noreferrer">
+          {t('利用規約')}
+        </a>
+        <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
+          {t('プライバシーポリシー')}
+        </a>
+      </div>
+    </section>
+  )
+}
 
 const TOKEN_URL =
   'https://github.com/settings/tokens/new?scopes=gist&description=kintore-app%20sync'
@@ -52,7 +123,9 @@ const MODES = [
 
 function AppearanceSection() {
   const { settings, updateSettings, refreshWallpaper } = useData()
+  const { premium, gate } = usePremium()
   const theme = { ...DEFAULT_THEME, ...settings.theme }
+  const locked = (free, key) => !premium && !free.includes(key)
   const fileRef = useRef(null)
   const [message, setMessage] = useState('')
   const customWallpaper = loadCustomWallpaper()
@@ -95,9 +168,9 @@ function AppearanceSection() {
         {Object.entries(ACCENTS).map(([key, a]) => (
           <button
             key={key}
-            className={`swatch ${theme.accent === key ? 'on' : ''}`}
+            className={`swatch ${theme.accent === key && !locked(FREE_ACCENTS, key) ? 'on' : ''} ${locked(FREE_ACCENTS, key) ? 'locked' : ''}`}
             style={{ background: a.c[0] }}
-            onClick={() => setTheme({ accent: key })}
+            onClick={() => (!locked(FREE_ACCENTS, key) || gate('theme')) && setTheme({ accent: key })}
             aria-label={t(a.label)}
             title={t(a.label)}
           />
@@ -109,14 +182,17 @@ function AppearanceSection() {
         {WALLPAPERS.map((w) => (
           <button
             key={w.key}
-            className={`wallpaper ${theme.wallpaper === w.key ? 'on' : ''}`}
+            className={`wallpaper ${theme.wallpaper === w.key && !locked(FREE_WALLPAPERS, w.key) ? 'on' : ''}`}
             style={{ background: w.css === 'none' ? 'var(--sunken)' : w.css }}
-            onClick={() => setTheme({ wallpaper: w.key })}
+            onClick={() => (!locked(FREE_WALLPAPERS, w.key) || gate('theme')) && setTheme({ wallpaper: w.key })}
           >
-            <span>{t(w.label)}</span>
+            <span>
+              {locked(FREE_WALLPAPERS, w.key) && '🔒 '}
+              {t(w.label)}
+            </span>
           </button>
         ))}
-        {customWallpaper && (
+        {customWallpaper && premium && (
           <button
             className={`wallpaper ${theme.wallpaper === 'custom' ? 'on' : ''}`}
             style={{ backgroundImage: `url("${customWallpaper}")` }}
@@ -125,8 +201,11 @@ function AppearanceSection() {
             <span>{t('写真')}</span>
           </button>
         )}
-        <button className="wallpaper add" onClick={() => fileRef.current?.click()}>
-          <span>{t('＋ 写真')}</span>
+        <button className="wallpaper add" onClick={() => gate('theme') && fileRef.current?.click()}>
+          <span>
+            {!premium && '🔒 '}
+            {t('＋ 写真')}
+          </span>
         </button>
       </div>
       <input
@@ -179,6 +258,20 @@ function AppearanceSection() {
 }
 
 function SyncSection() {
+  const { premium } = usePremium()
+  if (!premium) {
+    return (
+      <section className="card">
+        <h2>{t('クラウド同期（他のブラウザ・端末と共有）')}</h2>
+        <p className="muted">{t('記録はこの端末に自動で保存されています。別の端末へ移すときは、下の「バックアップ」を使えます（無料）。')}</p>
+        <LockCard feature="sync" />
+      </section>
+    )
+  }
+  return <SyncSettings />
+}
+
+function SyncSettings() {
   const { syncStatus, connectSync, disconnectSync, runSync } = useData()
   const [token, setToken] = useState('')
   const [busy, setBusy] = useState(false)
@@ -596,6 +689,7 @@ export default function Settings({ onOpenCustomize }) {
     <div className="screen">
       <h1>{t('設定')}</h1>
 
+      <PremiumSection />
       <HowTo />
 
       <section className="card">

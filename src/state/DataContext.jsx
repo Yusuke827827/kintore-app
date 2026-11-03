@@ -23,6 +23,8 @@ import {
 import { setLanguage, t } from '../i18n'
 import { applyTheme } from '../lib/theme'
 import { setSoundEnabled } from '../lib/restAlarm'
+import { usePremium } from './PremiumContext'
+import { FREE_ACCENTS, FREE_WALLPAPERS } from '../lib/pricing'
 
 const DataContext = createContext(null)
 
@@ -78,8 +80,24 @@ export function DataProvider({ children }) {
   setLanguage(state.settings.lang)
   setSoundEnabled(state.settings.sound)
 
+  const { premium } = usePremium()
+  const premiumRef = useRef(premium)
+  useEffect(() => {
+    premiumRef.current = premium
+  }, [premium])
+
   // 見た目（モード・色・壁紙・文字サイズ）。「端末に合わせる」はOSの切り替えにも追従
-  const themeJson = JSON.stringify(state.settings.theme)
+  // 無料版では、プレミアムの色・壁紙は最初の状態で表示する（設定は消さずに残す）
+  const rawTheme = state.settings.theme ?? {}
+  const themeJson = JSON.stringify(
+    premium
+      ? rawTheme
+      : {
+          ...rawTheme,
+          accent: FREE_ACCENTS.includes(rawTheme.accent) ? rawTheme.accent : undefined,
+          wallpaper: FREE_WALLPAPERS.includes(rawTheme.wallpaper) ? rawTheme.wallpaper : undefined,
+        }
+  )
   const [wallpaperVersion, setWallpaperVersion] = useState(0)
   useEffect(() => {
     const theme = JSON.parse(themeJson)
@@ -110,9 +128,10 @@ export function DataProvider({ children }) {
     stateRef.current = state
   }, [state])
 
+  // クラウド同期はプレミアム（無料版ではつながったまま止めておく）
   const runSync = useCallback(async () => {
     const config = sync.loadSyncConfig()
-    if (!config) return
+    if (!config || !premiumRef.current) return
     if (syncingRef.current) {
       pendingRef.current = true
       return
@@ -148,12 +167,12 @@ export function DataProvider({ children }) {
 
   // データが変わったら少し待ってクラウドへ
   useEffect(() => {
-    if (!sync.loadSyncConfig()) return
+    if (!sync.loadSyncConfig() || !premium) return
     if (JSON.stringify(state) === lastSyncedJsonRef.current) return
     clearTimeout(timerRef.current)
     timerRef.current = setTimeout(runSync, 2000)
     return () => clearTimeout(timerRef.current)
-  }, [state, runSync])
+  }, [state, runSync, premium])
 
   // アプリを開いたとき・戻ってきたときに最新を取りにいく
   useEffect(() => {

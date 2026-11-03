@@ -20,6 +20,7 @@ import {
 import { advicePrompt, extractJson, matchExercise, menuPrompt } from '../lib/aiBridge'
 import { getLanguage, nm, t } from '../i18n'
 import { formatSet, sortSessionsDesc } from '../lib/stats'
+import { usePremium } from '../state/PremiumContext'
 
 // ---- カレンダー：日ごと・毎週の曜日ごとにマイセットを予定に入れる ----
 function PlanCalendar({ onStart }) {
@@ -167,6 +168,7 @@ function Trainer() {
   const data = useData()
   const { profile, setProfile, bodyLogs, bodyParts, exercises, allExercises, allBodyParts, sessions, gym, applyWeeklyPlan, updateSettings, meals, settings } = data
   const importMenu = useAiMenuImport()
+  const { premium, gate } = usePremium()
   const lastWeight = [...bodyLogs].sort((a, b) => (a.date < b.date ? 1 : -1))[0]?.weight
   const p = { sex: 'male', level: 'intermediate', days: 3, ...profile, weight: profile?.weight ?? lastWeight }
   const [plan, setPlan] = useState(null)
@@ -186,6 +188,7 @@ function Trainer() {
     setProfile({ ...p, weekdays: next, days: Math.max(1, Math.min(6, next.length)) })
   }
   function makePlan() {
+    if (!gate('trainer')) return
     setPlan(buildWeeklyPlan({ profile: p, bodyParts, exercises, sessions, gym, partName }))
     setSaved(false)
   }
@@ -299,6 +302,7 @@ function Trainer() {
         </div>
         <button className="primary wide big" disabled={!p.bodyType} onClick={makePlan}>
           {t('週のメニューを作る')}
+          {!premium && ' 🔒'}
         </button>
       </section>
 

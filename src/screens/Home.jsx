@@ -18,6 +18,8 @@ import AiBridge from '../components/AiBridge'
 import useAiMenuImport from '../hooks/useAiMenuImport'
 import { LEVELS, generateMenu, planFor } from '../lib/planner'
 import { menuPrompt } from '../lib/aiBridge'
+import { usePremium } from '../state/PremiumContext'
+import LockCard from '../components/LockCard'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -42,6 +44,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
     addRoutine,
   } = useData()
   const importMenu = useAiMenuImport()
+  const { premium, gate } = usePremium()
   const focus = settings.focus ?? 'strength'
   const [showStrength, setShowStrength] = useState(false)
   const today = todayStr()
@@ -125,13 +128,15 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
   const planned = routines.find((r) => r.id === plannedId)
 
   // メニュー自動作成
-  const [level, setLevel] = useState('standard')
+  // 無料版はライトだけ。スタンダード・アドバンスはプレミアム
+  const [level, setLevel] = useState(premium ? 'standard' : 'light')
   const [generated, setGenerated] = useState(null)
   function generate(lv = level) {
-    setGenerated(generateMenu({ partIds: chosen, level: lv, exercises, sessions, gym }))
+    setGenerated(generateMenu({ partIds: chosen, level: premium ? lv : 'light', exercises, sessions, gym }))
   }
   function saveGenerated() {
     const name = prompt(t('マイセットの名前（例：胸の日）'), chosen.map(partName).join(t('＋')))
+    if (!gate('routines', routines.length)) return
     if (!name?.trim()) return
     addRoutine(name.trim(), generated.exerciseIds, generated.targets)
     alert(t('「{name}」を保存しました。ホームからワンタップで始められます。', { name: name.trim() }))
@@ -230,7 +235,8 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
         <button className="link map-toggle" onClick={toggleMap}>
           {showMap ? t('回復マップを隠す') : t('回復マップを表示')}
         </button>
-        {showMap && (
+        {showMap && !premium && <LockCard feature="recovery" />}
+        {showMap && premium && (
           <RecoveryMap
             bodyParts={bodyParts}
             lastByPart={lastByPart}
@@ -299,11 +305,13 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
                 key={l.key}
                 className={level === l.key ? 'on' : ''}
                 onClick={() => {
+                  if (l.key !== 'light' && !gate('menu')) return
                   setLevel(l.key)
                   if (generated) generate(l.key)
                 }}
               >
                 {t(l.label)}
+                {l.key !== 'light' && !premium && ' 🔒'}
               </button>
             ))}
           </div>
