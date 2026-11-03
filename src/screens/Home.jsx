@@ -21,6 +21,9 @@ import { menuPrompt } from '../lib/aiBridge'
 import { usePremium } from '../state/PremiumContext'
 import LockCard from '../components/LockCard'
 import Icon from '../components/Icon'
+import { routineColor } from '../lib/routineColors'
+import { buildReport } from '../lib/report'
+import { ScoreRing } from '../components/Report'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -55,7 +58,7 @@ function GoalRing({ done, goal }) {
   )
 }
 
-export default function Home({ onOpenWorkout, onOpenCustomize }) {
+export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
   const {
     bodyParts,
     allBodyParts,
@@ -69,6 +72,9 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
     plans,
     gym,
     addRoutine,
+    meals,
+    bodyLogs,
+    profile,
   } = useData()
   const importMenu = useAiMenuImport()
   const { premium, gate } = usePremium()
@@ -112,6 +118,14 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
     () => (goal > 0 ? weeklyGoalStatus(sessions, goal, today) : null),
     [sessions, goal, today]
   )
+  // 週の前半（月〜水）は、先週のレポートをホームに出す
+  const weekday = (new Date(`${today}T00:00:00`).getDay() + 6) % 7
+  const lastWeek = useMemo(() => {
+    if (weekday > 2) return null
+    const r = buildReport('week', -1, { sessions, exercises: allExercises, bodyParts: allBodyParts, meals, bodyLogs, profile, settings }, today)
+    return r.cur.days > 0 ? r : null
+  }, [weekday, sessions, allExercises, allBodyParts, meals, bodyLogs, profile, settings, today])
+
   const [showMap, setShowMap] = useState(() => {
     try {
       return localStorage.getItem('kintore-show-map') !== '0'
@@ -144,9 +158,9 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
     })
   }
 
-  function start(exerciseIds, partIds, targets) {
+  function start(exerciseIds, partIds, targets, routineId) {
     if (activeWorkout && !confirm(t('記録中のトレーニングがあります。破棄して新しく始めますか？'))) return
-    startWorkout(exerciseIds, partIds, targets)
+    startWorkout(exerciseIds, partIds, targets, routineId)
     onOpenWorkout()
   }
 
@@ -185,6 +199,20 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
         )}
       </p>
 
+      {lastWeek && (
+        <button className="card report-teaser" onClick={() => onOpenReport?.('week', -1)}>
+          <ScoreRing score={lastWeek.total} grade={lastWeek.grade} size={56} />
+          <span className="report-teaser-text">
+            <strong>{t('先週のレポートが届きました')}</strong>
+            <small className="muted">
+              {t('{n}日・{s}セット', { n: lastWeek.cur.days, s: lastWeek.cur.sets })}
+              {lastWeek.cur.prs > 0 && ` ・ ${t('自己ベスト{n}回', { n: lastWeek.cur.prs })}`}
+            </small>
+          </span>
+          <Icon name="chevron" size={18} />
+        </button>
+      )}
+
       {goalStatus && (
         <section className="card goal">
           <GoalRing done={goalStatus.thisCount} goal={goal} />
@@ -215,7 +243,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
           <button
             className="primary small"
             onClick={() =>
-              start(planned.exerciseIds.filter((id) => visibleIds.has(id)), [], planned.targets)
+              start(planned.exerciseIds.filter((id) => visibleIds.has(id)), [], planned.targets, planned.id)
             }
           >
             {t('始める')}
@@ -414,9 +442,12 @@ export default function Home({ onOpenWorkout, onOpenCustomize }) {
               <li key={r.id} className="routine">
                 <button
                   className="routine-main"
-                  onClick={() => start(r.exerciseIds.filter((id) => visibleIds.has(id)), [], r.targets)}
+                  onClick={() => start(r.exerciseIds.filter((id) => visibleIds.has(id)), [], r.targets, r.id)}
                 >
-                  <strong>{r.name}</strong>
+                  <strong className="with-icon">
+                    <i className="routine-dot" style={{ background: routineColor(r, routines) }} />
+                    {r.name}
+                  </strong>
                   <span className="muted">
                     {r.exerciseIds.map(exName).filter(Boolean).join(t('・'))}
                   </span>

@@ -22,6 +22,7 @@ import { getLanguage, nm, t } from '../i18n'
 import { formatSet, sortSessionsDesc } from '../lib/stats'
 import { usePremium } from '../state/PremiumContext'
 import Icon from '../components/Icon'
+import { routineColor, routineOfSession } from '../lib/routineColors'
 
 // ---- カレンダー：日ごと・毎週の曜日ごとにマイセットを予定に入れる ----
 function PlanCalendar({ onStart }) {
@@ -41,6 +42,12 @@ function PlanCalendar({ onStart }) {
   for (let i = 0; i < firstDow; i++) cells.push(null)
   for (let d = 1; d <= days; d++) cells.push(todayStr(new Date(year, month, d)))
   const nameOf = (id) => routines.find((r) => r.id === id)?.name
+  // やった日はそのマイセットの色、予定の日はマイセットの色を薄く
+  const doneColor = {}
+  for (const s of sessions) {
+    const r = routineOfSession(s, routines)
+    if (!doneColor[s.date]) doneColor[s.date] = r ? routineColor(r, routines) : 'var(--accent)'
+  }
 
   const dows = getLanguage() === 'en' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['月', '火', '水', '木', '金', '土', '日']
   const selWd = selected ? new Date(`${selected}T00:00:00`).getDay() : null
@@ -66,12 +73,14 @@ function PlanCalendar({ onStart }) {
           ))}
           {cells.map((d, i) => {
             if (!d) return <span key={i} />
-            const planId = planFor(d, plans)
-            const name = nameOf(planId)
+            const plannedRoutine = routines.find((r) => r.id === planFor(d, plans))
+            const name = plannedRoutine?.name
+            const rc = plannedRoutine ? routineColor(plannedRoutine, routines) : null
             return (
               <button
                 key={i}
                 className={`day ${trained.has(d) ? 'trained' : ''} ${d === today ? 'today' : ''} ${name ? 'planned' : ''}`}
+                style={{ '--rc': trained.has(d) ? doneColor[d] : rc ?? 'var(--accent)' }}
                 onClick={() => setSelected(d)}
               >
                 <span>{Number(d.slice(8))}</span>
@@ -80,7 +89,17 @@ function PlanCalendar({ onStart }) {
             )
           })}
         </div>
-        <p className="muted">{t('日付をタップして、その日にやるマイセットを入れられます。色付きはトレーニングした日です。')}</p>
+        {routines.length > 0 && (
+          <div className="routine-legend">
+            {routines.map((r) => (
+              <span key={r.id}>
+                <i className="routine-dot" style={{ background: routineColor(r, routines) }} />
+                {r.name}
+              </span>
+            ))}
+          </div>
+        )}
+        <p className="muted">{t('日付をタップして、その日にやるマイセットを入れられます。塗りつぶしはトレーニングした日、薄い色は予定の日です（色はマイセットごと）。')}</p>
       </section>
 
       <section className="card">

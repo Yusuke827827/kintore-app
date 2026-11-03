@@ -4,6 +4,7 @@ import MenuEditor from '../components/MenuEditor'
 import { eq, nm, t } from '../i18n'
 import { usePremium } from '../state/PremiumContext'
 import { FREE_LIMITS } from '../lib/pricing'
+import { ROUTINE_COLORS, nextRoutineColor, routineColor } from '../lib/routineColors'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -368,16 +369,20 @@ function ExercisesTab() {
 
 // ---- マイセット ----
 function RoutineEditor({ routine, onDone }) {
-  const { addRoutine, updateRoutine, deleteRoutine } = useData()
+  const { addRoutine, updateRoutine, deleteRoutine, routines } = useData()
   const [name, setName] = useState(routine?.name ?? '')
+  const [color, setColor] = useState(() => (routine ? routineColor(routine, routines) : nextRoutineColor(routines)))
   const [menu, setMenu] = useState({
     exerciseIds: routine?.exerciseIds ?? [],
     targets: routine?.targets ?? {},
   })
 
   function save() {
-    if (routine) updateRoutine(routine.id, { name: name.trim(), ...menu })
-    else addRoutine(name.trim(), menu.exerciseIds, menu.targets)
+    if (routine) updateRoutine(routine.id, { name: name.trim(), ...menu, color })
+    else {
+      const id = addRoutine(name.trim(), menu.exerciseIds, menu.targets)
+      updateRoutine(id, { color })
+    }
     onDone()
   }
 
@@ -390,6 +395,18 @@ function RoutineEditor({ routine, onDone }) {
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
+      <h3>{t('色')}</h3>
+      <div className="swatches">
+        {ROUTINE_COLORS.map((c) => (
+          <button
+            key={c}
+            className={`swatch ${color === c ? 'on' : ''}`}
+            style={{ background: c }}
+            onClick={() => setColor(c)}
+            aria-label={c}
+          />
+        ))}
+      </div>
       <MenuEditor value={menu} onChange={setMenu} />
       <div className="row">
         <button className="secondary" onClick={onDone}>
@@ -444,7 +461,10 @@ function RoutinesTab() {
         {routines.map((r) => (
           <li key={r.id} className="row-between">
             <button className="edit-main" onClick={() => setEditing(r.id)}>
-              <strong>{r.name}</strong>
+              <strong className="with-icon">
+                <i className="routine-dot" style={{ background: routineColor(r, routines) }} />
+                {r.name}
+              </strong>
               <span className="muted">
                 {r.exerciseIds
                   .map((id) => nm(allExercises.find((e) => e.id === id)))

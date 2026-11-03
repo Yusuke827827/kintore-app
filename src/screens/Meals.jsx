@@ -9,6 +9,7 @@ import { getLanguage, t } from '../i18n'
 import { usePremium } from '../state/PremiumContext'
 import LockCard from '../components/LockCard'
 import Icon from '../components/Icon'
+import { dayScore, dayTotals, metGoal } from '../lib/nutrition'
 
 const MEAL_TYPES = [
   { key: 'breakfast', label: '朝食' },
@@ -27,31 +28,6 @@ function addDays(date, n) {
   const d = new Date(`${date}T00:00:00`)
   d.setDate(d.getDate() + n)
   return todayStr(d)
-}
-
-function dayTotals(meals, date) {
-  const tot = { kcal: 0, p: 0, f: 0, c: 0 }
-  for (const m of meals) {
-    if (m.date !== date) continue
-    for (const k of Object.keys(tot)) tot[k] += m[k] ?? 0
-  }
-  return tot
-}
-
-// その日の目標に対する達成度（0〜100点）。カロリーは±10%以内、タンパク質は90%以上で満点
-function dayScore(tot, target) {
-  if (!target || tot.kcal === 0) return null
-  const kcalRatio = tot.kcal / target.kcal
-  const kcalScore = Math.max(0, 1 - Math.max(0, Math.abs(kcalRatio - 1) - 0.1) * 2)
-  const pScore = Math.min(1, tot.p / (target.p * 0.9))
-  const fScore = Math.max(0, 1 - Math.max(0, Math.abs(tot.f / target.f - 1) - 0.2))
-  const cScore = Math.max(0, 1 - Math.max(0, Math.abs(tot.c / target.c - 1) - 0.2))
-  return Math.round((kcalScore * 0.35 + pScore * 0.35 + fScore * 0.15 + cScore * 0.15) * 100)
-}
-
-function metGoal(tot, target) {
-  if (!target || tot.kcal === 0) return false
-  return Math.abs(tot.kcal / target.kcal - 1) <= 0.1 && tot.p >= target.p * 0.9
 }
 
 function scoreColor(score) {

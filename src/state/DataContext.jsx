@@ -22,6 +22,7 @@ import {
 } from '../lib/stats'
 import { setLanguage, t } from '../i18n'
 import { applyTheme } from '../lib/theme'
+import { nextRoutineColor } from '../lib/routineColors'
 import { setSoundEnabled } from '../lib/restAlarm'
 import { usePremium } from './PremiumContext'
 import { FREE_ACCENTS, FREE_WALLPAPERS } from '../lib/pricing'
@@ -309,7 +310,7 @@ export function DataProvider({ children }) {
         const id = makeId('routine')
         updateMaster((s) => ({
           ...s,
-          routines: [...s.routines, { id, name, exerciseIds, ...(targets ? { targets } : {}) }],
+          routines: [...s.routines, { id, name, exerciseIds, color: nextRoutineColor(s.routines), ...(targets ? { targets } : {}) }],
         }))
         return id
       },
@@ -317,11 +318,12 @@ export function DataProvider({ children }) {
       applyWeeklyPlan(days) {
         updateMaster((s) => {
           const weekly = { ...s.plans.weekly }
-          const added = days.map((d) => {
+          const added = []
+          for (const d of days) {
             const id = makeId('routine')
             weekly[d.weekday] = id
-            return { id, name: d.name, exerciseIds: d.exerciseIds, targets: d.targets }
-          })
+            added.push({ id, name: d.name, exerciseIds: d.exerciseIds, targets: d.targets, color: nextRoutineColor([...s.routines, ...added]) })
+          }
           return { ...s, routines: [...s.routines, ...added], plans: { ...s.plans, weekly } }
         })
       },
@@ -398,7 +400,8 @@ export function DataProvider({ children }) {
       },
 
       // ---- 記録中のトレーニング（1項目ごとに保存される） ----
-      startWorkout(exerciseIds, bodyPartIds = [], targets = {}) {
+      // routineId：マイセットから始めたとき（カレンダーの色分けに使う）
+      startWorkout(exerciseIds, bodyPartIds = [], targets = {}, routineId = null) {
         setState((s) => {
           const date = todayStr()
           return {
@@ -409,6 +412,7 @@ export function DataProvider({ children }) {
               startedAt: Date.now(),
               updatedAt: Date.now(),
               bodyPartIds,
+              ...(routineId ? { routineId } : {}),
               restEndsAt: null,
               items: exerciseIds.map((exId) => newItem(s, exId, date, undefined, targets[exId])),
             },
@@ -430,6 +434,7 @@ export function DataProvider({ children }) {
               finishedAt: session.finishedAt ?? null,
               updatedAt: Date.now(),
               bodyPartIds: session.bodyPartIds ?? [],
+              ...(session.routineId ? { routineId: session.routineId } : {}),
               restEndsAt: null,
               items: session.entries.map((en) => ({
                 exerciseId: en.exerciseId,
@@ -488,6 +493,7 @@ export function DataProvider({ children }) {
             date: w.date,
             bodyPartIds: [],
             entries,
+            ...(w.routineId ? { routineId: w.routineId } : {}),
             startedAt: w.startedAt,
             finishedAt: w.finishedAt ?? Date.now(),
             updatedAt: Date.now(),

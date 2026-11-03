@@ -41,6 +41,7 @@ export const FREE_LIMITS = {
 // プレミアムの機能（有料の画面で上から順に並べる）
 export const FEATURES = [
   { key: 'menu', icon: 'bolt', label: 'メニュー自動作成（スタンダード・アドバンス）', desc: '部位を選ぶだけで、種目・セット数・回数まで決めてくれる' },
+  { key: 'report', icon: 'trend', label: '週・月のレポートの詳しい評価', desc: '良かった点・改善点・次の目標・PDF保存' },
   { key: 'trainer', icon: 'user', label: '体型別トレーナーの週メニュー', desc: '目指す体型から1週間の計画を作って、曜日に入れてくれる' },
   { key: 'routines', icon: 'list', label: 'マイセット無制限', desc: '無料版は{n}つまで' },
   { key: 'recovery', icon: 'battery', label: '回復マップ', desc: '部位ごとの回復具合をひと目で' },
