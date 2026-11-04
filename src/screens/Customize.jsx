@@ -522,7 +522,9 @@ function RoutineCard({ routine: r, onEdit, onStart }) {
           <i className="routine-dot" style={{ background: color }} />
           {r.name}
         </h2>
-        <MoveButtons onMove={(dir) => moveRoutine(r.id, dir)} />
+        <div className="item-tools">
+          <MoveButtons onMove={(dir) => moveRoutine(r.id, dir)} />
+        </div>
       </div>
       <p className="muted">
         {t('{n}種目・{s}セット・約{m}分', { n: r.exerciseIds.length, s: totalSets, m: minutes })}
