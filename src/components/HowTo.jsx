@@ -395,9 +395,9 @@ const TOPICS_EN = [
 // 最初はよく使う3項目だけ。残りは「すべて見る」で開く
 const FIRST = 3
 
-export default function HowTo() {
+export default function HowTo({ all: showAll = false }) {
   const topics = getLanguage() === 'en' ? TOPICS_EN : TOPICS_JA
-  const [all, setAll] = useState(false)
+  const [all, setAll] = useState(showAll)
   return (
     <section className="card">
       <h2>{t('使い方')}</h2>

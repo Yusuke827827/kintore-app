@@ -128,9 +128,9 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
 
   const [showMap, setShowMap] = useState(() => {
     try {
-      return localStorage.getItem('kintore-show-map') !== '0'
+      return localStorage.getItem('kintore-show-map') === '1'
     } catch {
-      return true
+      return false
     }
   })
   function toggleMap() {
@@ -172,6 +172,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
   // 無料版はライトだけ。スタンダード・アドバンスはプレミアム
   const [level, setLevel] = useState(premium ? 'standard' : 'light')
   const [generated, setGenerated] = useState(null)
+  const [genOpen, setGenOpen] = useState(false)
   function generate(lv = level) {
     setGenerated(generateMenu({ partIds: chosen, level: premium ? lv : 'light', exercises, sessions, gym }))
   }
@@ -263,6 +264,31 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
         </section>
       )}
 
+      {routines.length > 0 && !activeWorkout && (
+        <section className="quick-sets">
+          <div className="row-between">
+            <h2>{t('マイセットですぐ始める')}</h2>
+            <button className="ghost" onClick={() => onOpenCustomize('routines')}>
+              {t('編集')}
+            </button>
+          </div>
+          <div className="quick-scroll">
+            {routines.map((r) => (
+              <button
+                key={r.id}
+                className="quick-card routine-main"
+                style={{ '--rc': routineColor(r, routines) }}
+                onClick={() => start(r.exerciseIds.filter((id) => visibleIds.has(id)), [], r.targets, r.id)}
+              >
+                <strong>{r.name}</strong>
+                <span className="muted">{t('{n}種目', { n: r.exerciseIds.length })}</span>
+                <small>{r.exerciseIds.map(exName).filter(Boolean).slice(0, 3).join(t('・'))}</small>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {focus !== 'strength' && <CardioHome onStart={(ids, parts) => start(ids, parts)} />}
 
       {focus === 'cardio' && !showStrength && (
@@ -279,13 +305,15 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
             {t('部位')}
             {!picked && sessions.length > 0 && <span className="badge">{t('おすすめを選択中')}</span>}
           </h2>
-          <button className="ghost" onClick={() => onOpenCustomize('parts')}>
-            {t('編集')}
-          </button>
+          <div className="item-tools">
+            <button className={`ghost ${showMap ? 'on' : ''}`} onClick={toggleMap}>
+              {showMap ? t('回復マップを隠す') : t('回復マップを表示')}
+            </button>
+            <button className="ghost" onClick={() => onOpenCustomize('parts')}>
+              {t('編集')}
+            </button>
+          </div>
         </div>
-        <button className="link map-toggle" onClick={toggleMap}>
-          {showMap ? t('回復マップを隠す') : t('回復マップを表示')}
-        </button>
         {showMap && !premium && <LockCard feature="recovery" />}
         {showMap && premium && (
           <RecoveryMap
@@ -346,10 +374,32 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
           )}
         </div>
 
+        <button
+          className="primary wide big"
+          disabled={chosen.length === 0}
+          onClick={() => start(menu, chosen)}
+        >
+          {chosen.length > 0
+            ? t('{parts}で始める', { parts: chosen.map(partName).join(t('＋')) })
+            : t('始める')}
+        </button>
+        <button className="link" onClick={() => start([], chosen)} disabled={chosen.length === 0}>
+          {t('種目を自分で選んで始める')}
+        </button>
+      </section>
+        </>
+      )}
+
+      {(focus !== 'cardio' || showStrength) && (
+        <section className="card">
+          <button className="generator-toggle" onClick={() => setGenOpen(!genOpen)} aria-expanded={genOpen}>
+            <span className="with-icon">
+              <Icon name="bolt" size={18} /> {t('メニューを自動で作る')}
+            </span>
+            <Icon name="chevron" size={18} className={genOpen ? 'turn' : ''} />
+          </button>
+          {genOpen && (
         <div className="generator">
-          <div className="row-between">
-            <strong className="with-icon"><Icon name="bolt" size={18} /> {t('メニューを自動で作る')}</strong>
-          </div>
           <div className="segmented">
             {LEVELS.map((l) => (
               <button
@@ -413,48 +463,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
           />
         </div>
 
-        <button
-          className="primary wide big"
-          disabled={chosen.length === 0}
-          onClick={() => start(menu, chosen)}
-        >
-          {chosen.length > 0
-            ? t('{parts}で始める', { parts: chosen.map(partName).join(t('＋')) })
-            : t('始める')}
-        </button>
-        <button className="link" onClick={() => start([], chosen)} disabled={chosen.length === 0}>
-          {t('種目を自分で選んで始める')}
-        </button>
-      </section>
-        </>
-      )}
-
-      {routines.length > 0 && (
-        <section className="card">
-          <div className="item-header">
-            <h2>{t('マイセット')}</h2>
-            <button className="ghost" onClick={() => onOpenCustomize('routines')}>
-              {t('編集')}
-            </button>
-          </div>
-          <ul className="plain-list">
-            {routines.map((r) => (
-              <li key={r.id} className="routine">
-                <button
-                  className="routine-main"
-                  onClick={() => start(r.exerciseIds.filter((id) => visibleIds.has(id)), [], r.targets, r.id)}
-                >
-                  <strong className="with-icon">
-                    <i className="routine-dot" style={{ background: routineColor(r, routines) }} />
-                    {r.name}
-                  </strong>
-                  <span className="muted">
-                    {r.exerciseIds.map(exName).filter(Boolean).join(t('・'))}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          )}
         </section>
       )}
 

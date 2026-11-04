@@ -301,6 +301,9 @@ export default function Workout({ onFinished, wake }) {
         const cardio = isCardio(exercise)
         const up = !isEdit && !cardio ? progressionFor(prev?.sets, settings.progression) : null
         const cup = !isEdit && cardio && !it.target?.min ? cardioProgression(prev?.sets, settings.progression) : null
+        // 次にやるセット（まだ✓していない最初のセット）には ± ボタンを出す
+        const nextIndex = it.sets.findIndex((x) => !x.done)
+        const step = settings.progression?.step || 2.5
         return (
           <section className="card" key={`${it.exerciseId}-${itemIndex}`}>
             <div className="item-header">
@@ -444,6 +447,31 @@ export default function Workout({ onFinished, wake }) {
                   >
                     <Icon name="check" size={20} strokeWidth={2.4} />
                   </button>
+                  {!cardio && setIndex === nextIndex && (
+                    <div className="stepper-row">
+                      {[
+                        ['weight', step, 'kg'],
+                        ['reps', 1, t('回')],
+                      ].map(([key, d, unit]) => {
+                        const bump = (sign) => {
+                          const base = Number(s[key] !== '' && s[key] != null ? s[key] : ph?.[key] ?? 0) || 0
+                          const v = Math.max(0, Math.round((base + sign * d) * 100) / 100)
+                          updateSet(itemIndex, setIndex, { [key]: String(v) })
+                        }
+                        return (
+                          <div className="stepper" key={key}>
+                            <button onClick={() => bump(-1)} aria-label={`${unit} −${d}`}>
+                              −{d}
+                            </button>
+                            <span>{unit}</span>
+                            <button onClick={() => bump(1)} aria-label={`${unit} +${d}`}>
+                              ＋{d}
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                   {cardio && (
                     <div className="cardio-info">
                       {speedKmh(Number(cur('min')), Number(cur('km'))) && (

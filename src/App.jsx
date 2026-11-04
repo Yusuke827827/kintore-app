@@ -9,6 +9,7 @@ import Settings from './screens/Settings'
 import Customize from './screens/Customize'
 import Plan from './screens/Plan'
 import Meals from './screens/Meals'
+import Onboarding from './screens/Onboarding'
 import { formatMinutes } from './lib/date'
 import { formatPace } from './lib/stats'
 import { nm, t } from './i18n'
@@ -180,7 +181,11 @@ function FinishedSummary({ summary, onClose }) {
 }
 
 function AppInner() {
-  const { activeWorkout, syncStatus, startWorkout, settings } = useData()
+  const { activeWorkout, syncStatus, startWorkout, settings, sessions, profile } = useData()
+  // 初めて開いたとき（記録もプロフィールもない）は案内を出す
+  const [onboarding, setOnboarding] = useState(
+    () => !settings.onboarded && sessions.length === 0 && !profile && !activeWorkout
+  )
   // 記録中は画面を消さない
   const wake = useWakeLock(!!activeWorkout && settings.keepAwake !== false)
   // 記録の途中でアプリが閉じても、開き直したらそのまま続きから
@@ -205,6 +210,8 @@ function AppInner() {
     { key: 'history', label: t('履歴'), icon: 'history' },
     { key: 'settings', label: t('設定'), icon: 'settings' },
   ]
+
+  if (onboarding) return <Onboarding onDone={() => setOnboarding(false)} />
 
   return (
     <div className="app">

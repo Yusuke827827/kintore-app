@@ -683,77 +683,133 @@ function formatRest(sec) {
   return t('{m}分{s}秒', { m: Math.floor(sec / 60), s: sec % 60 })
 }
 
-export default function Settings({ onOpenCustomize }) {
+function RestTimerSection() {
   const { settings, updateSettings } = useData()
+  return (
+    <section className="card">
+      <h2>{t('休憩タイマー')}</h2>
+      <p className="muted">{t('セットの ✓ を押すと自動で始まります。')}</p>
+      <div className="chips">
+        {[60, 90, 120, 150, 180, 240].map((sec) => (
+          <button
+            key={sec}
+            className={`chip ${settings.restSeconds === sec ? 'on' : ''}`}
+            onClick={() => updateSettings({ restSeconds: sec })}
+          >
+            {formatRest(sec)}
+          </button>
+        ))}
+      </div>
+      <label className="option toggle-row">
+        <input
+          type="checkbox"
+          checked={settings.sound !== false}
+          onChange={(e) => updateSettings({ sound: e.target.checked })}
+        />
+        {t('終わったら音で知らせる')}
+      </label>
+      <label className="option toggle-row">
+        <input
+          type="checkbox"
+          checked={settings.keepAwake !== false}
+          onChange={(e) => updateSettings({ keepAwake: e.target.checked })}
+        />
+        {t('記録中は画面を消さない')}
+      </label>
+      {typeof navigator !== 'undefined' && !('wakeLock' in navigator) && (
+        <p className="muted">
+          {t('この端末・ブラウザは画面を消さない機能に対応していません（iPhoneはiOS 16.4以降、ホーム画面に追加したアプリで使えます）。')}
+        </p>
+      )}
+    </section>
+  )
+}
+
+// 設定のページ。トップは項目の一覧で、タップするとそのページへ
+const PAGES = {
+  training: { icon: 'target', label: 'トレーニングの設定', desc: 'スタイル・週の目標・重量の自動アップ・休憩タイマー' },
+  look: { icon: 'palette', label: '見た目と言語', desc: 'モード・テーマカラー・壁紙・文字の大きさ・言語' },
+  data: { icon: 'cloud', label: 'データ', desc: '同期・バックアップ・CSV・リセット' },
+  howto: { icon: 'note', label: '使い方', desc: '機能の説明' },
+}
+
+function Row({ icon, label, desc, onClick }) {
+  return (
+    <button className="settings-row" onClick={onClick}>
+      <span className="settings-icon">
+        <Icon name={icon} size={18} />
+      </span>
+      <span className="settings-text">
+        <strong>{label}</strong>
+        {desc && <small>{desc}</small>}
+      </span>
+      <Icon name="chevron" size={16} className="settings-chevron" />
+    </button>
+  )
+}
+
+export default function Settings({ onOpenCustomize }) {
+  const [page, setPageState] = useState(null)
+  const setPage = (k) => {
+    setPageState(k)
+    window.scrollTo(0, 0)
+  }
+
+  if (page) {
+    return (
+      <div className="screen">
+        <button className="back-link" onClick={() => setPage(null)}>
+          ‹ {t('設定')}
+        </button>
+        <h1>{t(PAGES[page].label)}</h1>
+        {page === 'training' && (
+          <>
+            <GoalSection />
+            <RestTimerSection />
+          </>
+        )}
+        {page === 'look' && (
+          <>
+            <LanguageSection />
+            <AppearanceSection />
+          </>
+        )}
+        {page === 'data' && (
+          <>
+            <SyncSection />
+            <BackupSection />
+            <ResetSection />
+          </>
+        )}
+        {page === 'howto' && <HowTo all />}
+      </div>
+    )
+  }
 
   return (
     <div className="screen">
       <h1>{t('設定')}</h1>
 
       <PremiumSection />
-      <HowTo />
 
-      <section className="card">
-        <h2>{t('カスタマイズ')}</h2>
-        <p className="muted">{t('部位・種目・マイセットを、追加・名前変更・並べ替え・削除できます。')}</p>
-        <div className="custom-links">
-          <button className="secondary" onClick={() => onOpenCustomize('parts')}>
-            {t('部位')}
-          </button>
-          <button className="secondary" onClick={() => onOpenCustomize('exercises')}>
-            {t('種目')}
-          </button>
-          <button className="secondary" onClick={() => onOpenCustomize('routines')}>
-            {t('マイセット')}
-          </button>
-        </div>
-      </section>
+      <div className="settings-group">
+        {['training', 'look'].map((k) => (
+          <Row key={k} icon={PAGES[k].icon} label={t(PAGES[k].label)} desc={t(PAGES[k].desc)} onClick={() => setPage(k)} />
+        ))}
+      </div>
 
-      <LanguageSection />
-      <AppearanceSection />
+      <h3 className="settings-caption">{t('カスタマイズ')}</h3>
+      <div className="settings-group">
+        <Row icon="user" label={t('部位')} onClick={() => onOpenCustomize('parts')} />
+        <Row icon="live" label={t('種目')} onClick={() => onOpenCustomize('exercises')} />
+        <Row icon="list" label={t('マイセット')} onClick={() => onOpenCustomize('routines')} />
+      </div>
 
-      <GoalSection />
-
-      <section className="card">
-        <h2>{t('休憩タイマー')}</h2>
-        <p className="muted">{t('セットの ✓ を押すと自動で始まります。')}</p>
-        <div className="chips">
-          {[60, 90, 120, 150, 180, 240].map((sec) => (
-            <button
-              key={sec}
-              className={`chip ${settings.restSeconds === sec ? 'on' : ''}`}
-              onClick={() => updateSettings({ restSeconds: sec })}
-            >
-              {formatRest(sec)}
-            </button>
-          ))}
-        </div>
-        <label className="option toggle-row">
-          <input
-            type="checkbox"
-            checked={settings.sound !== false}
-            onChange={(e) => updateSettings({ sound: e.target.checked })}
-          />
-          {t('終わったら音で知らせる')}
-        </label>
-        <label className="option toggle-row">
-          <input
-            type="checkbox"
-            checked={settings.keepAwake !== false}
-            onChange={(e) => updateSettings({ keepAwake: e.target.checked })}
-          />
-          {t('記録中は画面を消さない')}
-        </label>
-        {typeof navigator !== 'undefined' && !('wakeLock' in navigator) && (
-          <p className="muted">
-            {t('この端末・ブラウザは画面を消さない機能に対応していません（iPhoneはiOS 16.4以降、ホーム画面に追加したアプリで使えます）。')}
-          </p>
-        )}
-      </section>
-
-      <SyncSection />
-      <BackupSection />
-      <ResetSection />
+      <div className="settings-group">
+        {['data', 'howto'].map((k) => (
+          <Row key={k} icon={PAGES[k].icon} label={t(PAGES[k].label)} desc={t(PAGES[k].desc)} onClick={() => setPage(k)} />
+        ))}
+      </div>
     </div>
   )
 }
