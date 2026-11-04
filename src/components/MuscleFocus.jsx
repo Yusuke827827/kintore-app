@@ -105,6 +105,9 @@ export default function MuscleFocus({ onStart }) {
                           <span className={`muscle-tag ${primary ? 'main' : ''}`}>{primary ? t('メイン') : t('補助')}</span> {nm(ex)}
                           {count > 0 && <small className="muted"> ・{t('{n}回やった', { n: count })}</small>}
                         </span>
+                        <button className="ghost" onClick={() => setGuideFor(ex)} aria-label={t('{name}の解説', { name: nm(ex) })}>
+                          <Icon name="info" size={17} />
+                        </button>
                         <button className={`ghost ${on ? 'on' : ''}`} aria-pressed={!!(on)} onClick={() => toggleExercise(ex)} aria-label={on ? t('外す') : t('追加')}>
                           <Icon name={on ? 'check' : 'plus'} size={18} />
                         </button>

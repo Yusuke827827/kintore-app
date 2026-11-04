@@ -66,6 +66,7 @@ function seed() {
   d.settings = { ...d.settings, weeklyGoal: 3, onboarded: true, focus: 'strength' }
   localStorage.setItem(k, JSON.stringify(d))
   localStorage.setItem('kintore-show-map', '0')
+  localStorage.setItem('kintore-last-backup', new Date().toISOString().slice(0, 10))
 }
 
 const SHOTS = [

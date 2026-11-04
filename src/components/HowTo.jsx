@@ -217,6 +217,9 @@ const TOPICS_JA = [
         <li>できたメニューは、そのまま始める・新しいマイセットに保存・今のマイセットに追加ができます</li>
         <li>「設定 → マイセット」では、マイセットごとに種目・セット数×回数・鍛える筋肉・最後にやった日が見られ、始める・編集・複製ができます。編集では「筋肉から種目を追加」も使えます</li>
         <li>自分で作った種目は、種目の編集で「主に効く筋肉」を選ぶと、筋肉で選ぶときにも出てきます</li>
+        <li>記録中の種目名の横や、筋肉ごとの種目リストの ⓘ を押すと、効く筋肉・やり方・よくある間違いが見られます</li>
+        <li>食事の「＋ 追加」には、よく食べるものと ☆ を付けたお気に入りが出て、ワンタップで記録できます</li>
+        <li>同期していない場合は、30日ごとにホームでバックアップ（ファイルに保存）をお知らせします</li>
       </ul>
     ),
   },
@@ -435,6 +438,9 @@ const TOPICS_EN = [
         <li>Start the menu right away, save it as a new My Set, or add it to an existing one</li>
         <li>Settings → My Sets shows each set’s exercises, sets × reps, muscles worked and when you last did it. Start, edit or duplicate from there; editing also has “Add exercises by muscle”</li>
         <li>For exercises you created, choose the main muscles when editing so they appear under “By muscle” too</li>
+        <li>Tap ⓘ next to an exercise (while logging or in the muscle list) for muscles worked, how-to steps and common mistakes</li>
+        <li>In Meals, “＋ Add” shows frequent meals and ☆ favorites for one-tap logging</li>
+        <li>If you don’t use sync, Home reminds you every 30 days to save a backup file</li>
       </ul>
     ),
   },
