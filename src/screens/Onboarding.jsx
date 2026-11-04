@@ -96,7 +96,7 @@ export default function Onboarding({ onDone }) {
             {FOCUS.map((f) => (
               <button
                 key={f.key}
-                className={`onb-option ${focus === f.key ? 'on' : ''}`}
+                className={`onb-option ${focus === f.key ? 'on' : ''}`} aria-pressed={!!(focus === f.key)}
                 onClick={() => {
                   setFocus(f.key)
                   set({ bodyType: null })
@@ -123,7 +123,7 @@ export default function Onboarding({ onDone }) {
           <h1>{t('目指す体は？')}</h1>
           <div className="onb-options">
             {types.map((b) => (
-              <button key={b.key} className={`onb-option ${p.bodyType === b.key ? 'on' : ''}`} onClick={() => set({ bodyType: b.key })}>
+              <button key={b.key} className={`onb-option ${p.bodyType === b.key ? 'on' : ''}`} aria-pressed={!!(p.bodyType === b.key)} onClick={() => set({ bodyType: b.key })}>
                 <span>
                   <strong>{t(b.label)}</strong>
                   <small>{t(b.desc)}</small>
@@ -142,7 +142,7 @@ export default function Onboarding({ onDone }) {
           <h1>{t('週に何回できそうですか？')}</h1>
           <div className="onb-days">
             {[1, 2, 3, 4, 5, 6].map((n) => (
-              <button key={n} className={`chip ${p.days === n ? 'on' : ''}`} onClick={() => set({ days: n })}>
+              <button key={n} className={`chip ${p.days === n ? 'on' : ''}`} aria-pressed={!!(p.days === n)} onClick={() => set({ days: n })}>
                 {t('週{n}回', { n })}
               </button>
             ))}
@@ -155,7 +155,7 @@ export default function Onboarding({ onDone }) {
               ['intermediate', t('中級者')],
               ['advanced', t('上級者')],
             ].map(([k, label]) => (
-              <button key={k} className={p.level === k ? 'on' : ''} onClick={() => set({ level: k })}>
+              <button key={k} className={p.level === k ? 'on' : ''} aria-pressed={!!(p.level === k)} onClick={() => set({ level: k })}>
                 {label}
               </button>
             ))}
@@ -175,7 +175,7 @@ export default function Onboarding({ onDone }) {
               ['male', t('男性')],
               ['female', t('女性')],
             ].map(([k, label]) => (
-              <button key={k} className={p.sex === k ? 'on' : ''} onClick={() => set({ sex: k })}>
+              <button key={k} className={p.sex === k ? 'on' : ''} aria-pressed={!!(p.sex === k)} onClick={() => set({ sex: k })}>
                 {label}
               </button>
             ))}

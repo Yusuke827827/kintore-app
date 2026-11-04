@@ -28,7 +28,7 @@ export default function RestTimer({ endsAt, onChange }) {
   }
 
   return (
-    <div className="rest-timer">
+    <div className="rest-timer" role="timer" aria-label={t("休憩タイマー")}>
       <span className="rest-label">{t('休憩')}</span>
       <span className="rest-time">{formatClock(remaining)}</span>
       <button onClick={() => adjust(-15)}>{t('−15秒')}</button>

@@ -20,7 +20,7 @@
   --text: #f5f5f7;
   --text-2: #d6d6db;
   --muted: #8e8e95;
-  --faint: #636369;
+  --faint: #7c7c84;
   --placeholder: #55555b;
 
   --ok: #32d74b;
@@ -62,7 +62,7 @@
   --text: #111113;
   --text-2: #3a3a3f;
   --muted: #6e6e75;
-  --faint: #a1a1a8;
+  --faint: #85858c;
   --placeholder: #b4b4ba;
   --ok: #1f9d3a;
   --ok-soft: #1f9d3a;
@@ -3620,4 +3620,163 @@ a {
   color: var(--ok);
   font-weight: 600;
   padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+}
+
+/* ---- 筋肉で選ぶ ---- */
+.pick-mode {
+  margin: 0 0 12px;
+}
+
+.muscle-focus .segmented {
+  margin-top: 14px;
+}
+
+.small-toggle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin: 10px 0 4px;
+  color: var(--accent-text);
+}
+
+.muscle-list h3 {
+  margin: 10px 0 2px;
+}
+
+.muscle-tag {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--muted);
+  vertical-align: 1px;
+}
+
+.muscle-tag.main {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent-text);
+}
+
+.muscle-focus .row select {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- マイセットのカード ---- */
+.routine-card {
+  border-left: 4px solid var(--rc);
+}
+
+.routine-card h2 {
+  margin: 0;
+}
+
+.routine-card > p.muted {
+  margin: 4px 0 8px;
+}
+
+.muscle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.muscle-chips span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: var(--rc);
+  background: color-mix(in srgb, var(--rc) 14%, transparent);
+}
+
+.routine-ex {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: ex;
+}
+
+.routine-ex li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 0.5px solid var(--hairline);
+  font-size: 0.9rem;
+}
+
+.routine-ex li::before {
+  counter-increment: ex;
+  content: counter(ex);
+  color: var(--faint);
+  font-weight: 700;
+  width: 18px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.routine-ex li span {
+  flex: 1;
+}
+
+.routine-ex small {
+  color: var(--muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.muscle-add {
+  margin-top: 6px;
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+
+/* ---- 読みやすさ・使いやすさ ---- */
+/* キーボードで操作したときに、いまどこにいるか見えるように */
+:focus-visible {
+  outline: 2.5px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
+/* 動きを減らす設定の人には、アニメーションを止める */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 「コントラストを上げる」設定の人には、境目と薄い文字をはっきり */
+@media (prefers-contrast: more) {
+  :root {
+    --muted: var(--text-2);
+    --faint: var(--muted);
+    --hairline: var(--border);
+  }
+}
+
+/* 押しやすさ：小さなボタンも最低 36px の大きさに */
+button.ghost,
+.chip.small {
+  min-height: 36px;
 }

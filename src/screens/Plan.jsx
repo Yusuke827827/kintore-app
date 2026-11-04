@@ -132,7 +132,7 @@ function PlanCalendar({ onStart }) {
             {routines.map((r) => (
               <button
                 key={r.id}
-                className={selPlan === r.id ? 'on' : ''}
+                className={selPlan === r.id ? 'on' : ''} aria-pressed={!!(selPlan === r.id)}
                 onClick={() => {
                   setPlanDate(selected, r.id)
                   setSelected(null)
@@ -259,7 +259,7 @@ function Trainer() {
             ['male', t('男性')],
             ['female', t('女性')],
           ].map(([k, label]) => (
-            <button key={k} className={p.sex === k ? 'on' : ''} onClick={() => update({ sex: k })}>
+            <button key={k} className={p.sex === k ? 'on' : ''} aria-pressed={!!(p.sex === k)} onClick={() => update({ sex: k })}>
               {label}
             </button>
           ))}
@@ -289,7 +289,7 @@ function Trainer() {
             ['intermediate', t('中級者')],
             ['advanced', t('上級者')],
           ].map(([k, label]) => (
-            <button key={k} className={p.level === k ? 'on' : ''} onClick={() => update({ level: k })}>
+            <button key={k} className={p.level === k ? 'on' : ''} aria-pressed={!!(p.level === k)} onClick={() => update({ level: k })}>
               {label}
             </button>
           ))}
@@ -299,7 +299,7 @@ function Trainer() {
           {[1, 2, 3, 4, 5, 6, 0].map((wd) => (
             <button
               key={wd}
-              className={`chip small ${(p.weekdays ?? DEFAULT_WEEKDAYS[p.days]).includes(wd) ? 'on' : ''}`}
+              className={`chip small ${(p.weekdays ?? DEFAULT_WEEKDAYS[p.days]).includes(wd) ? 'on' : ''}`} aria-pressed={!!((p.weekdays ?? DEFAULT_WEEKDAYS[p.days]).includes(wd))}
               onClick={() => toggleWeekday(wd)}
             >
               {weekdayLabel(wd)}
@@ -313,7 +313,7 @@ function Trainer() {
         <h2>{t('目指す体型')}</h2>
         <div className="body-types">
           {BODY_TYPES.map((b) => (
-            <button key={b.key} className={`body-type ${p.bodyType === b.key ? 'on' : ''}`} onClick={() => update({ bodyType: b.key })}>
+            <button key={b.key} className={`body-type ${p.bodyType === b.key ? 'on' : ''}`} aria-pressed={!!(p.bodyType === b.key)} onClick={() => update({ bodyType: b.key })}>
               <span className="stars">{'★'.repeat(b.stars)}{'☆'.repeat(5 - b.stars)}</span>
               <strong>{t(b.label)}</strong>
               <small>{t(b.desc)}</small>
@@ -491,7 +491,7 @@ function GymSetup() {
         <h3>{t('ジムの種類')}</h3>
         <div className="chips">
           {GYM_PRESETS.map((g) => (
-            <button key={g.key} className={`chip small ${preset === g.key ? 'on' : ''}`} onClick={() => choosePreset(g.key)}>
+            <button key={g.key} className={`chip small ${preset === g.key ? 'on' : ''}`} aria-pressed={!!(preset === g.key)} onClick={() => choosePreset(g.key)}>
               {t(g.label)}
             </button>
           ))}
@@ -502,7 +502,7 @@ function GymSetup() {
           {EQUIPMENT.map((eq) => (
             <button
               key={eq}
-              className={`chip small ${equipment.includes(eq) ? 'on' : ''}`}
+              className={`chip small ${equipment.includes(eq) ? 'on' : ''}`} aria-pressed={!!(equipment.includes(eq))}
               onClick={() => applyEquipment(equipment.includes(eq) ? equipment.filter((x) => x !== eq) : [...equipment, eq])}
             >
               {t(eq)}
@@ -571,7 +571,7 @@ export default function Plan({ onStartRoutine }) {
           ['trainer', t('トレーナー')],
           ['gym', t('ジム')],
         ].map(([k, label]) => (
-          <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
+          <button key={k} className={tab === k ? 'on' : ''} aria-pressed={!!(tab === k)} onClick={() => setTab(k)}>
             {label}
           </button>
         ))}

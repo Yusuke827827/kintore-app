@@ -172,7 +172,7 @@ export default function History({ onOpenWorkout, initialView = 'log', reportProp
           ['stats', t('分析')],
           ['report', t('レポート')],
         ].map(([key, label]) => (
-          <button key={key} className={view === key ? 'on' : ''} onClick={() => setView(key)}>
+          <button key={key} className={view === key ? 'on' : ''} aria-pressed={!!(view === key)} onClick={() => setView(key)}>
             {label}
           </button>
         ))}
@@ -249,7 +249,7 @@ export default function History({ onOpenWorkout, initialView = 'log', reportProp
 
       <div className="chips">
         <button
-          className={`chip ${filterPart === 'all' ? 'on' : ''}`}
+          className={`chip ${filterPart === 'all' ? 'on' : ''}`} aria-pressed={!!(filterPart === 'all')}
           onClick={() => setFilterPart('all')}
         >
           {t('すべて')}
@@ -257,7 +257,7 @@ export default function History({ onOpenWorkout, initialView = 'log', reportProp
         {bodyParts.map((p) => (
           <button
             key={p.id}
-            className={`chip ${filterPart === p.id ? 'on' : ''}`}
+            className={`chip ${filterPart === p.id ? 'on' : ''}`} aria-pressed={!!(filterPart === p.id)}
             onClick={() => setFilterPart(p.id)}
           >
             {nm(p)}

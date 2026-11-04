@@ -1,5 +1,6 @@
 import {
   SEED_V2_PART_IDS,
+  SEED_V3_EXERCISE_IDS,
   SEED_VERSION,
   initialBodyParts,
   initialExercises,
@@ -44,9 +45,14 @@ export const DEFAULT_SETTINGS = {
   weeklyGoal: 3,
 }
 
-// 前の版のデータに、あとから増えた初期の部位・種目（有酸素）を足す
+// 前の版のデータに、あとから増えた初期の部位・種目を足す
 function addNewSeeds(data) {
-  if (!data || (data.seedVersion ?? 1) >= SEED_VERSION) return data
+  if (!data) return data
+  // v3 の種目：一度も持っていなければ足す（消したものは印つきで残っているので、戻ってこない）
+  const have = new Set((data.exercises ?? []).map((e) => e.id))
+  const v3 = data.exercises ? initialExercises.filter((e) => SEED_V3_EXERCISE_IDS.includes(e.id) && !have.has(e.id)) : []
+  if (v3.length) data = { ...data, exercises: [...data.exercises, ...v3] }
+  if ((data.seedVersion ?? 1) >= 2) return data
   const parts = data.bodyParts ?? initialBodyParts
   const exercises = data.exercises ?? initialExercises
   const partIds = new Set(parts.map((p) => p.id))

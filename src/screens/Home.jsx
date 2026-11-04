@@ -24,6 +24,7 @@ import Icon from '../components/Icon'
 import { routineColor } from '../lib/routineColors'
 import { buildReport } from '../lib/report'
 import { ScoreRing } from '../components/Report'
+import MuscleFocus from '../components/MuscleFocus'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -173,6 +174,21 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
   const [level, setLevel] = useState(premium ? 'standard' : 'light')
   const [generated, setGenerated] = useState(null)
   const [genOpen, setGenOpen] = useState(false)
+  const [pickMode, setPickMode] = useState(() => {
+    try {
+      return localStorage.getItem('kintore-pick-mode') === 'muscle' ? 'muscle' : 'part'
+    } catch {
+      return 'part'
+    }
+  })
+  function changePickMode(k) {
+    setPickMode(k)
+    try {
+      localStorage.setItem('kintore-pick-mode', k)
+    } catch {
+      // 保存できなくても切り替えはできる
+    }
+  }
   function generate(lv = level) {
     setGenerated(generateMenu({ partIds: chosen, level: premium ? lv : 'light', exercises, sessions, gym }))
   }
@@ -300,13 +316,28 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
       {(focus !== 'cardio' || showStrength) && (
         <>
       <section className="card">
+        {/* 部位で選ぶ／細かい筋肉で選ぶ */}
+        <div className="segmented pick-mode">
+          {[
+            ['part', t('部位で選ぶ')],
+            ['muscle', t('筋肉で選ぶ')],
+          ].map(([k, label]) => (
+            <button key={k} className={pickMode === k ? 'on' : ''} aria-pressed={!!(pickMode === k)} onClick={() => changePickMode(k)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {pickMode === 'muscle' ? (
+          <MuscleFocus onStart={(ids, targets) => start(ids, [], targets)} />
+        ) : (
+        <>
         <div className="item-header">
           <h2>
             {t('部位')}
             {!picked && sessions.length > 0 && <span className="badge">{t('おすすめを選択中')}</span>}
           </h2>
           <div className="item-tools">
-            <button className={`ghost ${showMap ? 'on' : ''}`} onClick={toggleMap}>
+            <button className={`ghost ${showMap ? 'on' : ''}`} aria-pressed={!!(showMap)} onClick={toggleMap}>
               {showMap ? t('回復マップを隠す') : t('回復マップを表示')}
             </button>
             <button className="ghost" onClick={() => onOpenCustomize('parts')}>
@@ -334,7 +365,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
                 {parts.map((p) => (
                   <button
                     key={p.id}
-                    className={`chip ${chosen.includes(p.id) ? 'on' : ''}`}
+                    className={`chip ${chosen.includes(p.id) ? 'on' : ''}`} aria-pressed={!!(chosen.includes(p.id))}
                     onClick={() => togglePart(p.id)}
                   >
                     {nm(p)}
@@ -356,7 +387,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
                 {candidates.map((id) => (
                   <button
                     key={id}
-                    className={`chip small ${isOn(id) ? 'on' : ''}`}
+                    className={`chip small ${isOn(id) ? 'on' : ''}`} aria-pressed={!!(isOn(id))}
                     onClick={() => setToggled((t) => ({ ...t, [id]: !isOn(id) }))}
                   >
                     {isOn(id) ? '✓ ' : ''}
@@ -386,11 +417,13 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
         <button className="link" onClick={() => start([], chosen)} disabled={chosen.length === 0}>
           {t('種目を自分で選んで始める')}
         </button>
+        </>
+        )}
       </section>
         </>
       )}
 
-      {(focus !== 'cardio' || showStrength) && (
+      {(focus !== 'cardio' || showStrength) && pickMode === 'part' && (
         <section className="card">
           <button className="generator-toggle" onClick={() => setGenOpen(!genOpen)} aria-expanded={genOpen}>
             <span className="with-icon">
@@ -404,7 +437,7 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
             {LEVELS.map((l) => (
               <button
                 key={l.key}
-                className={level === l.key ? 'on' : ''}
+                className={level === l.key ? 'on' : ''} aria-pressed={!!(level === l.key)}
                 onClick={() => {
                   if (l.key !== 'light' && !gate('menu')) return
                   setLevel(l.key)

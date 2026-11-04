@@ -57,6 +57,9 @@ function setNumber(sets, index) {
 
 // その行に薄く出す「前回の値」（重量アップの対象なら、通常セットの重量を上げて出す）
 // メニューで回数の目標（target）が決まっていれば、回数はそれを出す
+// 入力欄の読み上げ用の名前
+const FIELD_LABEL = { weight: '重さ（kg）', reps: '回数', min: '時間（分）', km: '距離（km）', kcal: '消費カロリー', incline: '傾斜', level: 'レベル', hr: '平均心拍', steps: '歩数', stride: '歩幅', pace: 'ペース' }
+
 function placeholderFor(item, index, prev, up, cup) {
   const base = basePlaceholder(item, index, prev, up)
   const target = item.target
@@ -329,7 +332,7 @@ export default function Workout({ onFinished, wake }) {
         </div>
         <div className="workout-actions">
           {voiceSupported() && (
-            <button className={`mic ${voice.on ? 'on' : ''}`} onClick={startVoice} disabled={voice.on} aria-label={t('声で入力')}>
+            <button className={`mic ${voice.on ? 'on' : ''}`} aria-pressed={!!(voice.on)} onClick={startVoice} disabled={voice.on} aria-label={t('声で入力')}>
               <Icon name="mic" size={20} />
             </button>
           )}
@@ -338,7 +341,11 @@ export default function Workout({ onFinished, wake }) {
           </button>
         </div>
       </div>
-      {voice.msg && <p className="voice-msg">{voice.msg}</p>}
+      {voice.msg && (
+        <p className="voice-msg" role="status" aria-live="polite">
+          {voice.msg}
+        </p>
+      )}
 
       {w.items.map((it, itemIndex) => {
         const exercise = exercises.find((e) => e.id === it.exerciseId)
@@ -460,6 +467,7 @@ export default function Workout({ onFinished, wake }) {
                 <input
                   type={text ? 'text' : 'number'}
                   inputMode={mode}
+                  aria-label={t('{ex} {n}セット目 {f}', { ex: exercise ? nm(exercise) : '', n: setIndex + 1, f: t(FIELD_LABEL[key] ?? key) })}
                   placeholder={ph?.[key] != null ? String(ph[key]) : fallbackLabel}
                   value={s[key] ?? ''}
                   onChange={(e) => updateSet(itemIndex, setIndex, { [key]: e.target.value })}
@@ -491,7 +499,7 @@ export default function Workout({ onFinished, wake }) {
                     </>
                   )}
                   <button
-                    className={`check ${s.done ? 'on' : ''}`}
+                    className={`check ${s.done ? 'on' : ''}`} aria-pressed={!!(s.done)}
                     onClick={() => toggleDone(itemIndex, setIndex, ph)}
                     aria-label={t('セット完了')}
                   >

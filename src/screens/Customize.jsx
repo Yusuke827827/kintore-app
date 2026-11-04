@@ -4,7 +4,11 @@ import MenuEditor from '../components/MenuEditor'
 import { eq, nm, t } from '../i18n'
 import { usePremium } from '../state/PremiumContext'
 import { FREE_LIMITS } from '../lib/pricing'
-import { ROUTINE_COLORS, nextRoutineColor, routineColor } from '../lib/routineColors'
+import { ROUTINE_COLORS, nextRoutineColor, routineColor, routineOfSession } from '../lib/routineColors'
+import { MUSCLES, exercisesForMuscle, musclesOf, musclesOfMenu } from '../lib/muscles'
+import { isCardio } from '../lib/stats'
+import { daysAgoLabel, todayStr } from '../lib/date'
+import Icon from '../components/Icon'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -51,7 +55,7 @@ function PartForm({ initial, onSave, onCancel, saveLabel }) {
         {GROUPS.map((g) => (
           <button
             key={g.key}
-            className={`chip ${group === g.key ? 'on' : ''}`}
+            className={`chip ${group === g.key ? 'on' : ''}`} aria-pressed={!!(group === g.key)}
             onClick={() => setGroup(g.key)}
           >
             {t(g.label)}
@@ -168,6 +172,8 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
     else if (type === 'cardio') setType('compound')
   }
   const [videoUrl, setVideoUrl] = useState(initial?.videoUrl ?? '')
+  const [muscles, setMuscles] = useState(() => musclesOf(initial).p)
+  const partMuscles = MUSCLES.filter((m) => m.part === bodyPartId)
   const equipmentOptions = EQUIPMENTS.includes(equipment) ? EQUIPMENTS : [...EQUIPMENTS, equipment]
 
   return (
@@ -207,6 +213,23 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
           <option value="cardio">{t('有酸素（時間・距離で記録）')}</option>
         </select>
       </label>
+      {partMuscles.length > 0 && type !== 'cardio' && (
+        <div className="field-block">
+          <span className="muted">{t('主に効く筋肉（「筋肉で選ぶ」に出ます）')}</span>
+          <div className="chips">
+            {partMuscles.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                className={`chip small ${muscles.includes(m.id) ? 'on' : ''}`} aria-pressed={!!(muscles.includes(m.id))}
+                onClick={() => setMuscles(muscles.includes(m.id) ? muscles.filter((x) => x !== m.id) : [...muscles, m.id])}
+              >
+                {t(m.name)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <input
         className="grow"
         type="url"
@@ -231,6 +254,8 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
               equipment,
               type,
               videoUrl: videoUrl.trim(),
+              // 部位を変えたときは、その部位の筋肉だけ残す
+              muscles: muscles.filter((id) => MUSCLES.find((m) => m.id === id)?.part === bodyPartId),
             })
           }
         >
@@ -266,7 +291,7 @@ function ExercisesTab() {
         {bodyParts.map((p) => (
           <button
             key={p.id}
-            className={`chip ${partId === p.id ? 'on' : ''}`}
+            className={`chip ${partId === p.id ? 'on' : ''}`} aria-pressed={!!(partId === p.id)}
             onClick={() => {
               setPartId(p.id)
               setEditingId(null)
@@ -400,7 +425,7 @@ function RoutineEditor({ routine, onDone }) {
         {ROUTINE_COLORS.map((c) => (
           <button
             key={c}
-            className={`swatch ${color === c ? 'on' : ''}`}
+            className={`swatch ${color === c ? 'on' : ''}`} aria-pressed={!!(color === c)}
             style={{ background: c }}
             onClick={() => setColor(c)}
             aria-label={c}
@@ -408,6 +433,7 @@ function RoutineEditor({ routine, onDone }) {
         ))}
       </div>
       <MenuEditor value={menu} onChange={setMenu} />
+      <MuscleAdd menu={menu} onChange={setMenu} />
       <div className="row">
         <button className="secondary" onClick={onDone}>
           {t('キャンセル')}
@@ -436,8 +462,120 @@ function RoutineEditor({ routine, onDone }) {
   )
 }
 
-function RoutinesTab() {
-  const { routines, allExercises, moveRoutine } = useData()
+// 筋肉を選んで、その筋肉に効く種目をマイセットに足す
+function MuscleAdd({ menu, onChange }) {
+  const { exercises, sessions, gym } = useData()
+  const [muscle, setMuscle] = useState(null)
+  const add = (ex) => {
+    if (menu.exerciseIds.includes(ex.id)) return
+    onChange({
+      exerciseIds: [...menu.exerciseIds, ex.id],
+      targets: { ...menu.targets, [ex.id]: { sets: 3, reps: ex.type === 'isolation' ? 12 : 10 } },
+    })
+  }
+  return (
+    <div className="muscle-add">
+      <h3>{t('筋肉から種目を追加')}</h3>
+      <div className="chips">
+        {MUSCLES.map((m) => (
+          <button key={m.id} className={`chip small ${muscle === m.id ? 'on' : ''}`} aria-pressed={!!(muscle === m.id)} onClick={() => setMuscle(muscle === m.id ? null : m.id)}>
+            {t(m.name)}
+          </button>
+        ))}
+      </div>
+      {muscle && (
+        <ul className="plain-list">
+          {exercisesForMuscle(muscle, { exercises, sessions, gym }).map(({ exercise: ex, primary }) => {
+            const on = menu.exerciseIds.includes(ex.id)
+            return (
+              <li key={ex.id} className="row-between">
+                <span>
+                  <span className={`muscle-tag ${primary ? 'main' : ''}`}>{primary ? t('メイン') : t('補助')}</span> {nm(ex)}
+                </span>
+                <button className={`ghost ${on ? 'on' : ''}`} aria-pressed={!!(on)} disabled={on} onClick={() => add(ex)} aria-label={t('追加')}>
+                  <Icon name={on ? 'check' : 'plus'} size={18} />
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+// マイセット1つ分のカード：種目・セット数・回数、鍛える筋肉、最後にやった日。ここから始める・編集・複製
+function RoutineCard({ routine: r, onEdit, onStart }) {
+  const { routines, allExercises, sessions, moveRoutine, addRoutine, updateRoutine } = useData()
+  const { gate } = usePremium()
+  const color = routineColor(r, routines)
+  const done = sessions.filter((s) => routineOfSession(s, routines)?.id === r.id)
+  const lastDate = done.map((s) => s.date).sort().pop()
+  const muscles = musclesOfMenu(r.exerciseIds, allExercises)
+  const totalSets = r.exerciseIds.reduce((a, id) => a + (r.targets?.[id]?.sets ?? (isCardio(allExercises.find((e) => e.id === id)) ? 0 : 3)), 0)
+  const cardioMin = r.exerciseIds.reduce((a, id) => a + (isCardio(allExercises.find((e) => e.id === id)) ? r.targets?.[id]?.min ?? 30 : 0), 0)
+  const minutes = Math.round(totalSets * 2.5 + cardioMin)
+  return (
+    <section className="card routine-card" style={{ '--rc': color }}>
+      <div className="row-between">
+        <h2 className="with-icon">
+          <i className="routine-dot" style={{ background: color }} />
+          {r.name}
+        </h2>
+        <div className="item-tools">
+          <MoveButtons onMove={(dir) => moveRoutine(r.id, dir)} />
+        </div>
+      </div>
+      <p className="muted">
+        {t('{n}種目・{s}セット・約{m}分', { n: r.exerciseIds.length, s: totalSets, m: minutes })}
+        {' ・ '}
+        {lastDate ? t('最後 {d}（{c}回）', { d: daysAgoLabel(lastDate, todayStr()), c: done.length }) : t('まだやっていません')}
+      </p>
+      {muscles.length > 0 && (
+        <div className="muscle-chips">
+          {muscles.map((m) => (
+            <span key={m.id}>{t(m.name)}</span>
+          ))}
+        </div>
+      )}
+      <ol className="routine-ex">
+        {r.exerciseIds.map((id) => {
+          const ex = allExercises.find((e) => e.id === id)
+          const tg = r.targets?.[id]
+          return (
+            <li key={id}>
+              <span>{ex ? nm(ex) : t('（削除された種目）')}</span>
+              <small>{isCardio(ex) ? t('{m}分', { m: tg?.min ?? 30 }) : `${tg?.sets ?? 3}×${tg?.reps ?? 10}`}</small>
+            </li>
+          )
+        })}
+      </ol>
+      <div className="row">
+        {onStart && (
+          <button className="primary" onClick={() => onStart(r)}>
+            {t('始める')}
+          </button>
+        )}
+        <button className="secondary" onClick={onEdit}>
+          {t('編集')}
+        </button>
+        <button
+          className="secondary"
+          onClick={() => {
+            if (!gate('routines', routines.length)) return
+            const id = addRoutine(t('{name}のコピー', { name: r.name }), r.exerciseIds, r.targets)
+            updateRoutine(id, { color: nextRoutineColor(routines) })
+          }}
+        >
+          {t('複製')}
+        </button>
+      </div>
+    </section>
+  )
+}
+
+function RoutinesTab({ onStartRoutine }) {
+  const { routines } = useData()
   const { premium, gate } = usePremium()
   const [editing, setEditing] = useState(null) // routine id | 'new' | null
 
@@ -452,32 +590,14 @@ function RoutinesTab() {
   }
 
   return (
-    <section className="card">
+    <>
       <p className="muted">
         {t('決まったメニューを登録しておくと、ホームからワンタップで始められます。')}
       </p>
       {routines.length === 0 && <p className="muted">{t('まだマイセットがありません。')}</p>}
-      <ul className="plain-list">
-        {routines.map((r) => (
-          <li key={r.id} className="row-between">
-            <button className="edit-main" onClick={() => setEditing(r.id)}>
-              <strong className="with-icon">
-                <i className="routine-dot" style={{ background: routineColor(r, routines) }} />
-                {r.name}
-              </strong>
-              <span className="muted">
-                {r.exerciseIds
-                  .map((id) => nm(allExercises.find((e) => e.id === id)))
-                  .filter(Boolean)
-                  .join(t('・'))}
-              </span>
-            </button>
-            <div className="item-tools">
-              <MoveButtons onMove={(dir) => moveRoutine(r.id, dir)} />
-            </div>
-          </li>
-        ))}
-      </ul>
+      {routines.map((r) => (
+        <RoutineCard key={r.id} routine={r} onEdit={() => setEditing(r.id)} onStart={onStartRoutine} />
+      ))}
       <button
         className="secondary wide"
         onClick={() => gate('routines', routines.length) && setEditing('new')}
@@ -492,7 +612,7 @@ function RoutinesTab() {
           })}
         </p>
       )}
-    </section>
+    </>
   )
 }
 
@@ -557,7 +677,7 @@ const TABS = [
   { key: 'trash', label: '削除済み' },
 ]
 
-export default function Customize({ initialTab = 'parts', onBack }) {
+export default function Customize({ initialTab = 'parts', onBack, onStartRoutine }) {
   const [tab, setTab] = useState(initialTab)
   return (
     <div className="screen">
@@ -569,14 +689,14 @@ export default function Customize({ initialTab = 'parts', onBack }) {
       </div>
       <div className="segmented">
         {TABS.map((x) => (
-          <button key={x.key} className={tab === x.key ? 'on' : ''} onClick={() => setTab(x.key)}>
+          <button key={x.key} className={tab === x.key ? 'on' : ''} aria-pressed={!!(tab === x.key)} onClick={() => setTab(x.key)}>
             {t(x.label)}
           </button>
         ))}
       </div>
       {tab === 'parts' && <PartsTab />}
       {tab === 'exercises' && <ExercisesTab />}
-      {tab === 'routines' && <RoutinesTab />}
+      {tab === 'routines' && <RoutinesTab onStartRoutine={onStartRoutine} />}
       {tab === 'trash' && <TrashTab />}
     </div>
   )

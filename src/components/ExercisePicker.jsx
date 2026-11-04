@@ -42,13 +42,13 @@ export default function ExercisePicker({ preferPartIds = [], addedIds = [], onPi
         />
         {!q && (
           <div className="chips">
-            <button className={`chip ${partId === 'all' ? 'on' : ''}`} onClick={() => setPartId('all')}>
+            <button className={`chip ${partId === 'all' ? 'on' : ''}`} aria-pressed={!!(partId === 'all')} onClick={() => setPartId('all')}>
               {t('すべて')}
             </button>
             {bodyParts.map((p) => (
               <button
                 key={p.id}
-                className={`chip ${partId === p.id ? 'on' : ''}`}
+                className={`chip ${partId === p.id ? 'on' : ''}`} aria-pressed={!!(partId === p.id)}
                 onClick={() => setPartId(p.id)}
               >
                 {nm(p)}

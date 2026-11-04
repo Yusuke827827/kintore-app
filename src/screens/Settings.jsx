@@ -101,7 +101,7 @@ function LanguageSection() {
         {LANGUAGES.map((l) => (
           <button
             key={l.key}
-            className={settings.lang === l.key ? 'on' : ''}
+            className={settings.lang === l.key ? 'on' : ''} aria-pressed={!!(settings.lang === l.key)}
             onClick={() => updateSettings({ lang: l.key })}
           >
             {l.label}
@@ -158,7 +158,7 @@ function AppearanceSection() {
         {MODES.map((m) => (
           <button
             key={m.key}
-            className={theme.mode === m.key ? 'on' : ''}
+            className={theme.mode === m.key ? 'on' : ''} aria-pressed={!!(theme.mode === m.key)}
             onClick={() => setTheme({ mode: m.key })}
           >
             {t(m.label)}
@@ -171,7 +171,7 @@ function AppearanceSection() {
         {Object.entries(ACCENTS).map(([key, a]) => (
           <button
             key={key}
-            className={`swatch ${theme.accent === key && !locked(FREE_ACCENTS, key) ? 'on' : ''} ${locked(FREE_ACCENTS, key) ? 'locked' : ''}`}
+            className={`swatch ${theme.accent === key && !locked(FREE_ACCENTS, key) ? 'on' : ''} ${locked(FREE_ACCENTS, key) ? 'locked' : ''}`} aria-pressed={!!(theme.accent === key && !locked(FREE_ACCENTS, key))}
             style={{ background: a.c[0] }}
             onClick={() => (!locked(FREE_ACCENTS, key) || gate('theme')) && setTheme({ accent: key })}
             aria-label={t(a.label)}
@@ -185,7 +185,7 @@ function AppearanceSection() {
         {WALLPAPERS.map((w) => (
           <button
             key={w.key}
-            className={`wallpaper ${theme.wallpaper === w.key && !locked(FREE_WALLPAPERS, w.key) ? 'on' : ''}`}
+            className={`wallpaper ${theme.wallpaper === w.key && !locked(FREE_WALLPAPERS, w.key) ? 'on' : ''}`} aria-pressed={!!(theme.wallpaper === w.key && !locked(FREE_WALLPAPERS, w.key))}
             style={{ background: w.css === 'none' ? 'var(--sunken)' : w.css }}
             onClick={() => (!locked(FREE_WALLPAPERS, w.key) || gate('theme')) && setTheme({ wallpaper: w.key })}
           >
@@ -197,7 +197,7 @@ function AppearanceSection() {
         ))}
         {customWallpaper && premium && (
           <button
-            className={`wallpaper ${theme.wallpaper === 'custom' ? 'on' : ''}`}
+            className={`wallpaper ${theme.wallpaper === 'custom' ? 'on' : ''}`} aria-pressed={!!(theme.wallpaper === 'custom')}
             style={{ backgroundImage: `url("${customWallpaper}")` }}
             onClick={() => setTheme({ wallpaper: 'custom' })}
           >
@@ -245,7 +245,7 @@ function AppearanceSection() {
         {FONT_SIZES.map((f) => (
           <button
             key={f.key}
-            className={theme.fontSize === f.key ? 'on' : ''}
+            className={theme.fontSize === f.key ? 'on' : ''} aria-pressed={!!(theme.fontSize === f.key)}
             onClick={() => setTheme({ fontSize: f.key })}
           >
             {t(f.label)}
@@ -583,7 +583,7 @@ function GoalSection() {
         {FOCUS.map((f) => (
           <button
             key={f.key}
-            className={(settings.focus ?? 'strength') === f.key ? 'on' : ''}
+            className={(settings.focus ?? 'strength') === f.key ? 'on' : ''} aria-pressed={!!((settings.focus ?? 'strength') === f.key)}
             onClick={() => updateSettings({ focus: f.key })}
           >
             {t(f.label)}
@@ -597,7 +597,7 @@ function GoalSection() {
             {[60, 90, 120, 150, 200, 300].map((n) => (
               <button
                 key={n}
-                className={`chip small ${cg.weeklyMin === n ? 'on' : ''}`}
+                className={`chip small ${cg.weeklyMin === n ? 'on' : ''}`} aria-pressed={!!(cg.weeklyMin === n)}
                 onClick={() => updateSettings({ cardioGoal: { ...cg, weeklyMin: n } })}
               >
                 {t('{m}分', { m: n })}
@@ -610,7 +610,7 @@ function GoalSection() {
             {[0, 20, 50, 100, 150, 200].map((n) => (
               <button
                 key={n}
-                className={`chip small ${cg.monthlyKm === n ? 'on' : ''}`}
+                className={`chip small ${cg.monthlyKm === n ? 'on' : ''}`} aria-pressed={!!(cg.monthlyKm === n)}
                 onClick={() => updateSettings({ cardioGoal: { ...cg, monthlyKm: n } })}
               >
                 {n === 0 ? t('なし') : `${n}km`}
@@ -628,7 +628,7 @@ function GoalSection() {
         {[0, 1, 2, 3, 4, 5, 6].map((n) => (
           <button
             key={n}
-            className={`chip ${settings.weeklyGoal === n ? 'on' : ''}`}
+            className={`chip ${settings.weeklyGoal === n ? 'on' : ''}`} aria-pressed={!!(settings.weeklyGoal === n)}
             onClick={() => updateSettings({ weeklyGoal: n })}
           >
             {n === 0 ? t('なし') : t('週{n}回', { n })}
@@ -648,7 +648,7 @@ function GoalSection() {
             {[5, 6, 8, 10, 12, 15].map((n) => (
               <button
                 key={n}
-                className={`chip ${prog.reps === n ? 'on' : ''}`}
+                className={`chip ${prog.reps === n ? 'on' : ''}`} aria-pressed={!!(prog.reps === n)}
                 onClick={() => setProg({ reps: n })}
               >
                 {t('{n}回', { n })}
@@ -660,7 +660,7 @@ function GoalSection() {
             {[1, 1.25, 2, 2.5, 5].map((n) => (
               <button
                 key={n}
-                className={`chip ${prog.step === n ? 'on' : ''}`}
+                className={`chip ${prog.step === n ? 'on' : ''}`} aria-pressed={!!(prog.step === n)}
                 onClick={() => setProg({ step: n })}
               >
                 +{n}kg
@@ -747,7 +747,7 @@ function RestTimerSection() {
         {[60, 90, 120, 150, 180, 240].map((sec) => (
           <button
             key={sec}
-            className={`chip ${settings.restSeconds === sec ? 'on' : ''}`}
+            className={`chip ${settings.restSeconds === sec ? 'on' : ''}`} aria-pressed={!!(settings.restSeconds === sec)}
             onClick={() => updateSettings({ restSeconds: sec })}
           >
             {formatRest(sec)}

@@ -23,13 +23,13 @@ export default function PersonalRecords() {
     <section className="card">
       <h2>{t('自己ベスト')}</h2>
       <div className="chips">
-        <button className={`chip small ${partId === 'all' ? 'on' : ''}`} onClick={() => setPartId('all')}>
+        <button className={`chip small ${partId === 'all' ? 'on' : ''}`} aria-pressed={!!(partId === 'all')} onClick={() => setPartId('all')}>
           {t('すべて')}
         </button>
         {usedParts.map((p) => (
           <button
             key={p.id}
-            className={`chip small ${partId === p.id ? 'on' : ''}`}
+            className={`chip small ${partId === p.id ? 'on' : ''}`} aria-pressed={!!(partId === p.id)}
             onClick={() => setPartId(p.id)}
           >
             {nm(p)}

@@ -86,7 +86,7 @@ export default function RecoveryMap({ bodyParts, lastByPart, today, selected, on
           {others.map((p) => (
             <button
               key={p.id}
-              className={`chip small ${selected.includes(p.id) ? 'on' : ''}`}
+              className={`chip small ${selected.includes(p.id) ? 'on' : ''}`} aria-pressed={!!(selected.includes(p.id))}
               onClick={() => onToggle(p.id)}
             >
               <span className="dot" style={{ background: recoveryColor(daysOf(p.id)) }} />

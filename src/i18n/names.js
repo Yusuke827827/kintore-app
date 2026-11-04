@@ -22,6 +22,7 @@ export const DEFAULT_NAMES_EN = {
   'chest-12': 'Cable Fly',
   'chest-13': 'Cable Press',
   'chest-14': 'Incline Chest Press (Plate-Loaded)',
+  'chest-15': 'Dips',
 
   'back-01': 'Lat Pulldown',
   'back-02': 'Seated Row',
@@ -36,6 +37,8 @@ export const DEFAULT_NAMES_EN = {
   'back-11': 'Front Lat Pulldown',
   'back-12': 'T-Bar Row',
   'back-13': 'Back Extension',
+  'back-14': 'Dumbbell Shrug',
+  'back-15': 'Pull-Up',
 
   'shoulder-01': 'Shoulder Press',
   'shoulder-02': 'Rear Delt Machine',
@@ -60,6 +63,12 @@ export const DEFAULT_NAMES_EN = {
   'arm-08': 'Cable Pushdown',
   'arm-09': 'Cable Kickback',
   'arm-10': 'Bench Dips',
+  'arm-11': 'Wrist Curl',
+  'arm-12': 'Reverse Curl',
+  'arm-13': 'Incline Dumbbell Curl',
+  'arm-14': 'Close-Grip Bench Press',
+  'arm-15': 'Overhead Cable Extension',
+  'arm-16': 'Concentration Curl',
 
   'legs-01': 'Inner / Outer Thigh',
   'legs-02': 'Leg Curl',
@@ -78,6 +87,10 @@ export const DEFAULT_NAMES_EN = {
   'legs-15': 'Dumbbell Romanian Deadlift',
   'legs-16': 'Leg Press (Plate-Loaded)',
   'legs-17': 'Step-Up',
+  'legs-18': 'Calf Raise',
+  'legs-19': 'Seated Calf Raise',
+  'legs-20': 'Hip Abduction',
+  'legs-21': 'Hip Adduction',
 
   'core-01': 'Ab Crunch Machine',
   'core-02': 'Torso Rotation',
@@ -87,6 +100,8 @@ export const DEFAULT_NAMES_EN = {
   'core-06': 'Crunch',
   'core-07': 'Leg Raise',
   'core-08': 'Kettlebell Swing',
+  'core-09': 'Side Bend',
+  'core-10': 'Ab Wheel',
 
   'cardio-01': 'Treadmill',
   'cardio-02': 'Exercise Bike',
