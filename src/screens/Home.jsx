@@ -25,6 +25,7 @@ import { routineColor } from '../lib/routineColors'
 import { buildReport } from '../lib/report'
 import { ScoreRing } from '../components/Report'
 import MuscleFocus from '../components/MuscleFocus'
+import { backupDue, downloadBackup, snoozeBackup } from '../lib/backup'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -77,6 +78,9 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
     bodyLogs,
     profile,
   } = useData()
+  const data = useData()
+  const [backupHidden, setBackupHidden] = useState(false)
+  const backup = backupHidden ? null : backupDue({ sessions, syncConfigured: data.syncStatus.configured })
   const importMenu = useAiMenuImport()
   const { premium, gate } = usePremium()
   const focus = settings.focus ?? 'strength'
@@ -215,6 +219,40 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
           </>
         )}
       </p>
+
+      {backup && (
+        <section className="card backup-nudge" role="status">
+          <Icon name="cloud" size={22} />
+          <div>
+            <strong>{t('記録のバックアップをしましょう')}</strong>
+            <p className="muted">
+              {backup.days == null
+                ? t('記録はこの端末の中だけにあります。機種変更や故障に備えて、ファイルに保存しておくと安心です。')
+                : t('最後のバックアップから{n}日たちました。', { n: backup.days })}
+            </p>
+            <div className="row">
+              <button
+                className="primary small"
+                onClick={() => {
+                  downloadBackup(data)
+                  setBackupHidden(true)
+                }}
+              >
+                {t('ファイルに保存')}
+              </button>
+              <button
+                className="secondary small"
+                onClick={() => {
+                  snoozeBackup(7)
+                  setBackupHidden(true)
+                }}
+              >
+                {t('あとで')}
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {lastWeek && (
         <button className="card report-teaser" onClick={() => onOpenReport?.('week', -1)}>

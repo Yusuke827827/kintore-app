@@ -8,6 +8,7 @@ import { isCardio } from '../lib/stats'
 import { nm, t } from '../i18n'
 import MenuEditor from './MenuEditor'
 import Icon from './Icon'
+import ExerciseGuide from './ExerciseGuide'
 
 const PART_ORDER = ['chest', 'back', 'shoulder', 'arm', 'legs', 'core']
 
@@ -22,6 +23,7 @@ export default function MuscleFocus({ onStart }) {
   const [listOpen, setListOpen] = useState(false)
   const [addTo, setAddTo] = useState('')
   const [message, setMessage] = useState('')
+  const [guideFor, setGuideFor] = useState(null)
   const last = useMemo(() => lastTrainedByMuscle(sessions, allExercises), [sessions, allExercises])
 
   function rebuild(ids, lv = level) {
@@ -64,6 +66,7 @@ export default function MuscleFocus({ onStart }) {
         </div>
       ))}
 
+      {guideFor && <ExerciseGuide exercise={guideFor} onClose={() => setGuideFor(null)} />}
       {picked.length === 0 ? (
         <p className="muted menu-preview">{t('鍛えたい筋肉を選ぶと、その筋肉に効く種目でメニューを作ります。')}</p>
       ) : (

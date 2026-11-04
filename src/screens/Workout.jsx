@@ -28,6 +28,7 @@ import {
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
 import { usePremium } from '../state/PremiumContext'
 import Icon from '../components/Icon'
+import ExerciseGuide from '../components/ExerciseGuide'
 import { listenOnce, parseVoice, voiceSupported } from '../lib/voice'
 
 function formatSets(sets) {
@@ -108,6 +109,7 @@ export default function Workout({ onFinished, wake }) {
   const [orderOpen, setOrderOpen] = useState(false)
   const [details, setDetails] = useState(() => new Set()) // 有酸素の詳しい入力を開いている種目
   const [voice, setVoice] = useState({ on: false, msg: '' }) // 声で入力
+  const [guideFor, setGuideFor] = useState(null) // 解説を開いている種目
   function toggleDetails(i) {
     setDetails((cur) => {
       const next = new Set(cur)
@@ -384,6 +386,11 @@ export default function Workout({ onFinished, wake }) {
                 )}
               </h2>
               <div className="item-tools">
+                {exercise && (
+                  <button className="ghost" onClick={() => setGuideFor(exercise)} aria-label={t('{name}の解説', { name: nm(exercise) })}>
+                    <Icon name="info" size={18} />
+                  </button>
+                )}
                 <button className="ghost" onClick={() => moveItem(itemIndex, -1)} aria-label={t('上へ')}>
                   ↑
                 </button>
@@ -699,6 +706,7 @@ export default function Workout({ onFinished, wake }) {
         </div>
       )}
 
+      {guideFor && <ExerciseGuide exercise={guideFor} onClose={() => setGuideFor(null)} />}
       {pickerOpen && (
         <ExercisePicker
           preferPartIds={w.bodyPartIds}
