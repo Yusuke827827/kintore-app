@@ -55,7 +55,7 @@ function PartForm({ initial, onSave, onCancel, saveLabel }) {
         {GROUPS.map((g) => (
           <button
             key={g.key}
-            className={`chip ${group === g.key ? 'on' : ''}`}
+            className={`chip ${group === g.key ? 'on' : ''}`} aria-pressed={!!(group === g.key)}
             onClick={() => setGroup(g.key)}
           >
             {t(g.label)}
@@ -221,7 +221,7 @@ function ExerciseForm({ initial, bodyParts, onSave, onCancel, saveLabel }) {
               <button
                 key={m.id}
                 type="button"
-                className={`chip small ${muscles.includes(m.id) ? 'on' : ''}`}
+                className={`chip small ${muscles.includes(m.id) ? 'on' : ''}`} aria-pressed={!!(muscles.includes(m.id))}
                 onClick={() => setMuscles(muscles.includes(m.id) ? muscles.filter((x) => x !== m.id) : [...muscles, m.id])}
               >
                 {t(m.name)}
@@ -291,7 +291,7 @@ function ExercisesTab() {
         {bodyParts.map((p) => (
           <button
             key={p.id}
-            className={`chip ${partId === p.id ? 'on' : ''}`}
+            className={`chip ${partId === p.id ? 'on' : ''}`} aria-pressed={!!(partId === p.id)}
             onClick={() => {
               setPartId(p.id)
               setEditingId(null)
@@ -425,7 +425,7 @@ function RoutineEditor({ routine, onDone }) {
         {ROUTINE_COLORS.map((c) => (
           <button
             key={c}
-            className={`swatch ${color === c ? 'on' : ''}`}
+            className={`swatch ${color === c ? 'on' : ''}`} aria-pressed={!!(color === c)}
             style={{ background: c }}
             onClick={() => setColor(c)}
             aria-label={c}
@@ -478,7 +478,7 @@ function MuscleAdd({ menu, onChange }) {
       <h3>{t('筋肉から種目を追加')}</h3>
       <div className="chips">
         {MUSCLES.map((m) => (
-          <button key={m.id} className={`chip small ${muscle === m.id ? 'on' : ''}`} onClick={() => setMuscle(muscle === m.id ? null : m.id)}>
+          <button key={m.id} className={`chip small ${muscle === m.id ? 'on' : ''}`} aria-pressed={!!(muscle === m.id)} onClick={() => setMuscle(muscle === m.id ? null : m.id)}>
             {t(m.name)}
           </button>
         ))}
@@ -492,7 +492,7 @@ function MuscleAdd({ menu, onChange }) {
                 <span>
                   <span className={`muscle-tag ${primary ? 'main' : ''}`}>{primary ? t('メイン') : t('補助')}</span> {nm(ex)}
                 </span>
-                <button className={`ghost ${on ? 'on' : ''}`} disabled={on} onClick={() => add(ex)} aria-label={t('追加')}>
+                <button className={`ghost ${on ? 'on' : ''}`} aria-pressed={!!(on)} disabled={on} onClick={() => add(ex)} aria-label={t('追加')}>
                   <Icon name={on ? 'check' : 'plus'} size={18} />
                 </button>
               </li>
@@ -689,7 +689,7 @@ export default function Customize({ initialTab = 'parts', onBack, onStartRoutine
       </div>
       <div className="segmented">
         {TABS.map((x) => (
-          <button key={x.key} className={tab === x.key ? 'on' : ''} onClick={() => setTab(x.key)}>
+          <button key={x.key} className={tab === x.key ? 'on' : ''} aria-pressed={!!(tab === x.key)} onClick={() => setTab(x.key)}>
             {t(x.label)}
           </button>
         ))}

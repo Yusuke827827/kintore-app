@@ -264,7 +264,7 @@ export default function Report({ initialKind = 'week', initialOffset = 0 }) {
         {KINDS.map(([k, l]) => (
           <button
             key={k}
-            className={kind === k ? 'on' : ''}
+            className={kind === k ? 'on' : ''} aria-pressed={!!(kind === k)}
             onClick={() => {
               setKind(k)
               setOffset(0)

@@ -947,4 +947,11 @@ export default {
   'ふくらはぎ': 'Calves',
   '腹直筋': 'Abs',
   '腹斜筋': 'Obliques',
+  'メニュー': 'Menu',
+  '{ex} {n}セット目 {f}': '{ex} set {n} {f}',
+  '重さ（kg）': 'weight (kg)',
+  '消費カロリー': 'calories',
+  '傾斜': 'incline',
+  'ペース': 'pace',
+  '歩幅': 'stride',
 }

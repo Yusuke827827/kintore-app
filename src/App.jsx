@@ -227,12 +227,12 @@ function AppInner() {
   return (
     <div className="app">
       {syncStatus.state === 'error' && current !== 'settings' && (
-        <button className="sync-error" onClick={() => setScreen('settings')}>
+        <button className="sync-error" role="status" onClick={() => setScreen('settings')}>
           <Icon name="alert" size={16} /> {t('同期できていません（記録はこの端末に保存済み）')}
         </button>
       )}
       {linkMsg && (
-        <button className="link-banner" onClick={() => setLinkMsg('')}>
+        <button className="link-banner" role="status" onClick={() => setLinkMsg('')}>
           {linkMsg}
         </button>
       )}
@@ -295,11 +295,12 @@ function AppInner() {
         )}
       </main>
 
-      <nav className="tabbar">
+      <nav className="tabbar" aria-label={t('メニュー')}>
         {tabs.map((t) => (
           <button
             key={t.key}
             className={`${(current === t.key || (t.key === 'settings' && current === 'customize')) && !summary ? 'active' : ''} ${t.key === 'workout' ? 'live' : ''}`}
+            aria-current={(current === t.key || (t.key === 'settings' && current === 'customize')) && !summary ? 'page' : undefined}
             onClick={() => {
               setSummary(null)
               if (t.key === 'history') setHistoryOpen((h) => ({ view: 'log', n: h.n + 1 }))

@@ -111,7 +111,7 @@ export default function Paywall({ feature, onClose }) {
             {(plans ?? []).map((p) => (
               <button
                 key={p.id}
-                className={`plan ${selected === p.id ? 'on' : ''}`}
+                className={`plan ${selected === p.id ? 'on' : ''}`} aria-pressed={!!(selected === p.id)}
                 onClick={() => setSelected(p.id)}
               >
                 {p.id === 'annual' && saving > 0 && (

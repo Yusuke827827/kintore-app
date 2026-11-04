@@ -55,7 +55,7 @@ export default function MuscleFocus({ onStart }) {
           <span className="group-label">{partName(part)}</span>
           <div className="chips">
             {MUSCLES.filter((m) => m.part === part).map((m) => (
-              <button key={m.id} className={`chip ${picked.includes(m.id) ? 'on' : ''}`} onClick={() => toggle(m.id)}>
+              <button key={m.id} className={`chip ${picked.includes(m.id) ? 'on' : ''}`} aria-pressed={!!(picked.includes(m.id))} onClick={() => toggle(m.id)}>
                 {t(m.name)}
                 <small>{daysAgoLabel(last[m.id], today)}</small>
               </button>
@@ -72,7 +72,7 @@ export default function MuscleFocus({ onStart }) {
             {LEVELS.map((l) => (
               <button
                 key={l.key}
-                className={level === l.key ? 'on' : ''}
+                className={level === l.key ? 'on' : ''} aria-pressed={!!(level === l.key)}
                 onClick={() => {
                   if (l.key !== 'light' && !gate('menu')) return
                   setLevel(l.key)
@@ -102,7 +102,7 @@ export default function MuscleFocus({ onStart }) {
                           <span className={`muscle-tag ${primary ? 'main' : ''}`}>{primary ? t('メイン') : t('補助')}</span> {nm(ex)}
                           {count > 0 && <small className="muted"> ・{t('{n}回やった', { n: count })}</small>}
                         </span>
-                        <button className={`ghost ${on ? 'on' : ''}`} onClick={() => toggleExercise(ex)} aria-label={on ? t('外す') : t('追加')}>
+                        <button className={`ghost ${on ? 'on' : ''}`} aria-pressed={!!(on)} onClick={() => toggleExercise(ex)} aria-label={on ? t('外す') : t('追加')}>
                           <Icon name={on ? 'check' : 'plus'} size={18} />
                         </button>
                       </li>
