@@ -23,7 +23,8 @@ Web版（GitHub Pages）はそのまま動き続けます。iPhoneアプリ版�
 1. 新規App：バンドルID `io.github.yusuke827827.kintore`（`capacitor.config.json` と同じ）
 2. アプリ内課金に上の3つの製品を作る（名前・説明・価格・審査用スクリーンショット）
 3. プライバシーポリシーURL：`https://yusuke827827.github.io/kintore-app/privacy.html`
-4. Appのプライバシー：「データを収集しない」に近い。購入履歴のみ RevenueCat が扱う（ユーザーとは紐付けない・トラッキングなし）
+4. Appのプライバシー：「データを収集しない」に近い。購入履歴のみ RevenueCat が扱う（ユーザーとは紐付けない・トラッキングなし）。
+   ヘルスケアのデータは端末の中だけで使い、外へ送らない（審査メモにも書く）
 
 ## 3. RevenueCat（無料枠あり。レシート検証・解約・返金の管理を代わりにしてくれる）
 1. revenuecat.com でプロジェクトを作り、App Store のアプリを追加（App Store Connect の「アプリ内課金キー」を登録）
@@ -38,7 +39,8 @@ echo "VITE_REVENUECAT_IOS_KEY=appl_xxxxxxxx" > .env.production.local
 npm run ios        # ビルド → ios/ へコピー → Xcode が開く
 ```
 Xcode で：
-1. Signing & Capabilities → Team を選ぶ、「+ Capability」で **In-App Purchase** を追加
+1. Signing & Capabilities → Team を選ぶ、「+ Capability」で **In-App Purchase** と **HealthKit** を追加
+   （HealthKit は Apple Watch のワークアウト・体重の読み込みに使う。Info.plist の説明文は設定済み）
 2. アイコン（1024×1024）を Assets に入れる
 3. Product → Archive → App Store Connect へアップロード → TestFlight で自分のiPhoneで確認（サンドボックスでは課金は無料）
 

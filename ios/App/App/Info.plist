@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Apple Watch のランニングなどのワークアウト（時間・距離・消費カロリー）と体重を、トレーニングの記録に取り込むために使います。</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>このアプリからヘルスケアに書き込むことはありません。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>「60キロ10回」のように、声でセットを記録するために使います。</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>話した重さと回数を文字にして、セットを記録するために使います。</string>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>

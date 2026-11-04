@@ -28,6 +28,7 @@ import {
 import { cancelRestAlarm, scheduleRestAlarm } from '../lib/restAlarm'
 import { usePremium } from '../state/PremiumContext'
 import Icon from '../components/Icon'
+import { listenOnce, parseVoice, voiceSupported } from '../lib/voice'
 
 function formatSets(sets) {
   return sets.map(formatSet).join('　')
@@ -103,6 +104,7 @@ export default function Workout({ onFinished, wake }) {
   const [setMenu, setSetMenu] = useState(null) // { itemIndex, setIndex, cardio }
   const [orderOpen, setOrderOpen] = useState(false)
   const [details, setDetails] = useState(() => new Set()) // 有酸素の詳しい入力を開いている種目
+  const [voice, setVoice] = useState({ on: false, msg: '' }) // 声で入力
   function toggleDetails(i) {
     setDetails((cur) => {
       const next = new Set(cur)
@@ -137,15 +139,18 @@ export default function Workout({ onFinished, wake }) {
     }))
   }
 
-  function toggleDone(itemIndex, setIndex, placeholder) {
+  // override：声で入力した値（入っている値より優先）
+  function toggleDone(itemIndex, setIndex, placeholder, override) {
     const set = w.items[itemIndex].sets[setIndex]
-    if (set.done) {
+    if (set.done && !override) {
       updateSet(itemIndex, setIndex, { done: false })
       return
     }
     // 空の欄は薄く出ている前回の値で埋める
     const fill = (key, fallback = '') =>
-      set[key] !== '' && set[key] != null
+      override?.[key] != null
+        ? String(override[key])
+        : set[key] !== '' && set[key] != null
         ? set[key]
         : placeholder?.[key] != null
           ? String(placeholder[key])
@@ -182,6 +187,43 @@ export default function Workout({ onFinished, wake }) {
           : { ...it, sets: it.sets.map((s, j) => (j === setIndex ? next : s)) }
       ),
     }))
+  }
+
+  // 声で入力：次にやるセット（まだ✓していない最初のセット）に入れて✓する
+  function startVoice() {
+    setVoice({ on: true, msg: t('どうぞ（例：60キロ10回）') })
+    // 10秒たっても終わらなければ止める（ボタンが押せないままにならないように）
+    const timer = setTimeout(() => {
+      stop()
+      setVoice((v) => (v.on ? { on: false, msg: t('聞き取れませんでした') } : v))
+    }, 10000)
+    const stop = listenOnce({
+      onResult: (text) => {
+        const itemIndex = w.items.findIndex((it) => it.sets.some((x) => !x.done))
+        if (itemIndex < 0) {
+          setVoice({ on: false, msg: t('「{text}」：記録するセットがありません', { text }) })
+          return
+        }
+        const it = w.items[itemIndex]
+        const setIndex = it.sets.findIndex((x) => !x.done)
+        const cardio = isCardio(exercises.find((e) => e.id === it.exerciseId))
+        const values = Object.fromEntries(Object.entries(parseVoice(text, cardio)).filter(([, v]) => v != null))
+        if (Object.keys(values).length === 0) {
+          setVoice({ on: false, msg: t('「{text}」：数字が聞き取れませんでした', { text }) })
+          return
+        }
+        const prev = previousRecord(sessions, it.exerciseId, { onOrBefore: w.date, excludeId: w.sourceSessionId })
+        toggleDone(itemIndex, setIndex, placeholderFor(it, setIndex, prev, null, null), values)
+        const name = nm(exercises.find((e) => e.id === it.exerciseId))
+        setVoice({ on: false, msg: t('「{text}」→ {name} {n}セット目に記録', { text, name, n: setIndex + 1 }) })
+      },
+      onError: (err) =>
+        setVoice({ on: false, msg: err === 'not-allowed' ? t('マイクの使用が許可されていません') : t('聞き取れませんでした') }),
+      onEnd: () => {
+        clearTimeout(timer)
+        setVoice((v) => (v.on ? { on: false, msg: v.msg === t('どうぞ（例：60キロ10回）') ? '' : v.msg } : v))
+      },
+    })
   }
 
   function addSet(itemIndex) {
@@ -285,10 +327,18 @@ export default function Workout({ onFinished, wake }) {
             {wake?.active && <span className="saved-badge"><Icon name="sun" size={13} /> {t('画面オン')}</span>}
           </p>
         </div>
-        <button className="primary small" onClick={handleFinish}>
-          {isEdit ? t('保存') : t('終了')}
-        </button>
+        <div className="workout-actions">
+          {voiceSupported() && (
+            <button className={`mic ${voice.on ? 'on' : ''}`} onClick={startVoice} disabled={voice.on} aria-label={t('声で入力')}>
+              <Icon name="mic" size={20} />
+            </button>
+          )}
+          <button className="primary small" onClick={handleFinish}>
+            {isEdit ? t('保存') : t('終了')}
+          </button>
+        </div>
       </div>
+      {voice.msg && <p className="voice-msg">{voice.msg}</p>}
 
       {w.items.map((it, itemIndex) => {
         const exercise = exercises.find((e) => e.id === it.exerciseId)
@@ -301,6 +351,9 @@ export default function Workout({ onFinished, wake }) {
         const cardio = isCardio(exercise)
         const up = !isEdit && !cardio ? progressionFor(prev?.sets, settings.progression) : null
         const cup = !isEdit && cardio && !it.target?.min ? cardioProgression(prev?.sets, settings.progression) : null
+        // 次にやるセット（まだ✓していない最初のセット）には ± ボタンを出す
+        const nextIndex = it.sets.findIndex((x) => !x.done)
+        const step = settings.progression?.step || 2.5
         return (
           <section className="card" key={`${it.exerciseId}-${itemIndex}`}>
             <div className="item-header">
@@ -444,6 +497,31 @@ export default function Workout({ onFinished, wake }) {
                   >
                     <Icon name="check" size={20} strokeWidth={2.4} />
                   </button>
+                  {!cardio && setIndex === nextIndex && (
+                    <div className="stepper-row">
+                      {[
+                        ['weight', step, 'kg'],
+                        ['reps', 1, t('回')],
+                      ].map(([key, d, unit]) => {
+                        const bump = (sign) => {
+                          const base = Number(s[key] !== '' && s[key] != null ? s[key] : ph?.[key] ?? 0) || 0
+                          const v = Math.max(0, Math.round((base + sign * d) * 100) / 100)
+                          updateSet(itemIndex, setIndex, { [key]: String(v) })
+                        }
+                        return (
+                          <div className="stepper" key={key}>
+                            <button onClick={() => bump(-1)} aria-label={`${unit} −${d}`}>
+                              −{d}
+                            </button>
+                            <span>{unit}</span>
+                            <button onClick={() => bump(1)} aria-label={`${unit} +${d}`}>
+                              ＋{d}
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                   {cardio && (
                     <div className="cardio-info">
                       {speedKmh(Number(cur('min')), Number(cur('km'))) && (
