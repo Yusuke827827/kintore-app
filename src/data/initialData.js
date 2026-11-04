@@ -31,6 +31,7 @@ export const initialExercises = [
   ex('chest-12', 'ケーブルフライ', 'chest', 'ケーブル', 'isolation'),
   ex('chest-13', 'ケーブルプレス', 'chest', 'ケーブル', 'compound'),
   ex('chest-14', 'インクラインチェストプレス（プレートロード式）', 'chest', 'マシン', 'compound'),
+  ex('chest-15', 'ディップス', 'chest', 'その他', 'compound'),
 
   // 背中
   ex('back-01', 'ラットプルダウン', 'back', 'マシン', 'compound'),
@@ -46,6 +47,8 @@ export const initialExercises = [
   ex('back-11', 'フロントラットプルダウン', 'back', 'その他', 'compound'),
   ex('back-12', 'Tバーロー', 'back', 'その他', 'compound'),
   ex('back-13', 'バックエクステンション', 'back', 'その他', 'isolation'),
+  ex('back-14', 'ダンベルシュラッグ', 'back', 'ダンベル', 'isolation'),
+  ex('back-15', '懸垂（チンニング）', 'back', 'その他', 'compound'),
 
   // 肩
   ex('shoulder-01', 'ショルダープレス', 'shoulder', 'マシン', 'compound'),
@@ -72,6 +75,12 @@ export const initialExercises = [
   ex('arm-08', 'ケーブルプレスダウン', 'arm', 'ケーブル', 'isolation'),
   ex('arm-09', 'ケーブルキックバック', 'arm', 'ケーブル', 'isolation'),
   ex('arm-10', 'ベンチディップス', 'arm', 'その他', 'compound'),
+  ex('arm-11', 'リストカール', 'arm', 'ダンベル', 'isolation'),
+  ex('arm-12', 'リバースカール', 'arm', 'バーベル／EZバー', 'isolation'),
+  ex('arm-13', 'インクラインダンベルカール', 'arm', 'ダンベル', 'isolation'),
+  ex('arm-14', 'ナローベンチプレス', 'arm', 'バーベル', 'compound'),
+  ex('arm-15', 'オーバーヘッドケーブルエクステンション', 'arm', 'ケーブル', 'isolation'),
+  ex('arm-16', 'コンセントレーションカール', 'arm', 'ダンベル', 'isolation'),
 
   // 脚
   ex('legs-01', 'インナーサイ・アウターサイ', 'legs', 'マシン', 'isolation'),
@@ -91,6 +100,10 @@ export const initialExercises = [
   ex('legs-15', 'ダンベルルーマニアンデッドリフト', 'legs', 'ダンベル', 'compound'),
   ex('legs-16', 'レッグプレス（プレートロード式）', 'legs', 'その他', 'compound'),
   ex('legs-17', 'ステップアップ', 'legs', 'その他', 'compound'),
+  ex('legs-18', 'カーフレイズ', 'legs', 'マシン', 'isolation'),
+  ex('legs-19', 'シーテッドカーフレイズ', 'legs', 'マシン', 'isolation'),
+  ex('legs-20', 'ヒップアブダクション', 'legs', 'マシン', 'isolation'),
+  ex('legs-21', 'ヒップアダクション', 'legs', 'マシン', 'isolation'),
 
   // 体幹（腹筋）
   ex('core-01', 'アブドミナル', 'core', 'マシン', 'isolation'),
@@ -101,6 +114,8 @@ export const initialExercises = [
   ex('core-06', 'クランチ', 'core', 'その他', 'isolation'),
   ex('core-07', 'レッグレイズ', 'core', 'その他', 'isolation'),
   ex('core-08', 'ケトルベルスイング', 'core', 'その他', 'compound'),
+  ex('core-09', 'サイドベンド', 'core', 'ダンベル', 'isolation'),
+  ex('core-10', 'アブローラー', 'core', 'その他', 'isolation'),
 
   // 有酸素
   ex('cardio-01', 'トレッドミル', 'cardio', 'マシン', 'cardio'),
@@ -113,5 +128,10 @@ export const initialExercises = [
 ]
 
 // あとから増えた初期データ。前の版で保存されたデータにも足す
-export const SEED_VERSION = 2
+export const SEED_VERSION = 3
 export const SEED_V2_PART_IDS = ['cardio']
+// v3：筋肉ごとに選べるよう、足りなかった種目を追加
+export const SEED_V3_EXERCISE_IDS = [
+  'chest-15', 'back-14', 'back-15', 'arm-11', 'arm-12', 'arm-13', 'arm-14', 'arm-15', 'arm-16',
+  'legs-18', 'legs-19', 'legs-20', 'legs-21', 'core-09', 'core-10',
+]

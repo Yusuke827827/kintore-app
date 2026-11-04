@@ -284,6 +284,11 @@ function AppInner() {
                 key={customizeTab}
                 initialTab={customizeTab}
                 onBack={() => setScreen('settings')}
+                onStartRoutine={(r) => {
+                  if (activeWorkout && !confirm(t('記録中のトレーニングがあります。破棄して新しく始めますか？'))) return
+                  startWorkout(r.exerciseIds, [], r.targets, r.id)
+                  setScreen('workout')
+                }}
               />
             )}
           </>

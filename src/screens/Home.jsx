@@ -24,6 +24,7 @@ import Icon from '../components/Icon'
 import { routineColor } from '../lib/routineColors'
 import { buildReport } from '../lib/report'
 import { ScoreRing } from '../components/Report'
+import MuscleFocus from '../components/MuscleFocus'
 
 const GROUPS = [
   { key: 'upper', label: '上半身' },
@@ -173,6 +174,21 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
   const [level, setLevel] = useState(premium ? 'standard' : 'light')
   const [generated, setGenerated] = useState(null)
   const [genOpen, setGenOpen] = useState(false)
+  const [pickMode, setPickMode] = useState(() => {
+    try {
+      return localStorage.getItem('kintore-pick-mode') === 'muscle' ? 'muscle' : 'part'
+    } catch {
+      return 'part'
+    }
+  })
+  function changePickMode(k) {
+    setPickMode(k)
+    try {
+      localStorage.setItem('kintore-pick-mode', k)
+    } catch {
+      // 保存できなくても切り替えはできる
+    }
+  }
   function generate(lv = level) {
     setGenerated(generateMenu({ partIds: chosen, level: premium ? lv : 'light', exercises, sessions, gym }))
   }
@@ -300,6 +316,21 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
       {(focus !== 'cardio' || showStrength) && (
         <>
       <section className="card">
+        {/* 部位で選ぶ／細かい筋肉で選ぶ */}
+        <div className="segmented pick-mode">
+          {[
+            ['part', t('部位で選ぶ')],
+            ['muscle', t('筋肉で選ぶ')],
+          ].map(([k, label]) => (
+            <button key={k} className={pickMode === k ? 'on' : ''} onClick={() => changePickMode(k)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {pickMode === 'muscle' ? (
+          <MuscleFocus onStart={(ids, targets) => start(ids, [], targets)} />
+        ) : (
+        <>
         <div className="item-header">
           <h2>
             {t('部位')}
@@ -386,11 +417,13 @@ export default function Home({ onOpenWorkout, onOpenCustomize, onOpenReport }) {
         <button className="link" onClick={() => start([], chosen)} disabled={chosen.length === 0}>
           {t('種目を自分で選んで始める')}
         </button>
+        </>
+        )}
       </section>
         </>
       )}
 
-      {(focus !== 'cardio' || showStrength) && (
+      {(focus !== 'cardio' || showStrength) && pickMode === 'part' && (
         <section className="card">
           <button className="generator-toggle" onClick={() => setGenOpen(!genOpen)} aria-expanded={genOpen}>
             <span className="with-icon">
