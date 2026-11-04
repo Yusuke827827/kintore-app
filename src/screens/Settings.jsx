@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { loadSyncConfig } from '../lib/sync'
+import { downloadBackup, lastBackup, snapshot } from '../lib/backup'
 import { useData } from '../state/DataContext'
 import { todayStr } from '../lib/date'
 import HowTo from '../components/HowTo'
@@ -429,41 +430,15 @@ function BackupSection() {
   const fileRef = useRef(null)
   const [message, setMessage] = useState('')
 
-  // 画面用に絞り込む前の、削除済みも含めた全データを書き出す
-  function snapshot() {
-    return {
-      version: data.version,
-      bodyParts: data.allBodyParts,
-      exercises: data.allExercises,
-      sessions: data.sessions,
-      deletedSessionIds: data.deletedSessionIds,
-      endedWorkoutIds: data.endedWorkoutIds,
-      routines: data.routines,
-      settings: data.settings,
-      masterUpdatedAt: data.masterUpdatedAt,
-      activeWorkout: data.activeWorkout,
-      bodyLogs: data.bodyLogs,
-      deletedBodyLogIds: data.deletedBodyLogIds,
-      plans: data.plans,
-      profile: data.profile,
-      gym: data.gym,
-      meals: data.meals,
-      deletedMealIds: data.deletedMealIds,
-      seedVersion: data.seedVersion,
-    }
-  }
+  const snap = () => snapshot(data)
 
   function handleDownload() {
-    downloadFile(
-      `kintore-backup-${todayStr()}.json`,
-      JSON.stringify(snapshot(), null, 2),
-      'application/json'
-    )
+    downloadBackup(data)
   }
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(snapshot()))
+      await navigator.clipboard.writeText(JSON.stringify(snap()))
       setMessage(t('コピーしました。別のブラウザで「貼り付けて読み込む」をしてください。'))
     } catch {
       setMessage(t('コピーできませんでした。ファイルで書き出してください。'))
@@ -502,6 +477,7 @@ function BackupSection() {
         {t('記録 {n}件。手動で別のブラウザへ移すときや、念のための保存に。', {
           n: data.sessions.length,
         })}
+        {lastBackup() && <> {t('（最後に保存：{d}）', { d: lastBackup() })}</>}
       </p>
       <div className="row">
         <button className="secondary" onClick={handleDownload}>

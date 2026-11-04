@@ -125,8 +125,30 @@ function MealCalendar({ meals, target, onPick, selected }) {
   )
 }
 
+// お気に入りとよく食べるもの（名前ごとに最新の栄養）：ワンタップで記録する用
+function quickMeals(meals, favorites) {
+  const count = {}
+  const latest = {}
+  for (const m of meals) {
+    count[m.name] = (count[m.name] ?? 0) + 1
+    if (!latest[m.name] || (latest[m.name].updatedAt ?? 0) < (m.updatedAt ?? 0)) latest[m.name] = m
+  }
+  const favNames = new Set(favorites.map((f) => f.name))
+  const frequent = Object.keys(count)
+    .filter((n) => count[n] >= 2 && !favNames.has(n))
+    .sort((a, b) => count[b] - count[a])
+    .slice(0, 6)
+    .map((n) => ({ name: n, kcal: latest[n].kcal, p: latest[n].p, f: latest[n].f, c: latest[n].c }))
+  return { favorites, frequent }
+}
+
 function AddMeal({ date, mealType, onDone }) {
-  const { saveMeal } = useData()
+  const { saveMeal, meals, settings } = useData()
+  const quick = quickMeals(meals, settings.mealFavorites ?? [])
+  function addQuick(m) {
+    saveMeal({ date, meal: mealType, name: m.name, kcal: m.kcal, p: m.p, f: m.f, c: m.c })
+    onDone()
+  }
   const [text, setText] = useState('')
   const [items, setItems] = useState(null)
   const [unknown, setUnknown] = useState([])
@@ -151,6 +173,25 @@ function AddMeal({ date, mealType, onDone }) {
 
   return (
     <div className="add-meal">
+      {(quick.favorites.length > 0 || quick.frequent.length > 0) && (
+        <div className="quick-meals">
+          <span className="muted">{t('ワンタップで記録')}</span>
+          <div className="chips">
+            {quick.favorites.map((m) => (
+              <button key={`f-${m.name}`} className="chip small fav" onClick={() => addQuick(m)}>
+                <Icon name="star" size={13} /> {m.name}
+                <small>{Math.round(m.kcal)}kcal</small>
+              </button>
+            ))}
+            {quick.frequent.map((m) => (
+              <button key={`q-${m.name}`} className="chip small" onClick={() => addQuick(m)}>
+                {m.name}
+                <small>{Math.round(m.kcal)}kcal</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <textarea
         className="memo-area"
         rows={3}
@@ -226,7 +267,17 @@ function AddMeal({ date, mealType, onDone }) {
 }
 
 export default function Meals() {
-  const { meals, profile, deleteMeal, sessions } = useData()
+  const { meals, profile, deleteMeal, sessions, settings, updateSettings } = useData()
+  // お気に入りの食事（名前と栄養）。設定に保存するので、同期している端末にも出る
+  const favorites = settings.mealFavorites ?? []
+  const isFav = (name) => favorites.some((f) => f.name === name)
+  function toggleFav(m) {
+    updateSettings({
+      mealFavorites: isFav(m.name)
+        ? favorites.filter((f) => f.name !== m.name)
+        : [...favorites, { name: m.name, kcal: m.kcal, p: m.p, f: m.f, c: m.c }],
+    })
+  }
   const { premium } = usePremium()
   const today = todayStr()
   const [date, setDate] = useState(today)
@@ -317,6 +368,14 @@ export default function Meals() {
                       {Math.round(m.kcal)}kcal P{Math.round(m.p)} F{Math.round(m.f)} C{Math.round(m.c)}
                     </small>
                   </span>
+                  <button
+                    className={`ghost fav-toggle ${isFav(m.name) ? 'on' : ''}`}
+                    onClick={() => toggleFav(m)}
+                    aria-pressed={isFav(m.name)}
+                    aria-label={isFav(m.name) ? t('お気に入りから外す') : t('お気に入りに登録')}
+                  >
+                    <Icon name="star" size={17} />
+                  </button>
                   <button className="ghost danger" onClick={() => deleteMeal(m.id)} aria-label={t('削除')}>
                     <Icon name="close" size={16} />
                   </button>

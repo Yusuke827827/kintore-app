@@ -8,6 +8,7 @@ import { isCardio } from '../lib/stats'
 import { nm, t } from '../i18n'
 import MenuEditor from './MenuEditor'
 import Icon from './Icon'
+import ExerciseGuide from './ExerciseGuide'
 
 const PART_ORDER = ['chest', 'back', 'shoulder', 'arm', 'legs', 'core']
 
@@ -22,6 +23,7 @@ export default function MuscleFocus({ onStart }) {
   const [listOpen, setListOpen] = useState(false)
   const [addTo, setAddTo] = useState('')
   const [message, setMessage] = useState('')
+  const [guideFor, setGuideFor] = useState(null)
   const last = useMemo(() => lastTrainedByMuscle(sessions, allExercises), [sessions, allExercises])
 
   function rebuild(ids, lv = level) {
@@ -64,6 +66,7 @@ export default function MuscleFocus({ onStart }) {
         </div>
       ))}
 
+      {guideFor && <ExerciseGuide exercise={guideFor} onClose={() => setGuideFor(null)} />}
       {picked.length === 0 ? (
         <p className="muted menu-preview">{t('鍛えたい筋肉を選ぶと、その筋肉に効く種目でメニューを作ります。')}</p>
       ) : (
@@ -102,6 +105,9 @@ export default function MuscleFocus({ onStart }) {
                           <span className={`muscle-tag ${primary ? 'main' : ''}`}>{primary ? t('メイン') : t('補助')}</span> {nm(ex)}
                           {count > 0 && <small className="muted"> ・{t('{n}回やった', { n: count })}</small>}
                         </span>
+                        <button className="ghost" onClick={() => setGuideFor(ex)} aria-label={t('{name}の解説', { name: nm(ex) })}>
+                          <Icon name="info" size={17} />
+                        </button>
                         <button className={`ghost ${on ? 'on' : ''}`} aria-pressed={!!(on)} onClick={() => toggleExercise(ex)} aria-label={on ? t('外す') : t('追加')}>
                           <Icon name={on ? 'check' : 'plus'} size={18} />
                         </button>
