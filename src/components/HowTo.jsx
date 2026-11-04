@@ -208,6 +208,18 @@ const TOPICS_JA = [
       </ul>
     ),
   },
+  {
+    title: '筋肉で選ぶ・マイセットの一覧',
+    body: (
+      <ul>
+        <li>ホームの「筋肉で選ぶ」で、上腕二頭筋・三角筋（中部）・ふくらはぎなど20の筋肉から選べます。選ぶと、その筋肉に効く種目でメニューを自動で作ります</li>
+        <li>「〜に効く種目のリスト」を開くと、メイン（主に効く）・補助の種目が並び、＋でメニューに足せます</li>
+        <li>できたメニューは、そのまま始める・新しいマイセットに保存・今のマイセットに追加ができます</li>
+        <li>「設定 → マイセット」では、マイセットごとに種目・セット数×回数・鍛える筋肉・最後にやった日が見られ、始める・編集・複製ができます。編集では「筋肉から種目を追加」も使えます</li>
+        <li>自分で作った種目は、種目の編集で「主に効く筋肉」を選ぶと、筋肉で選ぶときにも出てきます</li>
+      </ul>
+    ),
+  },
 ]
 
 const TOPICS_EN = [
@@ -411,6 +423,18 @@ const TOPICS_EN = [
         <li>While logging, tap the mic (top right) and say “60 kilos 10 reps” to fill and check the next set. For cardio: “30 minutes 5 km”</li>
         <li>Use − / + under the next set to change weight and reps without the keyboard</li>
         <li>On a synced device, “Link another device” shows a QR code — scan it with the other device’s camera to connect (for the Home Screen app, paste the sync code)</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'By muscle & My Set list',
+    body: (
+      <ul>
+        <li>On Home, “By muscle” lets you pick from 20 muscles such as biceps, side delts and calves. A menu is built from exercises that target them</li>
+        <li>Open “Exercises for …” to see main and assist exercises, and add any with +</li>
+        <li>Start the menu right away, save it as a new My Set, or add it to an existing one</li>
+        <li>Settings → My Sets shows each set’s exercises, sets × reps, muscles worked and when you last did it. Start, edit or duplicate from there; editing also has “Add exercises by muscle”</li>
+        <li>For exercises you created, choose the main muscles when editing so they appear under “By muscle” too</li>
       </ul>
     ),
   },
