@@ -33,6 +33,7 @@ const PATHS = {
   palette: 'M12 3.5s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z',
   battery: 'M3.5 7.5h14a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-14a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1zM21 10.5v3M6 10.5v3M9.5 10.5v3',
   list: 'M9 6.5h11M9 12h11M9 17.5h11M4.5 6.5h.5M4.5 12h.5M4.5 17.5h.5',
+  mic: 'M12 3.5a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0v-5a3 3 0 0 0-3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v3M9 20.5h6',
 }
 
 export default function Icon({ name, size = 20, className = '', strokeWidth = 1.8 }) {

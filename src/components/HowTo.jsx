@@ -196,6 +196,18 @@ const TOPICS_JA = [
       </ul>
     ),
   },
+  {
+    title: '引っ越し・Apple Watch・声で入力',
+    body: (
+      <ul>
+        <li>「設定 → データ → 他のアプリから引っ越し」で、Strong・Hevy・筋トレMEMOなどのCSVを読み込めます。取り込む前に件数と新しく作る種目を確認できます</li>
+        <li>「Apple Watch・ヘルスケア」で、ランニング・ウォーキング・バイクなどの時間・距離・消費カロリーと体重を取り込めます。Web版はヘルスケアの書き出し（export.zip）を選び、アプリ版はボタン1つで読み込みます</li>
+        <li>記録中の画面右上のマイクを押して「60キロ10回」と話すと、次のセットに入って✓されます。有酸素は「30分5キロ」</li>
+        <li>次にやるセットの下の「−／＋」で、キーボードを出さずに重さと回数を変えられます</li>
+        <li>同期している端末の「ほかの端末をつなぐ」でQRコードを出し、別の端末のカメラで読み取るとつながります（ホーム画面のアプリは同期コードを貼り付け）</li>
+      </ul>
+    ),
+  },
 ]
 
 const TOPICS_EN = [
@@ -387,6 +399,18 @@ const TOPICS_EN = [
         <li>"Year" sums up total weight, sessions, best lifts and more — share it as an image or save it as a PDF (on iPhone: Share in the print screen → Save to Files)</li>
         <li>Badges are earned automatically as you log. New ones appear on the workout summary</li>
         <li>Each My Set has a color, so the calendars show which set you did. Change it when editing the My Set</li>
+      </ul>
+    ),
+  },
+  {
+    title: 'Import, Apple Watch & voice input',
+    body: (
+      <ul>
+        <li>Settings → Data → “Move from another app” imports CSVs from Strong, Hevy and similar apps. You can review the counts and new exercises before importing</li>
+        <li>“Apple Watch & Health” imports runs, walks, rides and more (time, distance, calories) plus body weight. On the web, pick the Health export (export.zip); in the app, one tap reads Apple Health</li>
+        <li>While logging, tap the mic (top right) and say “60 kilos 10 reps” to fill and check the next set. For cardio: “30 minutes 5 km”</li>
+        <li>Use − / + under the next set to change weight and reps without the keyboard</li>
+        <li>On a synced device, “Link another device” shows a QR code — scan it with the other device’s camera to connect (for the Home Screen app, paste the sync code)</li>
       </ul>
     ),
   },

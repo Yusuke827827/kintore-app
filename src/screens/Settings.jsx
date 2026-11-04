@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { loadSyncConfig } from '../lib/sync'
 import { useData } from '../state/DataContext'
 import { todayStr } from '../lib/date'
 import HowTo from '../components/HowTo'
@@ -17,6 +18,7 @@ import {
 import { usePremium } from '../state/PremiumContext'
 import { FREE_ACCENTS, FREE_WALLPAPERS } from '../lib/pricing'
 import LockCard from '../components/LockCard'
+import { ImportFromApps, ImportFromHealth } from '../components/ImportSection'
 import { PRIVACY_URL, TERMS_URL } from '../components/Paywall'
 import Icon from '../components/Icon'
 
@@ -272,6 +274,57 @@ function SyncSection() {
   return <SyncSettings />
 }
 
+// ほかの端末をつなぐ：QRコードをカメラで読むか、同期コードを貼るだけ
+function LinkDevice() {
+  const [qr, setQr] = useState(null)
+  const [copied, setCopied] = useState(false)
+  const token = loadSyncConfig()?.token
+  const link = `${location.origin}${location.pathname}#sync=${encodeURIComponent(token ?? '')}`
+  if (!token) return null
+  return (
+    <div className="link-device">
+      <h3>{t('ほかの端末をつなぐ')}</h3>
+      {!qr ? (
+        <div className="row">
+          <button
+            className="secondary"
+            onClick={async () => {
+              const QR = await import('qrcode')
+              setQr(await QR.toDataURL(link, { margin: 1, width: 240 }))
+            }}
+          >
+            {t('QRコードを出す')}
+          </button>
+          <button
+            className="secondary"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(token)
+                setCopied(true)
+              } catch {
+                prompt(t('同期コード'), token)
+              }
+            }}
+          >
+            {copied ? t('コピーしました') : t('同期コードをコピー')}
+          </button>
+        </div>
+      ) : (
+        <div className="qr-box">
+          <img src={qr} alt={t('同期用のQRコード')} width="200" height="200" />
+          <p className="muted">
+            {t('つなぎたい端末のカメラで読み取ると、同じ記録が見られるようになります。ホーム画面に追加したアプリでは、「同期コードをコピー」して貼り付けてください。')}
+          </p>
+          <button className="link" onClick={() => setQr(null)}>
+            {t('閉じる')}
+          </button>
+        </div>
+      )}
+      <p className="muted">{t('QRコードと同期コードは、あなたの記録の鍵です。他の人には見せないでください。')}</p>
+    </div>
+  )
+}
+
 function SyncSettings() {
   const { syncStatus, connectSync, disconnectSync, runSync } = useData()
   const [token, setToken] = useState('')
@@ -329,6 +382,7 @@ function SyncSettings() {
             {t('同期を解除')}
           </button>
         </div>
+        <LinkDevice />
       </section>
     )
   }
@@ -351,7 +405,7 @@ function SyncSettings() {
           )}
         </li>
         <li>{t('表示された ghp_ で始まる文字列をコピーして、下に貼り付ける')}</li>
-        <li>{t('他の端末でも同じトークンを貼れば、自動で同じデータにつながります')}</li>
+        <li>{t('2台目からは、同期した端末の「ほかの端末をつなぐ」のQRコードを読み取るか、同期コードを貼るだけです')}</li>
       </ol>
       <div className="row">
         <input
@@ -729,7 +783,7 @@ function RestTimerSection() {
 const PAGES = {
   training: { icon: 'target', label: 'トレーニングの設定', desc: 'スタイル・週の目標・重量の自動アップ・休憩タイマー' },
   look: { icon: 'palette', label: '見た目と言語', desc: 'モード・テーマカラー・壁紙・文字の大きさ・言語' },
-  data: { icon: 'cloud', label: 'データ', desc: '同期・バックアップ・CSV・リセット' },
+  data: { icon: 'cloud', label: 'データ', desc: '同期・Apple Watch・他のアプリから引っ越し・バックアップ・リセット' },
   howto: { icon: 'note', label: '使い方', desc: '機能の説明' },
 }
 
@@ -777,6 +831,8 @@ export default function Settings({ onOpenCustomize }) {
         {page === 'data' && (
           <>
             <SyncSection />
+            <ImportFromHealth />
+            <ImportFromApps />
             <BackupSection />
             <ResetSection />
           </>

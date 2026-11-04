@@ -590,6 +590,25 @@ export function DataProvider({ children }) {
         })
       },
 
+      // 他のアプリ・ヘルスケアからの取り込み。同じ記録（同じID）や、消した記録はもう一度は入れない
+      addImported({ sessions = [], exercises = [], bodyLogs = [] }) {
+        setState((s) => {
+          const haveEx = new Set(s.exercises.map((e) => e.id))
+          const haveS = new Set([...s.sessions.map((x) => x.id), ...s.deletedSessionIds])
+          const haveDates = new Set(s.bodyLogs.map((l) => l.date))
+          const newEx = exercises.filter((e) => !haveEx.has(e.id))
+          const newS = sessions.filter((x) => !haveS.has(x.id))
+          const newB = bodyLogs.filter((l) => !haveDates.has(l.date) && !s.deletedBodyLogIds.includes(l.id))
+          return {
+            ...s,
+            exercises: newEx.length ? [...s.exercises, ...newEx] : s.exercises,
+            masterUpdatedAt: newEx.length ? Date.now() : s.masterUpdatedAt,
+            sessions: [...s.sessions, ...newS],
+            bodyLogs: newB.length ? [...s.bodyLogs, ...newB].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)) : s.bodyLogs,
+          }
+        })
+      },
+
       importData(data) {
         setState((s) => mergeData(s, data))
       },

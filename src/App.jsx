@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { DataProvider, useData } from './state/DataContext'
 import { PremiumProvider, usePremium } from './state/PremiumContext'
@@ -181,10 +181,21 @@ function FinishedSummary({ summary, onClose }) {
 }
 
 function AppInner() {
-  const { activeWorkout, syncStatus, startWorkout, settings, sessions, profile } = useData()
-  // 初めて開いたとき（記録もプロフィールもない）は案内を出す
+  const { activeWorkout, syncStatus, startWorkout, settings, sessions, profile, connectSync } = useData()
+  // ほかの端末のQRコードから開いたとき（#sync=…）は、その同期につなぐ
+  const [linkToken] = useState(() => location.hash.match(/sync=([^&]+)/)?.[1] ?? null)
+  const [linkMsg, setLinkMsg] = useState(() => (linkToken && !syncStatus.configured ? t('同期につないでいます…') : ''))
+  useEffect(() => {
+    if (!linkToken) return
+    history.replaceState(null, '', location.pathname + location.search)
+    if (syncStatus.configured) return
+    connectSync(decodeURIComponent(linkToken))
+      .then(() => setLinkMsg(t('同期につながりました。ほかの端末と同じ記録が見られます。')))
+      .catch((e) => setLinkMsg(e.message || t('接続できませんでした')))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // 初めて開いたとき（記録もプロフィールもない）は案内を出す。同期でつなぐときは出さない
   const [onboarding, setOnboarding] = useState(
-    () => !settings.onboarded && sessions.length === 0 && !profile && !activeWorkout
+    () => !settings.onboarded && sessions.length === 0 && !profile && !activeWorkout && !linkToken
   )
   // 記録中は画面を消さない
   const wake = useWakeLock(!!activeWorkout && settings.keepAwake !== false)
@@ -218,6 +229,11 @@ function AppInner() {
       {syncStatus.state === 'error' && current !== 'settings' && (
         <button className="sync-error" onClick={() => setScreen('settings')}>
           <Icon name="alert" size={16} /> {t('同期できていません（記録はこの端末に保存済み）')}
+        </button>
+      )}
+      {linkMsg && (
+        <button className="link-banner" onClick={() => setLinkMsg('')}>
+          {linkMsg}
         </button>
       )}
       <main>

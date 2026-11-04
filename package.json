@@ -15,7 +15,9 @@
   "dependencies": {
     "@capacitor/core": "^8.6.0",
     "@capacitor/ios": "^8.6.0",
+    "@capgo/capacitor-health": "^8.11.14",
     "@revenuecat/purchases-capacitor": "^14.0.0",
+    "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
