@@ -1,14 +1,25 @@
 // 食事の集計：1日の合計・目標に対する点数・目標を満たせたか
-export function dayTotals(meals, date) {
-  const tot = { kcal: 0, p: 0, f: 0, c: 0 }
-  for (const m of meals) {
-    if (m.date !== date) continue
-    for (const k of Object.keys(tot)) tot[k] += m[k] ?? 0
+// 日付ごとの合計を、食事の記録が変わったときだけまとめて計算しておく（何年分あっても速いように）
+const totalsCache = new WeakMap()
+
+function totalsByDate(meals) {
+  let map = totalsCache.get(meals)
+  if (!map) {
+    map = new Map()
+    for (const m of meals) {
+      const tot = map.get(m.date) ?? { kcal: 0, p: 0, f: 0, c: 0 }
+      for (const k of ['kcal', 'p', 'f', 'c']) tot[k] += m[k] ?? 0
+      map.set(m.date, tot)
+    }
+    totalsCache.set(meals, map)
   }
-  return tot
+  return map
 }
 
-// その日の目標に対する達成度（0〜100点）。カロリーは±10%以内、タンパク質は90%以上で満点
+export function dayTotals(meals, date) {
+  return { ...(totalsByDate(meals).get(date) ?? { kcal: 0, p: 0, f: 0, c: 0 }) }
+}
+
 export function dayScore(tot, target) {
   if (!target || tot.kcal === 0) return null
   const kcalRatio = tot.kcal / target.kcal

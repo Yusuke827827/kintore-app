@@ -170,7 +170,19 @@ export function e1rm(weight, reps) {
 }
 
 // 新しい順（同じ日なら後に終わった方が先）
+// 並べ替えた結果を覚えておく（記録が変わらない間は並べ替え直さない。記録が何年分あっても速いように）
+const sortCache = new WeakMap()
+
 export function sortSessionsDesc(sessions) {
+  let sorted = sortCache.get(sessions)
+  if (!sorted) {
+    sorted = sortDesc(sessions)
+    sortCache.set(sessions, sorted)
+  }
+  return sorted.slice()
+}
+
+function sortDesc(sessions) {
   return [...sessions].sort((a, b) => {
     if (a.date !== b.date) return a.date < b.date ? 1 : -1
     return (b.finishedAt ?? 0) - (a.finishedAt ?? 0)

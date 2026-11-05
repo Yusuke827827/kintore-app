@@ -5,6 +5,7 @@ import {
   loadData,
   mergeData,
   requestPersistentStorage,
+  readSavedJson,
   saveData,
 } from '../lib/storage'
 import * as sync from '../lib/sync'
@@ -109,10 +110,43 @@ export function DataProvider({ children }) {
     return () => mq?.removeEventListener?.('change', onChange)
   }, [themeJson, wallpaperVersion])
 
-  // 1項目入力するたびに、この端末へ即保存
+  // 入力するたびに、この端末へ保存する。打っている間は0.3秒まとめて保存し（記録が何年分あっても重くならないように）、
+  // アプリを閉じる・ほかのアプリへ切り替えるときは、その場ですぐ保存する
+  const pendingSaveRef = useRef(null)
+  const savedOnceRef = useRef(false)
+  const lastWrittenRef = useRef(null)
   useEffect(() => {
-    saveData(state)
+    // 開いた直後（最初の1回）はすぐ保存する
+    if (!savedOnceRef.current) {
+      savedOnceRef.current = true
+      lastWrittenRef.current = saveData(state)
+      return
+    }
+    pendingSaveRef.current = state
+    const timer = setTimeout(() => {
+      lastWrittenRef.current = saveData(state)
+      pendingSaveRef.current = null
+    }, 300)
+    return () => clearTimeout(timer)
   }, [state])
+  useEffect(() => {
+    const flush = () => {
+      if (!pendingSaveRef.current) return
+      // ほかのタブなどが保存し直していたら、上書きしない
+      if (lastWrittenRef.current && readSavedJson() !== lastWrittenRef.current) return
+      lastWrittenRef.current = saveData(pendingSaveRef.current)
+      pendingSaveRef.current = null
+    }
+    const onHide = () => document.visibilityState === 'hidden' && flush()
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', flush)
+    window.addEventListener('beforeunload', flush)
+    return () => {
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', flush)
+      window.removeEventListener('beforeunload', flush)
+    }
+  }, [])
 
   useEffect(() => {
     requestPersistentStorage()

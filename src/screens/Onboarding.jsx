@@ -4,6 +4,7 @@ import { usePremium } from '../state/PremiumContext'
 import { BODY_TYPES, DEFAULT_WEEKDAYS, buildWeeklyPlan, nutritionTargets, weekdayLabel } from '../lib/planner'
 import { nm, t } from '../i18n'
 import Icon from '../components/Icon'
+import { startTour } from '../lib/tour'
 
 // 初めて開いたときの案内：目標・体型・頻度・体のことを聞いて、その場で週のメニューを作る
 const STEPS = ['welcome', 'focus', 'type', 'schedule', 'body', 'plan']
@@ -39,6 +40,8 @@ export default function Onboarding({ onDone }) {
       updateSettings({ onboarded: true, ...(apply ? { focus } : {}) })
     }
     onDone()
+    // プランを作ったら、最初の記録をガイドつきで
+    if (apply) startTour()
     // アプリ版では、最初のプランを作った直後に無料お試しを案内する
     if (apply && kind !== 'beta' && !premium) setTimeout(() => openPaywall('trainer'), 400)
   }

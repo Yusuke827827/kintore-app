@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useData } from '../state/DataContext'
 import useNow from '../hooks/useNow'
 import ExercisePicker from '../components/ExercisePicker'
@@ -110,6 +110,19 @@ export default function Workout({ onFinished, wake }) {
   const [details, setDetails] = useState(() => new Set()) // 有酸素の詳しい入力を開いている種目
   const [voice, setVoice] = useState({ on: false, msg: '' }) // 声で入力
   const [guideFor, setGuideFor] = useState(null) // 解説を開いている種目
+  // 種目ごとの前回の記録と自己ベスト。入力のたびに全部の記録を見直さないよう、記録か種目が変わったときだけ計算する
+  const itemKey = w ? w.items.map((it) => it.exerciseId).join(',') : ''
+  const history = useMemo(() => {
+    const out = {}
+    if (!w) return out
+    for (const id of itemKey.split(',').filter(Boolean)) {
+      out[id] = {
+        prev: previousRecord(sessions, id, { onOrBefore: w.date, excludeId: w.sourceSessionId }),
+        best: personalBest(sessions, id, w.sourceSessionId),
+      }
+    }
+    return out
+  }, [sessions, itemKey, w?.date, w?.sourceSessionId]) // eslint-disable-line react-hooks/exhaustive-deps
   function toggleDetails(i) {
     setDetails((cur) => {
       const next = new Set(cur)
@@ -351,11 +364,7 @@ export default function Workout({ onFinished, wake }) {
 
       {w.items.map((it, itemIndex) => {
         const exercise = exercises.find((e) => e.id === it.exerciseId)
-        const prev = previousRecord(sessions, it.exerciseId, {
-          onOrBefore: w.date,
-          excludeId: w.sourceSessionId,
-        })
-        const best = personalBest(sessions, it.exerciseId, w.sourceSessionId)
+        const { prev, best } = history[it.exerciseId] ?? {}
         const doneCount = it.sets.filter((s) => s.done).length
         const cardio = isCardio(exercise)
         const up = !isEdit && !cardio ? progressionFor(prev?.sets, settings.progression) : null
