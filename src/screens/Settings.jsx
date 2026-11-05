@@ -19,6 +19,7 @@ import {
 import { usePremium } from '../state/PremiumContext'
 import { FREE_ACCENTS, FREE_WALLPAPERS } from '../lib/pricing'
 import LockCard from '../components/LockCard'
+import { startTour } from '../lib/tour'
 import { ImportFromApps, ImportFromHealth } from '../components/ImportSection'
 import { PRIVACY_URL, TERMS_URL } from '../components/Paywall'
 import Icon from '../components/Icon'
@@ -813,7 +814,14 @@ export default function Settings({ onOpenCustomize }) {
             <ResetSection />
           </>
         )}
-        {page === 'howto' && <HowTo all />}
+        {page === 'howto' && (
+          <>
+            <button className="primary wide" onClick={startTour}>
+              {t('はじめてガイドを見る（最初の記録を一緒にやる）')}
+            </button>
+            <HowTo all />
+          </>
+        )}
       </div>
     )
   }

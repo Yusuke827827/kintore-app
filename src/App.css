@@ -3874,3 +3874,50 @@ button.ghost,
 .backup-nudge p {
   margin: 2px 0 0;
 }
+
+/* ---- はじめてガイド ---- */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.tour-spot {
+  position: fixed;
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55), 0 0 0 3px var(--accent);
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+
+.tour-bubble {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  max-width: 448px;
+  margin: 0 auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+  animation: fade-in 0.2s ease;
+}
+
+.tour-bubble p {
+  margin: 4px 0 2px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.tour-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-text);
+}
+
+.tour-bubble .row {
+  justify-content: flex-end;
+}

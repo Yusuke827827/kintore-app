@@ -971,4 +971,14 @@ export default {
   'ファイルに保存': 'Save to file',
   'あとで': 'Later',
   '（最後に保存：{d}）': '(last saved: {d})',
+  // はじめてガイド
+  'はじめてガイド': 'Getting started guide',
+  'はじめてガイドを見る（最初の記録を一緒にやる）': 'Open the getting started guide (log your first workout together)',
+  'ガイドを終わる': 'End guide',
+  'ここからトレーニングを始めます。マイセットのカードか、部位を選んで「〜で始める」を押してみましょう。': 'Start a workout here. Tap a My Set card, or choose body parts and tap “Start …”.',
+  '薄い数字は前回の記録です。初めての種目は、重さと回数を入れてください。': 'The faint numbers are your last session. For a new exercise, enter the weight and reps.',
+  '「−／＋」で、キーボードを出さずに重さと回数を変えられます。': 'Use − / + to change weight and reps without the keyboard.',
+  'できたら ✓ を押します。前回と同じなら ✓ だけでOK。休憩タイマーが自動で始まります。': 'Tap ✓ when the set is done. Same as last time? Just tap ✓. The rest timer starts automatically.',
+  'マイクを押して「60キロ10回」と話すだけでも記録できます。': 'You can also tap the mic and say “60 kilos 10 reps”.',
+  '全部終わったら「終了」。入力するたびに自動で保存されているので、途中でアプリを閉じても大丈夫です。': 'Tap “Finish” when you’re done. Everything saves as you go, so it’s fine to close the app midway.',
 }

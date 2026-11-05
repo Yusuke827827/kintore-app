@@ -10,6 +10,7 @@ import Customize from './screens/Customize'
 import Plan from './screens/Plan'
 import Meals from './screens/Meals'
 import Onboarding from './screens/Onboarding'
+import Tour from './components/Tour'
 import { formatMinutes } from './lib/date'
 import { formatPace } from './lib/stats'
 import { nm, t } from './i18n'
@@ -222,6 +223,16 @@ function AppInner() {
     { key: 'settings', label: t('設定'), icon: 'settings' },
   ]
 
+  // 使い方から「はじめてガイド」を始めたら、ホームへ
+  useEffect(() => {
+    const toHome = () => {
+      setSummary(null)
+      setScreen(activeWorkout ? 'workout' : 'home')
+    }
+    window.addEventListener('kintore-tour', toHome)
+    return () => window.removeEventListener('kintore-tour', toHome)
+  }, [activeWorkout])
+
   if (onboarding) return <Onboarding onDone={() => setOnboarding(false)} />
 
   return (
@@ -295,6 +306,7 @@ function AppInner() {
         )}
       </main>
 
+      <Tour />
       <nav className="tabbar" aria-label={t('メニュー')}>
         {tabs.map((t) => (
           <button
