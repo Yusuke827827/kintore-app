@@ -117,7 +117,7 @@ AUTO-BUILT MENUS
 • Light / Standard / Advanced levels
 • Weekly plans based on your goal physique and schedule
 • Filters by the equipment at your gym
-• Every exercise includes how-to steps and common mistakes (Japanese)
+• Every exercise includes how-to steps and common mistakes
 
 MY SETS & CALENDAR
 • Save routines and start them in one tap

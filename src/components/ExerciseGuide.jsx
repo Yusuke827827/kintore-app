@@ -1,11 +1,12 @@
 import { EXERCISE_GUIDE } from '../lib/exerciseGuide'
+import { EXERCISE_GUIDE_EN } from '../lib/exerciseGuideEn'
 import { MUSCLES, musclesOf } from '../lib/muscles'
 import { getLanguage, nm, t } from '../i18n'
 import Icon from './Icon'
 
 // 種目の解説（効く筋肉・やり方・よくある間違い・フォーム動画）を下から出す
 export default function ExerciseGuide({ exercise, onClose }) {
-  const guide = EXERCISE_GUIDE[exercise.id]
+  const guide = (getLanguage() === 'en' ? EXERCISE_GUIDE_EN : EXERCISE_GUIDE)[exercise.id] ?? EXERCISE_GUIDE[exercise.id]
   const m = musclesOf(exercise)
   const name = (id) => t(MUSCLES.find((x) => x.id === id)?.name ?? id)
   return (
@@ -46,7 +47,6 @@ export default function ExerciseGuide({ exercise, onClose }) {
                   </li>
                 ))}
               </ul>
-              {getLanguage() === 'en' && <p className="muted">{t('解説は今のところ日本語だけです。')}</p>}
             </>
           ) : (
             <p className="muted">{t('自分で追加した種目です。やり方は、種目のメモやフォーム動画に残せます。')}</p>
