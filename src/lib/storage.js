@@ -123,11 +123,23 @@ export function loadData() {
   }
 }
 
+// 保存した文字列を返す（ほかのタブが書き換えていないか確かめるのに使う）
 export function saveData(data) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    const json = JSON.stringify(data)
+    localStorage.setItem(STORAGE_KEY, json)
+    return json
   } catch {
     // localStorageが使えない環境（プライベートモード等）では保存をあきらめる
+    return null
+  }
+}
+
+export function readSavedJson() {
+  try {
+    return localStorage.getItem(STORAGE_KEY)
+  } catch {
+    return null
   }
 }
 

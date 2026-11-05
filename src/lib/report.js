@@ -55,7 +55,16 @@ function chrono(sessions) {
 }
 
 // 自己ベスト（推定1RM）を更新した回数。初めての種目は数えない
+const prCache = new WeakMap()
 function prEvents(sessions) {
+  const hit = prCache.get(sessions)
+  if (hit) return hit
+  const events = computePrEvents(sessions)
+  prCache.set(sessions, events)
+  return events
+}
+
+function computePrEvents(sessions) {
   const best = {}
   const events = []
   for (const s of chrono(sessions)) {
@@ -72,7 +81,8 @@ function prEvents(sessions) {
 // ---- 期間の集計 ----
 export function periodStats(range, { sessions, exercises, meals = [], bodyLogs = [], profile }, today = todayStr()) {
   const ss = sessions.filter((s) => inRange(s.date, range))
-  const exOf = (id) => exercises.find((e) => e.id === id)
+  const exMap = new Map(exercises.map((e) => [e.id, e]))
+  const exOf = (id) => exMap.get(id)
   const st = {
     sessions: ss.length,
     days: new Set(ss.map((s) => s.date)).size,

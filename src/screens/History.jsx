@@ -115,6 +115,8 @@ export default function History({ onOpenWorkout, initialView = 'log', reportProp
   const filtered = sorted.filter(
     (s) => filterPart === 'all' || s.bodyPartIds.includes(filterPart)
   )
+  // 記録が何年分あっても軽いように、新しい順に30件ずつ出す
+  const [shown, setShown] = useState(30)
 
   function partName(id) {
     return nm(allBodyParts.find((p) => p.id === id)) || id
@@ -267,7 +269,7 @@ export default function History({ onOpenWorkout, initialView = 'log', reportProp
 
       {filtered.length === 0 && <p className="muted">{t('記録がありません。')}</p>}
 
-      {filtered.map((s) => (
+      {filtered.slice(0, shown).map((s) => (
         <section className="card" key={s.id}>
           <div className="item-header">
             <h2>
@@ -325,6 +327,11 @@ export default function History({ onOpenWorkout, initialView = 'log', reportProp
           ))}
         </section>
       ))}
+      {filtered.length > shown && (
+        <button className="secondary wide" onClick={() => setShown(shown + 30)}>
+          {t('もっと見る（あと{n}件）', { n: filtered.length - shown })}
+        </button>
+      )}
         </>
       )}
     </div>

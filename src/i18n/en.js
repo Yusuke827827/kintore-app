@@ -981,4 +981,5 @@ export default {
   'できたら ✓ を押します。前回と同じなら ✓ だけでOK。休憩タイマーが自動で始まります。': 'Tap ✓ when the set is done. Same as last time? Just tap ✓. The rest timer starts automatically.',
   'マイクを押して「60キロ10回」と話すだけでも記録できます。': 'You can also tap the mic and say “60 kilos 10 reps”.',
   '全部終わったら「終了」。入力するたびに自動で保存されているので、途中でアプリを閉じても大丈夫です。': 'Tap “Finish” when you’re done. Everything saves as you go, so it’s fine to close the app midway.',
+  'もっと見る（あと{n}件）': 'Show more ({n} left)',
 }

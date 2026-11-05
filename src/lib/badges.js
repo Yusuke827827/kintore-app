@@ -63,7 +63,8 @@ export function computeBadges({ sessions, exercises, meals = [], bodyLogs = [], 
   let km = 0
   let min = 0
   const weekParts = {}
-  const exPart = (id) => exercises.find((e) => e.id === id)?.bodyPartId
+  const partOf = new Map(exercises.map((e) => [e.id, e.bodyPartId]))
+  const exPart = (id) => partOf.get(id)
   list.forEach((s, i) => {
     hit('first', s.date, i + 1)
     for (const id of ['count10', 'count50', 'count100', 'count300']) hit(id, s.date, i + 1)
